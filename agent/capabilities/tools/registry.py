@@ -1,0 +1,229 @@
+from agent.capabilities.tools.macos_window_tools import NATIVE_TILING_ACTIONS
+from agent.capabilities.tools.schemas import ToolDefinition
+
+
+class ToolRegistry:
+    def __init__(self) -> None:
+        self._tools = {
+            "browser_search": ToolDefinition(
+                name="browser_search",
+                description="Open the default browser for web navigation or search. Use this when the user wants to search for information, open a website, open an absolute http/https URL, or navigate to a known web destination. Do not use this for macOS apps, files, terminal commands, screenshots, clicks, typing, or window control.",
+                parameters={
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "string",
+                            "description": "The search topic, website name, or absolute http/https URL requested by the user.",
+                        },
+                        "target": {
+                            "type": "string",
+                            "enum": [
+                                "auto",
+                                "web",
+                                "google",
+                                "youtube",
+                                "url",
+                                "google_home",
+                                "youtube_home",
+                            ],
+                            "description": "Browser destination mode. Use auto unless the user clearly requested a specific destination or provided a URL.",
+                        },
+                    },
+                    "required": ["query"],
+                },
+                risk_level="low",
+                declared=True,
+                active=True,
+            ),
+            "take_screenshot": ToolDefinition(
+                name="take_screenshot",
+                description="Future screenshot tool. Not available in this phase.",
+                declared=True,
+                active=False,
+            ),
+            "screenshot": ToolDefinition(
+                name="screenshot",
+                description="Future vision screenshot tool. Not available in this phase.",
+                declared=True,
+                active=False,
+            ),
+            "screen_analysis": ToolDefinition(
+                name="screen_analysis",
+                description="Future screen analysis tool. Not available in this phase.",
+                declared=True,
+                active=False,
+            ),
+            "open_app": ToolDefinition(
+                name="open_app",
+                description="Open a macOS application by name. Use this for: abre Chrome, abre Finder, abre Notes.",
+                parameters={
+                    "type": "object",
+                    "properties": {"app_name": {"type": "string"}},
+                    "required": ["app_name"],
+                },
+                risk_level="low",
+                declared=True,
+                active=True,
+            ),
+            "window_native_tiling": ToolDefinition(
+                name="window_native_tiling",
+                description="Move or resize the frontmost macOS window using safe native Window menu actions from a fixed allowlist.",
+                parameters={
+                    "type": "object",
+                    "properties": {
+                        "action": {
+                            "type": "string",
+                            "enum": list(NATIVE_TILING_ACTIONS),
+                            "description": "Allowed native macOS window tiling action for the frontmost window.",
+                        }
+                    },
+                    "required": ["action"],
+                },
+                risk_level="low",
+                declared=True,
+                active=True,
+            ),
+            "open_url": ToolDefinition(
+                name="open_url",
+                description="Open an http or https URL in the default browser. Use this when the user gives a direct URL.",
+                parameters={
+                    "type": "object",
+                    "properties": {"url": {"type": "string"}},
+                    "required": ["url"],
+                },
+                risk_level="low",
+                declared=False,
+                active=False,
+            ),
+            "macos_permissions_check": ToolDefinition(
+                name="macos_permissions_check",
+                description="Check relevant macOS observation permissions.",
+                parameters={"type": "object", "properties": {}, "required": []},
+                risk_level="low",
+                declared=True,
+                active=True,
+            ),
+            "macos_observe_frontmost": ToolDefinition(
+                name="macos_observe_frontmost",
+                description="Observe/check the current frontmost macOS app and active window. Use this for: que app esta abierta, cual app esta activa, que ventana esta activa, what app is open, current app.",
+                parameters={"type": "object", "properties": {}, "required": []},
+                risk_level="low",
+                declared=True,
+                active=True,
+            ),
+            "macos_visible_windows": ToolDefinition(
+                name="macos_visible_windows",
+                description="List visible macOS windows without controlling them.",
+                parameters={"type": "object", "properties": {}, "required": []},
+                risk_level="low",
+                declared=True,
+                active=True,
+            ),
+            "macos_list_apps": ToolDefinition(
+                name="macos_list_apps",
+                description="List known and installed macOS applications.",
+                parameters={"type": "object", "properties": {}, "required": []},
+                risk_level="low",
+                declared=True,
+                active=True,
+            ),
+            "macos_space_status": ToolDefinition(
+                name="macos_space_status",
+                description="Report basic macOS Spaces status without changing Spaces.",
+                parameters={"type": "object", "properties": {}, "required": []},
+                risk_level="low",
+                declared=True,
+                active=True,
+            ),
+            "macos_space_next": ToolDefinition(
+                name="macos_space_next",
+                description="Switch to the next macOS desktop/space. Use this for: siguiente escritorio, proximo escritorio, next desktop, next space.",
+                parameters={"type": "object", "properties": {}, "required": []},
+                risk_level="low",
+                declared=True,
+                active=True,
+            ),
+            "macos_space_previous": ToolDefinition(
+                name="macos_space_previous",
+                description="Switch to the previous macOS desktop/space. Use this for: escritorio anterior, space anterior, desktop anterior, previous desktop, previous space.",
+                parameters={"type": "object", "properties": {}, "required": []},
+                risk_level="low",
+                declared=True,
+                active=True,
+            ),
+            "macos_space_mission_control": ToolDefinition(
+                name="macos_space_mission_control",
+                description="Open macOS Mission Control. Use this for: abre mission control, muestra control de mision.",
+                parameters={"type": "object", "properties": {}, "required": []},
+                risk_level="low",
+                declared=True,
+                active=True,
+            ),
+            "macos_space_switch_desktop_number": ToolDefinition(
+                name="macos_space_switch_desktop_number",
+                description="Switch to a numbered macOS desktop/space. Use this when the user says: cambia al escritorio 1, desktop 2, space 3, me refiero al escritorio 4, ve al escritorio 2.",
+                parameters={
+                    "type": "object",
+                    "properties": {"number": {"type": "integer", "minimum": 1, "maximum": 9}},
+                    "required": ["number"],
+                },
+                risk_level="low",
+                declared=True,
+                active=True,
+            ),
+            "click": ToolDefinition(
+                name="click",
+                description="Future desktop click tool. Not available in this phase.",
+                risk_level="medium",
+                declared=True,
+                active=False,
+            ),
+            "type_text": ToolDefinition(
+                name="type_text",
+                description="Future desktop typing tool. Not available in this phase.",
+                risk_level="medium",
+                declared=True,
+                active=False,
+            ),
+            "paste_text": ToolDefinition(
+                name="paste_text",
+                description="Future desktop paste tool. Not available in this phase.",
+                risk_level="medium",
+                declared=True,
+                active=False,
+            ),
+            "terminal_run_command": ToolDefinition(
+                name="terminal_run_command",
+                description="Future terminal tool. Not available in this phase.",
+                risk_level="high",
+                declared=True,
+                active=False,
+            ),
+            "write_file": ToolDefinition(
+                name="write_file",
+                description="Future file writing tool. Not available in this phase.",
+                risk_level="medium",
+                declared=True,
+                active=False,
+            ),
+        }
+
+    def all(self) -> list[ToolDefinition]:
+        return list(self._tools.values())
+
+    def get(self, name: str) -> ToolDefinition | None:
+        return self._tools.get(name)
+
+    def find_declared(self, names: list[str]) -> list[ToolDefinition]:
+        return [
+            tool
+            for name in names
+            if (tool := self.get(name)) is not None and tool.declared
+        ]
+
+    def find_active(self, names: list[str]) -> list[ToolDefinition]:
+        return [
+            tool
+            for name in names
+            if (tool := self.get(name)) is not None and tool.active
+        ]

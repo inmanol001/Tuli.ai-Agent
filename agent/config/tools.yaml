@@ -1,0 +1,22 @@
+active_mvp:
+  - browser_search
+  - open_app
+  - macos_permissions_check
+  - macos_observe_frontmost
+  - macos_visible_windows
+  - macos_list_apps
+  - macos_space_status
+  - macos_space_next
+  - macos_space_previous
+  - macos_space_mission_control
+  - macos_space_switch_desktop_number
+
+inactive_until_later:
+  - take_screenshot
+  - screenshot
+  - screen_analysis
+  - click
+  - type_text
+  - paste_text
+  - terminal_run_command
+  - write_file

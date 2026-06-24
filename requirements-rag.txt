@@ -1,0 +1,4 @@
+llama-index
+llama-index-vector-stores-chroma
+llama-index-embeddings-ollama
+chromadb

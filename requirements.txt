@@ -1,0 +1,8 @@
+ollama
+pydantic
+pyyaml
+python-dotenv
+rich
+typer
+pytest
+

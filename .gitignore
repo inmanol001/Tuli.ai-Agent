@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+__MACOSX/
+.pytest_cache/
+logs/*.jsonl
+agent/logs/*.jsonl
+agent/memory/memory.db
+agent/rag/chroma/

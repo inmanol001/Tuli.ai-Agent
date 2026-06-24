@@ -1,0 +1,17 @@
+[project]
+name = "local-agent-mvp"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+  "ollama",
+  "pydantic",
+  "pyyaml",
+  "python-dotenv",
+  "rich",
+  "typer",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["agent/tests"]
+

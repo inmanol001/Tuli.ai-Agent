@@ -1,0 +1,19 @@
+risk_levels:
+  low:
+    require_confirmation: false
+  medium:
+    require_confirmation: true
+  high:
+    require_confirmation: true
+    block_by_default: true
+
+blocked_until_tools_phase:
+  - take_screenshot
+  - screenshot
+  - screen_analysis
+  - open_app
+  - click
+  - type_text
+  - paste_text
+  - terminal_run_command
+  - write_file

@@ -1,0 +1,21 @@
+name: macos
+description: Capacidades minimas para abrir aplicaciones y manejar ventanas de macOS.
+tools:
+  - open_app
+  - window_native_tiling
+  - macos_permissions_check
+  - macos_observe_frontmost
+  - macos_visible_windows
+  - macos_list_apps
+  - macos_space_status
+  - macos_space_next
+  - macos_space_previous
+  - macos_space_mission_control
+  - macos_space_switch_desktop_number
+skills:
+  - open_app
+  - macos_windows
+  - macos_observation
+  - macos_spaces
+risk: low
+enabled: true

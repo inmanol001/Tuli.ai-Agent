@@ -1,0 +1,27 @@
+router_model:
+  provider: ollama
+  model: allenporter/xlam:1b
+  temperature: 0
+  stream: false
+  think: false
+  output: json_schema
+  retry_on_invalid_json: 1
+  fallback_model: qwen3:4b
+
+chat_model: qwen3:4b
+tool_planner_model: llama3-groq-tool-use:8b
+embedding_model: qwen3-embedding:0.6b
+
+main_model:
+  provider: ollama
+  model: qwen3:4b
+  temperature: 0.3
+  top_p: 0.9
+  num_ctx: 8192
+  stream: false
+  stream_tool_calls: false
+
+embedding:
+  provider: ollama
+  model: qwen3-embedding:0.6b
+  active: false

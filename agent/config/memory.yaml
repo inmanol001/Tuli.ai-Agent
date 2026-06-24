@@ -1,0 +1,6 @@
+memory:
+  sqlite_path: agent/memory/memory.db
+  session_memory_enabled: true
+  long_term_memory_enabled: false
+  summaries_enabled: false
+

@@ -1,0 +1,21 @@
+capabilities:
+  plugins_enabled: true
+  skills_enabled: true
+  tools_enabled: true
+
+plugins:
+  paths:
+    - agent/capabilities/plugins/installed
+  load_all: false
+
+skills:
+  paths:
+    - agent/capabilities/skills
+  load_all: false
+  selection: router_and_context_based
+
+tools:
+  registry_path: agent/capabilities/tools
+  expose_all_to_model: false
+  selection: router_and_context_based
+
