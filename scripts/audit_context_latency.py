@@ -35,6 +35,49 @@ class TimingRecorder:
         return {key: round(value, 2) for key, value in sorted(self.current.items())}
 
 
+class OllamaCallRecorder:
+    def __init__(self) -> None:
+        self.current: list[dict[str, Any]] = []
+
+    def reset(self) -> None:
+        self.current = []
+
+    def add(
+        self,
+        *,
+        stage: str,
+        method: str,
+        model: str | None,
+        messages: Any,
+        tools: Any = None,
+        elapsed_ms: float | None = None,
+    ) -> None:
+        self.current.append(
+            {
+                "stage": stage,
+                "method": method,
+                "model": model,
+                "messages_count": _list_len(messages),
+                "messages_json_chars": _json_size(list(messages) if not isinstance(messages, list) else messages),
+                "tools_count": _list_len(tools),
+                "tools_json_chars": _json_size(tools or []),
+                "elapsed_ms": round(elapsed_ms, 2) if elapsed_ms is not None else None,
+            }
+        )
+
+    def summary(self) -> dict[str, Any]:
+        models_used = []
+        for call in self.current:
+            model = call.get("model")
+            if model and model not in models_used:
+                models_used.append(model)
+        return {
+            "ollama_calls_count": len(self.current),
+            "ollama_models_used": models_used,
+            "ollama_call_breakdown": list(self.current),
+        }
+
+
 def _json_size(value: Any) -> int:
     try:
         return len(json.dumps(value, ensure_ascii=False, default=str))
@@ -97,6 +140,36 @@ def _wrap_timed_method(
     setattr(obj, method_name, wrapped)
 
 
+def _wrap_ollama_method(
+    obj: Any,
+    method_name: str,
+    stage: str,
+    recorder: OllamaCallRecorder,
+) -> None:
+    original = getattr(obj, method_name, None)
+    if original is None or not callable(original):
+        return
+
+    def wrapped(*args: Any, **kwargs: Any) -> Any:
+        model = args[0] if args else kwargs.get("model")
+        messages = args[1] if len(args) > 1 else kwargs.get("messages", [])
+        tools = args[2] if len(args) > 2 else kwargs.get("tools", [])
+        started = perf_counter()
+        try:
+            return original(*args, **kwargs)
+        finally:
+            recorder.add(
+                stage=stage,
+                method=method_name,
+                model=model,
+                messages=messages,
+                tools=tools,
+                elapsed_ms=(perf_counter() - started) * 1000,
+            )
+
+    setattr(obj, method_name, wrapped)
+
+
 def _install_timing_wrappers(gateway: Gateway, recorder: TimingRecorder) -> None:
     """Install wrappers once. The recorder is reset before each turn."""
     _wrap_timed_method(gateway.router, "route", "router_ms", recorder)
@@ -123,16 +196,28 @@ def _install_timing_wrappers(gateway: Gateway, recorder: TimingRecorder) -> None
     )
 
 
+def _install_ollama_wrappers(gateway: Gateway, recorder: OllamaCallRecorder) -> None:
+    controller = gateway.response_controller
+    _wrap_ollama_method(gateway.router.client, "chat", "router", recorder)
+    _wrap_ollama_method(controller.main_model.client, "chat", "main_model", recorder)
+    _wrap_ollama_method(controller.main_model.client, "chat_stream", "main_model_stream", recorder)
+    _wrap_ollama_method(controller.tool_planner.client, "chat_with_tools", "tool_planner", recorder)
+    _wrap_ollama_method(controller.tool_finalizer.client, "chat", "tool_finalizer", recorder)
+
+
 def run_audit(messages: list[str], *, session_id: str | None = None) -> list[dict[str, Any]]:
     gateway = Gateway()
-    recorder = TimingRecorder()
-    _install_timing_wrappers(gateway, recorder)
+    timing_recorder = TimingRecorder()
+    ollama_recorder = OllamaCallRecorder()
+    _install_timing_wrappers(gateway, timing_recorder)
+    _install_ollama_wrappers(gateway, ollama_recorder)
 
     current_session_id = session_id
     rows: list[dict[str, Any]] = []
 
     for message in messages:
-        recorder.reset()
+        timing_recorder.reset()
+        ollama_recorder.reset()
         started = perf_counter()
         response = gateway.handle_message(message, session_id=current_session_id, debug=True)
         total_ms = (perf_counter() - started) * 1000
@@ -142,6 +227,7 @@ def run_audit(messages: list[str], *, session_id: str | None = None) -> list[dic
         context = debug.get("context") if isinstance(debug.get("context"), dict) else {}
         router = debug.get("router") if isinstance(debug.get("router"), dict) else {}
         tool_result = debug.get("tool_result") if isinstance(debug.get("tool_result"), dict) else None
+        ollama_summary = ollama_recorder.summary()
 
         rows.append(
             {
@@ -151,7 +237,7 @@ def run_audit(messages: list[str], *, session_id: str | None = None) -> list[dic
                 "session_id": response.session_id,
                 "response_chars": len(response.text or ""),
                 "total_ms": round(total_ms, 2),
-                "timings_ms": recorder.snapshot(),
+                "timings_ms": timing_recorder.snapshot(),
                 "router": {
                     "model_used": router.get("model_used"),
                     "corrected": router.get("corrected"),
@@ -159,6 +245,9 @@ def run_audit(messages: list[str], *, session_id: str | None = None) -> list[dic
                 },
                 "context_summary": _context_summary(context),
                 "tool_calls_count": len(response.tool_calls or []),
+                "ollama_calls_count": ollama_summary["ollama_calls_count"],
+                "ollama_models_used": ollama_summary["ollama_models_used"],
+                "ollama_call_breakdown": ollama_summary["ollama_call_breakdown"],
                 "tool_result": {
                     "tool_name": tool_result.get("tool_name"),
                     "success": tool_result.get("success"),
@@ -179,6 +268,22 @@ def _print_table(rows: list[dict[str, Any]]) -> None:
         print(f"\n--- Turn {index}: {row['message']} ---")
         print(f"route={row['route']} status={row['status']} total_ms={row['total_ms']}")
         print(f"router={row['router']}")
+        print(
+            f"ollama_calls={row['ollama_calls_count']} "
+            f"models={row['ollama_models_used']}"
+        )
+        for call in row["ollama_call_breakdown"]:
+            print(
+                "  ollama_call="
+                f"stage={call['stage']} "
+                f"method={call['method']} "
+                f"model={call['model']} "
+                f"elapsed_ms={call['elapsed_ms']} "
+                f"messages={call['messages_count']}/"
+                f"{call['messages_json_chars']} chars "
+                f"tools={call['tools_count']}/"
+                f"{call['tools_json_chars']} chars"
+            )
         print(f"timings_ms={timings}")
         print(
             "context="
@@ -198,7 +303,7 @@ def _print_table(rows: list[dict[str, Any]]) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Audit Tuli context size and per-layer latency without changing runtime behavior."
+        description="Audit Tuli context size, Ollama calls, and per-layer latency without changing runtime behavior."
     )
     parser.add_argument(
         "messages",
