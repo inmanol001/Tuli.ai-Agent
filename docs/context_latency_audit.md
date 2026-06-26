@@ -14,6 +14,9 @@ It does not change agent behavior. It runs messages through the existing `Gatewa
 - tool finalizer latency when used
 - context JSON size
 - selected tools, skills, RAG snippets, behavior, history, and session state sizes
+- explicit Ollama call count per user message
+- Ollama model used per stage
+- Ollama message/tool payload sizes per stage
 
 ## Run from local clone
 
@@ -65,10 +68,23 @@ Look at:
 - `router_ms`
 - `main_model_ms`
 - `tool_planner_ms`
+- `tool_finalizer_ms`
 - `response_controller_ms`
 - `total_ms`
+- `ollama_calls`
+- `ollama_call` rows
 
 If simple commands like `abre github` spend most time in `tool_planner_ms`, the next fix should route simple website actions directly or reduce tool planner context.
+
+### Too many Ollama calls
+
+Look at:
+
+- `ollama_calls`
+- `models`
+- `ollama_call=stage=... model=... elapsed_ms=...`
+
+Simple turns should not need multiple slow model calls. For example, a direct browser open action should not need router + tool planner + finalizer when the tool call is obvious and safe.
 
 ### Keyword vs semantic routing
 
