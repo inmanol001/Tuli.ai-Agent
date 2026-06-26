@@ -48,8 +48,8 @@ def resolve_direct_browser_destination(user_text: str) -> tuple[str, str] | None
     Resolve simple, low-risk browser-open requests without an LLM.
 
     Returns (query, target), where target is compatible with browser_search.
-    This intentionally handles semantic variants like "llévame a GitHub" so
-    they do not fall into the generic clarification flow.
+    This handles semantic variants like "llévame a GitHub" so they do not
+    fall into the generic clarification flow.
     """
     text = user_text or ""
     normalized = _normalized_text(text)
@@ -76,6 +76,28 @@ def resolve_direct_browser_destination(user_text: str) -> tuple[str, str] | None
             return site_name, "auto"
 
     return None
+
+
+def apply_direct_browser_route(decision: Any, user_text: str) -> tuple[Any, bool]:
+    if resolve_direct_browser_destination(user_text) is None:
+        return decision, False
+
+    decision.intent = "action"
+    decision.domain = "browser"
+    decision.action = "browser_search"
+    decision.route = "action_ready"
+    decision.needs_tool = True
+    decision.risk_level = "low"
+    decision.needs_clarification = False
+    decision.missing_info = []
+    decision.needs_memory = False
+    decision.needs_rag = False
+    decision.needs_vision = False
+    decision.suggested_plugins = ["browser"]
+    decision.suggested_skills = ["browser_search"]
+    decision.suggested_tools = ["browser_search"]
+    decision.context_needed = []
+    return decision, True
 
 
 def direct_browser_search_call(
