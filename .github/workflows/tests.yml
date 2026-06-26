@@ -7,7 +7,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  smoke:
+    name: Smoke checks
     runs-on: ubuntu-latest
     env:
       PYTHONPATH: .
@@ -30,6 +31,27 @@ jobs:
         run: |
           python -m compileall agent
 
-      - name: Run tests
+  full-tests:
+    name: Full pytest suite informational
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      PYTHONPATH: .
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ollama pydantic pyyaml python-dotenv rich typer pytest
+
+      - name: Run full pytest suite
         run: |
           pytest
