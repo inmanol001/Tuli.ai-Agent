@@ -4,6 +4,11 @@ import json
 from pathlib import Path
 from typing import Any
 
+try:
+    import ollama
+except ModuleNotFoundError:  # pragma: no cover
+    ollama = None
+
 
 MODELS_CONFIG_PATH = Path("agent/config/models.yaml")
 RUNTIME_MODEL_SETTINGS_PATH = Path("agent/runtime/model_settings.json")
@@ -55,12 +60,8 @@ def _extract_model_name(item: Any) -> str | None:
 
 
 def list_ollama_models() -> list[str]:
-    try:
-        import ollama
-    except ModuleNotFoundError as exc:  # pragma: no cover - environment dependent
-        raise ModuleNotFoundError(
-            "ollama is required to inspect installed models but is not installed in this environment"
-        ) from exc
+    if ollama is None:
+        raise ModuleNotFoundError("ollama is required")
     response = ollama.list()
     if isinstance(response, dict):
         models = response.get("models", response)
