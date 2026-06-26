@@ -2,8 +2,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
+from pathlib import Path
 from time import perf_counter
 from typing import Any
+
+ROOT_DIR = Path(__file__).resolve().parents[1]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 
 from agent.gateway.gateway import Gateway
 
@@ -184,7 +190,7 @@ def _print_table(rows: list[dict[str, Any]]) -> None:
             f"tools={context['selected_tools_count']}/"
             f"{context['selected_tools_json_chars']} chars, "
             f"behavior_chars={context['behavior_json_chars']}, "
-            f"session_state_chars={context['session_state_json_chars']}"
+            f"session_state_chars={context['session_state_json_chars]}"
         )
         if row["tool_result"]:
             print(f"tool_result={row['tool_result']}")
