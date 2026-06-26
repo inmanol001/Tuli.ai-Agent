@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import json
 from typing import Any
 
 from agent.capabilities.tools.browser_tools import KNOWN_SITE_URLS, normalize_http_url
@@ -267,6 +268,113 @@ _WEB_RESULT_ORDINALS = {
 }
 
 
+
+def _is_vague_recent_site_request(text: str) -> bool:
+    lowered = _normalized_text(text)
+    has_open = re.search(
+        r"\b(abre|abrir|ábreme|abreme|muestra|muéstrame|muestrame|llévame|llevame|entra|ve|ir)\b",
+        lowered,
+        re.I,
+    )
+    has_vague_ref = re.search(
+        r"\b(eso|esto|ese sitio|esa pagina|esa página|ese link|ese enlace|ahi|ahí|alli|allí)\b",
+        lowered,
+        re.I,
+    )
+    return bool(has_open and has_vague_ref)
+
+
+def _recent_tool_payloads_from_context(context):
+    for turn in reversed(getattr(context, "recent_history", []) or []):
+        if getattr(turn, "role", None) != "tool":
+            continue
+        content = getattr(turn, "content", "") or ""
+        try:
+            payload = json.loads(content)
+        except Exception:
+            continue
+        if isinstance(payload, dict):
+            yield payload
+
+
+def _get_last_web_reference_from_context(context) -> str | None:
+    """
+    Devuelve el mejor target reciente para abrir cuando el usuario dice
+    "ese sitio" sin ordinal.
+
+    Preferencia:
+    1. query del último web_search, porque browser_search(query, auto)
+       puede mapear Ollama -> ollama.com, Canva -> canva.com, etc.
+    2. url del último browser_search.
+    3. url/title del primer resultado de último web_search si no hay query.
+    """
+    # Primero revisar tool turns reales del historial.
+    for payload in _recent_tool_payloads_from_context(context):
+        tool_name = payload.get("tool_name")
+        data = payload.get("data") or {}
+        if not isinstance(data, dict):
+            continue
+
+        if tool_name == "web_search":
+            query = (data.get("query") or "").strip()
+            if query:
+                return query
+
+            results = data.get("results") or []
+            if isinstance(results, list) and results:
+                best = _pick_best_web_result(results)
+                if best:
+                    return best
+
+        if tool_name == "browser_search":
+            url = (data.get("url") or "").strip()
+            query = (data.get("query") or "").strip()
+            if url:
+                return url
+            if query:
+                return query
+
+    # Fallback viejo: conversation_state si existe.
+    session_state = getattr(context, "session_state", None) or {}
+    conversation_state = session_state.get("conversation_state") or {}
+    if isinstance(conversation_state, dict):
+        last = conversation_state.get("last") or {}
+        if isinstance(last, dict):
+            query = (last.get("web_query") or last.get("query") or "").strip()
+            if query:
+                return query
+
+    return None
+
+
+def _pick_best_web_result(results: list) -> str | None:
+    if not isinstance(results, list):
+        return None
+
+    # Preferir dominios oficiales si el título coincide con dominio/proyecto.
+    for result in results[:5]:
+        if not isinstance(result, dict):
+            continue
+        title = str(result.get("title") or "").lower()
+        url = str(result.get("url") or result.get("link") or "").strip()
+        if not url:
+            continue
+        clean_url = url.lower()
+        if "wikipedia.org" in clean_url:
+            continue
+        if title and any(token in clean_url for token in title.replace("-", " ").split()[:2]):
+            return url
+
+    for result in results[:5]:
+        if not isinstance(result, dict):
+            continue
+        url = str(result.get("url") or result.get("link") or "").strip()
+        if url:
+            return url
+
+    return None
+
+
 def fallback_web_result_reference_call(context):
     import re
     from agent.capabilities.tools.schemas import ToolCall
@@ -309,6 +417,18 @@ def fallback_web_result_reference_call(context):
 
     index = _extract_web_result_index(lowered)
     if index is None:
+        if _is_vague_recent_site_request(lowered):
+            recent_target = _get_last_web_reference_from_context(context)
+            if recent_target:
+                return (
+                    ToolCall(
+                        tool_name="browser_search",
+                        arguments={"query": str(recent_target), "target": "auto"},
+                        risk_level="low",
+                        requires_confirmation=False,
+                    ),
+                    "browser_search_recent_web_reference",
+                )
         return None
 
     web_results = _get_last_web_results_from_context(context)

@@ -420,6 +420,26 @@ class ResponseController:
                     debug=debug,
                 )
 
+        # Si Gateway ya resolvió que una frase como "llévame a ese sitio"
+        # se refiere al último resultado web, no vuelvas a pedir aclaración.
+        # Construye la tool directamente usando el historial reciente.
+        if context.router_decision.action == "open_recent_web_reference":
+            recent_reference_call = fallback_web_result_reference_call(context)
+            if recent_reference_call is not None:
+                fallback_tool_call, fallback_reason = recent_reference_call
+                action_debug["tool_planner_fallback"] = fallback_reason
+                action_debug["tool_planner_fallback_tool_call"] = fallback_tool_call.model_dump(mode="json")
+                action_debug["recent_web_reference_recovered"] = True
+                action = ModelAction(kind="tool_call", tool_call=fallback_tool_call)
+                action_debug["model_action"] = action.model_dump(mode="json")
+                return self._run_tool_action(
+                    context,
+                    session,
+                    action,
+                    action_debug,
+                    debug=debug,
+                )
+
         resolution = self.context_resolver.resolve(context, session)
 
         if (

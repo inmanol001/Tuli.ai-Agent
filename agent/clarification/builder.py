@@ -26,6 +26,9 @@ class ClarificationResult(BaseModel):
     reason: str
     missing_info: list[str] = Field(default_factory=list)
     options: list[str] = Field(default_factory=list)
+    expects_free_text: bool = False
+    allow_numbered_options: bool = True
+    guidance: str = ""
     source: str = "clarification_builder"
 
 
@@ -36,6 +39,9 @@ class ClarificationSpec:
     pending_clarification: str
     reason: str
     missing_info: list[str]
+    expects_free_text: bool = False
+    allow_numbered_options: bool = True
+    guidance: str = ""
 
 
 class ClarificationBuilder:
@@ -222,6 +228,9 @@ class ClarificationBuilder:
                 reason=forced.reason,
                 missing_info=forced.missing_info,
                 options=forced.options,
+                expects_free_text=forced.expects_free_text,
+                allow_numbered_options=forced.allow_numbered_options,
+                guidance=forced.guidance,
             )
 
         spec = self._select_spec(context, missing_info, inferred_reason, resolution)
@@ -233,6 +242,9 @@ class ClarificationBuilder:
             reason=spec.reason,
             missing_info=spec.missing_info,
             options=spec.options,
+            expects_free_text=spec.expects_free_text,
+            allow_numbered_options=spec.allow_numbered_options,
+            guidance=spec.guidance,
         )
 
     def _pending_from_current_signal(
@@ -298,6 +310,76 @@ class ClarificationBuilder:
 
         return None
 
+    def _free_text_spec(
+        self,
+        context: ContextPackage,
+        pending: str,
+        missing_info: list[str],
+        reason: str,
+    ) -> ClarificationSpec:
+        return ClarificationSpec(
+            question=self._natural_free_text_question(context, pending),
+            options=[],
+            pending_clarification=pending,
+            reason=reason or pending,
+            missing_info=missing_info or [pending],
+            expects_free_text=True,
+            allow_numbered_options=False,
+            guidance=self._clarification_guidance(pending),
+        )
+
+    def _natural_free_text_question(self, context: ContextPackage, pending: str) -> str:
+        # No es una plantilla única. Son variantes breves guiadas por el slot faltante
+        # para que no se sienta como formulario rígido.
+        seed = (len(context.recent_history) + len(context.user_message or "") + len(pending)) % 3
+
+        variants = {
+            "target_url": [
+                "¿A qué página quieres que te lleve? Puedes decirme el nombre del sitio o pegar la URL.",
+                "Dime el sitio o la URL que quieres abrir.",
+                "Claro, ¿qué página quieres abrir?",
+            ],
+            "search_query": [
+                "¿Qué tema quieres que investigue exactamente?",
+                "Dime qué quieres que busque y lo reviso.",
+                "¿Sobre qué quieres que haga la búsqueda?",
+            ],
+            "target_app": [
+                "¿Cuál aplicación quieres que abra?",
+                "Dime el nombre de la app y la abro.",
+                "Claro, ¿qué app quieres usar?",
+            ],
+            "target_workflow_or_platform": [
+                "Dime un poco más: ¿qué quieres crear y dónde lo quieres trabajar?",
+                "Perfecto, cuéntame qué tipo de diseño necesitas y para qué plataforma.",
+                "¿Qué pieza quieres crear? Puedes decirme si es post, flyer, historia, presentación u otra cosa.",
+            ],
+            "target_content": [
+                "¿Qué contenido quieres usar?",
+                "Pásame el texto, idea o contenido que quieres trabajar.",
+                "Dime qué contenido debo tomar como base.",
+            ],
+            "missing_details": [
+                "Dame un poco más de detalle para hacerlo bien.",
+                "Necesito un dato más concreto para continuar.",
+                "Aclárame qué quieres que haga exactamente.",
+            ],
+        }
+
+        choices = variants.get(pending) or variants["missing_details"]
+        return choices[seed]
+
+    def _clarification_guidance(self, pending: str) -> str:
+        guidance = {
+            "target_url": "Ask naturally for the site name or URL. Do not show fake numbered options. Expect free text.",
+            "search_query": "Ask naturally for the exact search topic. Do not show fake numbered options. Expect free text.",
+            "target_app": "Ask naturally which app to open. Do not show fake numbered options. Expect free text.",
+            "target_workflow_or_platform": "Ask naturally for the design/workflow details. Avoid rigid menu unless there are real candidates.",
+            "target_content": "Ask naturally for the content to use. Expect free text.",
+            "missing_details": "Ask naturally for the missing concrete detail. Expect free text.",
+        }
+        return guidance.get(pending, "Ask a brief natural clarification question.")
+
     def _forced_spec_for_pending(
         self,
         context: ContextPackage,
@@ -323,44 +405,13 @@ class ClarificationBuilder:
             )
 
         if pending == "target_url":
-            return ClarificationSpec(
-                question="¿Qué página o sitio quieres abrir?",
-                options=[
-                    "Escribirme la URL o nombre exacto.",
-                    "Buscar el sitio por nombre.",
-                    "Cancelar esta acción.",
-                ],
-                pending_clarification="target_url",
-                reason=inferred_reason or "target_url",
-                missing_info=missing_info or ["target_url"],
-            )
+            return self._free_text_spec(context, "target_url", missing_info, inferred_reason or "target_url")
 
         if pending == "target_app":
-            return ClarificationSpec(
-                question="¿Qué app quieres abrir?",
-                options=[
-                    "Escribirme el nombre exacto de la app.",
-                    "Listar apps disponibles.",
-                    "Cancelar esta acción.",
-                ],
-                pending_clarification="target_app",
-                reason=inferred_reason or "target_app",
-                missing_info=missing_info or ["target_app"],
-            )
+            return self._free_text_spec(context, "target_app", missing_info, inferred_reason or "target_app")
 
         if pending == "target_workflow_or_platform":
-            return ClarificationSpec(
-                question="Necesito concretar el diseño antes de seguir. ¿Qué quieres crear y dónde quieres hacerlo?",
-                options=[
-                    "Diseño gráfico.",
-                    "Post para redes.",
-                    "Diseño en Canva.",
-                    "Otra cosa.",
-                ],
-                pending_clarification="target_workflow_or_platform",
-                reason=inferred_reason or "target_workflow_or_platform",
-                missing_info=missing_info or ["target_workflow_or_platform"],
-            )
+            return self._free_text_spec(context, "target_workflow_or_platform", missing_info, inferred_reason or "target_workflow_or_platform")
 
         return None
 
@@ -383,29 +434,26 @@ class ClarificationBuilder:
 
         if pending == "target_workflow_or_platform":
             return ClarificationSpec(
-                question="Necesito concretar el diseño antes de seguir. ¿Qué quieres crear y dónde quieres hacerlo?",
-                options=[
-                    "Diseño gráfico.",
-                    "Post para redes.",
-                    "Diseño en Canva.",
-                    "Otra cosa.",
-                ],
+                question="Cuéntame qué tipo de diseño necesitas y para qué plataforma.",
+                options=[],
                 pending_clarification="target_workflow_or_platform",
                 reason=spec.reason,
                 missing_info=spec.missing_info,
+                expects_free_text=True,
+                allow_numbered_options=False,
+                guidance=self._clarification_guidance("target_workflow_or_platform"),
             )
 
         if pending == "target_app":
             return ClarificationSpec(
-                question="¿Qué app quieres abrir?",
-                options=[
-                    "Escribirme el nombre exacto de la app.",
-                    "Listar apps disponibles.",
-                    "Cancelar esta acción.",
-                ],
+                question="¿Cuál aplicación quieres que abra?",
+                options=[],
                 pending_clarification="target_app",
                 reason=spec.reason,
                 missing_info=spec.missing_info,
+                expects_free_text=True,
+                allow_numbered_options=False,
+                guidance=self._clarification_guidance("target_app"),
             )
 
         return spec
@@ -601,19 +649,25 @@ class ClarificationBuilder:
             if key in normalized:
                 question, options, pending_key = self._missing_info_questions[key]
                 candidates = self._recent_candidates(context, resolution)
-                if candidates and key in {
+                free_text_keys = {
                     "target_url",
                     "target_app",
                     "target_workflow_or_platform",
-                    "previous_context",
-                    "missing_details",
                     "search_query",
+                    "target_content",
+                    "missing_details",
+                }
+                if key in free_text_keys:
+                    return self._free_text_spec(context, key, missing_info, reason or "missing_info")
+
+                if candidates and key in {
+                    "previous_context",
                     "topic",
                     "target_file_or_error",
                     "window_action",
-                    "target_content",
                 }:
                     options = self._candidate_options(key, candidates)
+
                 return ClarificationSpec(
                     question=question,
                     options=options,
@@ -808,6 +862,8 @@ class ClarificationBuilder:
         return normalized
 
     def _format_text(self, question: str, options: list[str]) -> str:
+        if not options:
+            return question.strip()
         lines = [question, "", "Opciones:"]
         for index, option in enumerate(options, start=1):
             lines.append(f"{index}. {option}")

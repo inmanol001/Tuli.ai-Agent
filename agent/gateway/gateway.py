@@ -17,6 +17,7 @@ from agent.response_action.early_ack import build_early_ack
 from agent.response_action.state_helpers import (
     clear_stale_pending_confirmation_for_action,
     resolve_pending_clarification,
+    promote_recent_web_reference,
     clear_pending_workflow_for_topic_change,
 )
 from agent.router.xlam_router import XlamRouter
@@ -274,6 +275,11 @@ class Gateway:
         effective_decision = resolve_pending_clarification(
             session, user_text, router_result.decision
         )
+        contextual_decision = promote_recent_web_reference(
+            session, user_text, effective_decision
+        )
+        if contextual_decision is not None:
+            effective_decision = contextual_decision
         clear_stale_pending_confirmation_for_action(session, user_text, effective_decision)
         effective_decision = self._force_chat_for_user_memory_question(user_text, effective_decision)
         if session.pending_workflow:

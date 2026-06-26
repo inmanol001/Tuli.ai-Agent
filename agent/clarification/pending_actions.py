@@ -6,6 +6,7 @@ from typing import Any
 from agent.capabilities.tools.browser_tools import normalize_http_url
 from agent.capabilities.tools.schemas import ToolCall
 from agent.gateway.message_types import ContextPackage
+from agent.clarification.semantic_slot_extractor import extract_slot_value
 
 
 _CANCEL_RE = re.compile(r"^\s*(cancel|cancela|cancelar|no|olvidalo|olvídalo)\s*[!.?]*\s*$", re.I)
@@ -23,6 +24,14 @@ _OPERATIONAL_NEW_REQUEST_RE = re.compile(
     re.I,
 )
 _APPISH_RE = re.compile(r"^[A-Za-zÁÉÍÓÚÑáéíóúñ0-9 ._-]{2,40}$")
+_NON_EXECUTABLE_OPTION_RE = re.compile(
+    r"\b("
+    r"escribirme|escribir|dime|dar\s+m[aá]s\s+contexto|"
+    r"buscar\s+el\s+sitio\s+por\s+nombre|listar\s+apps|"
+    r"otro\s+tema|otra\s+cosa|otro\s+destino|cancelar"
+    r")\b",
+    re.I,
+)
 
 
 def pending_clarification_tool_call(context: ContextPackage) -> tuple[ToolCall, str] | None:
@@ -63,7 +72,7 @@ def pending_clarification_tool_call(context: ContextPackage) -> tuple[ToolCall, 
         )
 
     if pending in {"target_url", "resolved_reference_confirmation"}:
-        target_text = _target_text_from_reply(user_text, selected_label, last_options)
+        target_text = _target_text_from_reply(user_text, selected_label, last_options, pending)
         if not target_text or _VAGUE_RE.match(target_text) or choice in {"1", "2", "3"} and not selected_label:
             return None
         if "browser_search" not in selected_tools:
@@ -71,7 +80,7 @@ def pending_clarification_tool_call(context: ContextPackage) -> tuple[ToolCall, 
         return _browser_call(target_text, "pending_target_url")
 
     if pending == "search_query":
-        query = _target_text_from_reply(user_text, selected_label, last_options)
+        query = _target_text_from_reply(user_text, selected_label, last_options, pending)
         if not query or _VAGUE_RE.match(query):
             return None
         if "web_search" not in selected_tools:
@@ -87,7 +96,7 @@ def pending_clarification_tool_call(context: ContextPackage) -> tuple[ToolCall, 
         )
 
     if pending == "ambiguous_reference":
-        target_text = _target_text_from_reply(user_text, selected_label, last_options)
+        target_text = _target_text_from_reply(user_text, selected_label, last_options, pending)
         if not target_text or _VAGUE_RE.match(target_text):
             return None
 
@@ -120,7 +129,7 @@ def pending_clarification_tool_call(context: ContextPackage) -> tuple[ToolCall, 
             )
 
     if pending == "target_app":
-        app_name = _target_text_from_reply(user_text, selected_label, last_options)
+        app_name = _target_text_from_reply(user_text, selected_label, last_options, pending)
         if not app_name or _VAGUE_RE.match(app_name):
             return None
         if _looks_like_new_request(app_name):
@@ -168,24 +177,37 @@ def _target_text_from_reply(
     user_text: str,
     selected_label: str | None,
     options: dict[str, str],
+    pending: str | None = None,
 ) -> str | None:
     if selected_label:
-        return _clean_option_label(selected_label)
+        cleaned_label = _clean_option_label(selected_label)
+        if _NON_EXECUTABLE_OPTION_RE.search(cleaned_label):
+            return None
+        return cleaned_label
 
     if _YES_RE.match(user_text):
         if len(options) == 1:
-            return _clean_option_label(next(iter(options.values())))
+            cleaned_label = _clean_option_label(next(iter(options.values())))
+            if _NON_EXECUTABLE_OPTION_RE.search(cleaned_label):
+                return None
+            return cleaned_label
         first = options.get("1")
         if first:
-            return _clean_option_label(first)
+            cleaned_label = _clean_option_label(first)
+            if _NON_EXECUTABLE_OPTION_RE.search(cleaned_label):
+                return None
+            return cleaned_label
         return None
 
     choice = _choice(user_text)
     if choice.isdigit():
         return None
 
-    return user_text.strip()
+    extraction = extract_slot_value(user_text, pending)
+    if extraction.confidence in {"high", "medium"} and extraction.value:
+        return extraction.value
 
+    return None
 
 def _last_assistant_options(context: ContextPackage) -> dict[str, str]:
     assistant_text = ""
