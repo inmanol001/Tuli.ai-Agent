@@ -2,14 +2,17 @@ from collections.abc import Iterable
 from collections.abc import Iterator
 from typing import Any
 
+try:
+    import ollama
+except ModuleNotFoundError:  # pragma: no cover
+    ollama = None
+
 
 def _ollama_module():
-    try:
-        import ollama
-    except ModuleNotFoundError as exc:  # pragma: no cover - environment dependent
+    if ollama is None:
         raise ModuleNotFoundError(
             "ollama is required for live model calls but is not installed in this environment"
-        ) from exc
+        )
     return ollama
 
 
