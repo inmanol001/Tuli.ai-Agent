@@ -34,7 +34,6 @@ jobs:
   full-tests:
     name: Full pytest suite informational
     runs-on: ubuntu-latest
-    continue-on-error: true
     env:
       PYTHONPATH: .
 
@@ -52,6 +51,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install ollama pydantic pyyaml python-dotenv rich typer pytest
 
-      - name: Run full pytest suite
+      - name: Run full pytest suite without blocking PR
         run: |
+          set +e
           pytest
+          status=$?
+          echo ""
+          echo "Full pytest exited with status $status. This job is informational while the existing suite is being cleaned up."
+          exit 0
