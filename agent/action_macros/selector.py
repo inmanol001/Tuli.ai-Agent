@@ -73,7 +73,6 @@ class ActionMacroSelector:
 
         return False
 
-
     def select(self, context: ContextPackage) -> ActionMacroPlan:
         if self._router_wants_web_search(context):
             return ActionMacroPlan(
@@ -96,34 +95,20 @@ class ActionMacroSelector:
                 inputs={"open_chatgpt": True},
                 reason="matched_open_work_setup",
             )
-        # Open-ended/random YouTube requests are selection intents, not literal searches.
-        # They must run before generic browser search.
         if self._looks_like_random_youtube_video(text):
-            topic_hint = self._topic_hint(text)
             return ActionMacroPlan(
                 selected=True,
                 workflow_name="play_random_youtube_video",
-                inputs={
-                    "query": topic_hint or "__open_ended__",
-                    "target": "youtube",
-                    "open_ended": True,
-                    "topic_hint": topic_hint,
-                    "user_context": self._user_context_hint(context),
-                },
+                inputs={"query": "random video"},
                 reason="matched_play_random_youtube_video",
             )
         if self._looks_like_browser_search(text):
-            open_ended = self._is_open_ended_search(text)
-            topic_hint = self._topic_hint(text) if open_ended else ""
             return ActionMacroPlan(
                 selected=True,
                 workflow_name="open_browser_and_search",
                 inputs={
                     "query": self._search_query(text) or "__open_ended__",
                     "target": self._search_target(text),
-                    "open_ended": open_ended,
-                    "topic_hint": topic_hint,
-                    "user_context": self._user_context_hint(context),
                 },
                 reason="matched_open_browser_and_search",
             )
@@ -324,7 +309,7 @@ class ActionMacroSelector:
                 return "google_home"
             return "google"
 
-        return "auto"
+        return "web"
 
     def _mentions_window(self, text: str) -> bool:
         return any(token in text for token in ("ventana", "window", "esta ventana", "ventana activa"))
