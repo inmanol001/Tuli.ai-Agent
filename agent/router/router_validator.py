@@ -52,6 +52,32 @@ BROWSER_SEARCH_RE = re.compile(
     re.I,
 )
 
+VAGUE_OBJECT_RE = re.compile(r"\b(eso|esto|esa|ese|esta|este)\b", re.I)
+SEARCH_WITH_VAGUE_RE = re.compile(
+    r"^\s*(?:busca|buscar|b[uú]scame|buscame|investiga|investigar|consulta|consultar|averigua|averiguar)(?:\s+informaci[oó]n\s+sobre)?\s+(?:eso|esto|esa|ese|esta|este)\s*$",
+    re.I,
+)
+OPEN_WITH_VAGUE_RE = re.compile(
+    r"^\s*(?:abre|abrir|[aá]breme|muestra|mu[eé]strame|muestrame|ll[eé]vame|llevame|ir\s+a|ve\s+a)\s+(?:a\s+)?(?:ese|esa|eso|esto|este|esta)?\s*(?:sitio|p[aá]gina|web|url)?\s*$",
+    re.I,
+)
+OPEN_APP_NATURAL_MISSING_TARGET_RE = re.compile(
+    r"^\s*(?:quiero\s+)?(?:abrir|abre|abrirme|ábreme)\s+(?:una\s+)?(?:app|aplicaci[oó]n)\s*$",
+    re.I,
+)
+
+CANVA_WORKFLOW_RE = re.compile(
+    r"\b(?:hazme|hacer|haz|crea|crear|diseña|diseñar)\b.*\b(?:post|diseño|diseno|publicaci[oó]n|arte|gr[aá]fico|grafico)\b.*\bcanva\b|"
+    r"\bcanva\b.*\b(?:post|diseño|diseno|publicaci[oó]n|arte|gr[aá]fico|grafico)\b",
+    re.I,
+)
+
+OPEN_APP_MISSING_TARGET_RE = re.compile(
+    r"^\s*(?:quiero\s+)?(?:abre|abrir|[aá]breme)?\s*(?:la\s+)?(?:app|aplicaci[oó]n)\s*$|"
+    r"^\s*quiero\s+abrir\s+(?:la\s+)?(?:app|aplicaci[oó]n)\s*$",
+    re.I,
+)
+
 WEB_INFO_SEARCH_RE = re.compile(
     r"\b(?:"
     r"investiga|investigar|research|look\s+up|"
@@ -213,6 +239,76 @@ def validate_and_correct_router_decision(
 
     if GREETING_RE.search(text):
         decision = RouterDecision(intent="chat", route="chat", needs_tool=False)
+        return decision, True
+
+    if OPEN_APP_NATURAL_MISSING_TARGET_RE.search(text):
+        decision.intent = "action"
+        decision.domain = "macos"
+        decision.action = "open_app"
+        decision.route = "clarification"
+        decision.needs_tool = True
+        decision.risk_level = "low"
+        decision.needs_clarification = True
+        decision.missing_info = ["target_app"]
+        decision.suggested_plugins = ["macos"]
+        decision.suggested_skills = ["open_app"]
+        decision.suggested_tools = ["open_app"]
+        return decision, True
+
+    if CANVA_WORKFLOW_RE.search(text):
+        decision.intent = "action"
+        decision.domain = "workflow"
+        decision.action = "full_workflow_candidate"
+        decision.route = "clarification"
+        decision.needs_tool = True
+        decision.risk_level = "low"
+        decision.needs_clarification = True
+        decision.missing_info = ["target_workflow_or_platform"]
+        decision.suggested_plugins = []
+        decision.suggested_skills = ["full_workflows"]
+        decision.suggested_tools = []
+        return decision, True
+
+    if SEARCH_WITH_VAGUE_RE.search(text):
+        decision.intent = "action"
+        decision.domain = "browser"
+        decision.action = "web_search"
+        decision.route = "clarification"
+        decision.needs_tool = True
+        decision.risk_level = "low"
+        decision.needs_clarification = True
+        decision.missing_info = ["search_query"]
+        decision.suggested_plugins = ["browser"]
+        decision.suggested_skills = ["web_search"]
+        decision.suggested_tools = ["web_search"]
+        return decision, True
+
+    if OPEN_WITH_VAGUE_RE.search(text):
+        decision.intent = "action"
+        decision.domain = "browser"
+        decision.action = "browser_search"
+        decision.route = "clarification"
+        decision.needs_tool = True
+        decision.risk_level = "low"
+        decision.needs_clarification = True
+        decision.missing_info = ["target_url"]
+        decision.suggested_plugins = ["browser"]
+        decision.suggested_skills = ["browser_search"]
+        decision.suggested_tools = ["browser_search"]
+        return decision, True
+
+    if OPEN_APP_MISSING_TARGET_RE.search(text):
+        decision.intent = "action"
+        decision.domain = "macos"
+        decision.action = "open_app"
+        decision.route = "clarification"
+        decision.needs_tool = True
+        decision.risk_level = "low"
+        decision.needs_clarification = True
+        decision.missing_info = ["target_app"]
+        decision.suggested_plugins = ["macos"]
+        decision.suggested_skills = ["open_app"]
+        decision.suggested_tools = ["open_app"]
         return decision, True
 
     # Capability guard: Mission Control is a known macOS Spaces capability.

@@ -2,6 +2,7 @@ import json
 
 from pydantic import ValidationError
 
+from agent.gateway.direct_actions import apply_direct_browser_route
 from agent.models.ollama_client import OllamaClient
 from agent.router.router_prompt import ROUTER_SYSTEM_PROMPT, build_router_prompt
 from agent.router.router_schema import RouterDecision, RouterResult
@@ -39,11 +40,12 @@ class XlamRouter:
                 decision, corrected = validate_and_correct_router_decision(
                     decision, user_text
                 )
+                decision, direct_corrected = apply_direct_browser_route(decision, user_text)
                 return RouterResult(
                     decision=decision,
                     model_used=model,
                     raw=raw,
-                    corrected=corrected,
+                    corrected=corrected or direct_corrected,
                 )
             except (json.JSONDecodeError, ValidationError, Exception) as exc:
                 last_error = str(exc)
@@ -51,10 +53,11 @@ class XlamRouter:
         decision, corrected = validate_and_correct_router_decision(
             RouterDecision(), user_text
         )
+        decision, direct_corrected = apply_direct_browser_route(decision, user_text)
         return RouterResult(
             decision=decision,
             model_used="deterministic_fallback",
             raw="{}",
-            corrected=corrected,
+            corrected=corrected or direct_corrected,
             error=last_error,
         )

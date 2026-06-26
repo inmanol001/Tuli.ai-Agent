@@ -230,7 +230,7 @@ class ResponseController:
                     ),
                     "session_state": {
                         **context.session_state,
-                        "pending_clarification": "target",
+                        "pending_clarification": self._pending_from_action_intent(action_intent),
                     },
                 }
             )
@@ -282,6 +282,38 @@ class ResponseController:
             return self.handle_action_ready(action_context, session, debug=action_debug)
 
         return None
+
+    def _pending_from_action_intent(self, action_intent) -> str:
+        action_type = getattr(action_intent, "action_type", None)
+        tools = set(getattr(action_intent, "suggested_tools", []) or [])
+        missing = set(getattr(action_intent, "missing_info", []) or [])
+
+        if action_type == "window_move" or "window_native_tiling" in tools:
+            return "window_action"
+        if action_type == "search" or "web_search" in tools:
+            return "search_query"
+        if action_type == "open":
+            if "open_app" in tools and "browser_search" not in tools:
+                return "target_app"
+            return "target_url"
+
+        if "window_action" in missing:
+            return "window_action"
+        if "target_app" in missing:
+            return "target_app"
+        if "search_query" in missing:
+            return "search_query"
+
+        # "target" es demasiado genérico. En una frase tipo "abre la página",
+        # el target faltante debe ser URL/sitio, no un pending abstracto.
+        if "target" in missing:
+            if "open_app" in tools and "browser_search" not in tools:
+                return "target_app"
+            if "web_search" in tools:
+                return "search_query"
+            return "target_url"
+
+        return "missing_details"
 
     def _chat_preflight_debug(
         self,

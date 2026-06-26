@@ -53,10 +53,10 @@ class ClarificationBuilder:
             "artist_or_genre",
         ),
         "search_query": (
-            "Necesito saber qué quieres buscar.",
+            "¿Qué quieres que busque exactamente?",
             [
-                "Buscar el último tema mencionado.",
-                "Escribirte el tema exacto.",
+                "Escribirme el tema exacto.",
+                "Buscar una página o documentación específica.",
                 "Cancelar esta búsqueda.",
             ],
             "search_query",
@@ -89,19 +89,19 @@ class ClarificationBuilder:
             "resolved_reference_confirmation",
         ),
         "target_app": (
-            "Necesito saber qué app quieres abrir.",
+            "¿Qué app quieres abrir?",
             [
-                "Abrir la última app mencionada.",
-                "Escribirme el nombre exacto.",
+                "Escribirme el nombre exacto de la app.",
+                "Listar apps disponibles.",
                 "Cancelar esta acción.",
             ],
             "target_app",
         ),
         "target_url": (
-            "Necesito saber qué página o URL quieres abrir.",
+            "¿Qué página o sitio quieres abrir?",
             [
-                "Abrir el último sitio mencionado.",
-                "Escribirme la URL exacta.",
+                "Escribirme la URL o nombre exacto.",
+                "Buscar el sitio por nombre.",
                 "Cancelar esta acción.",
             ],
             "target_url",
@@ -134,28 +134,28 @@ class ClarificationBuilder:
             "target_file_or_error",
         ),
         "target_workflow_or_platform": (
-            "Necesito saber qué herramienta, plataforma o flujo quieres usar.",
+            "Necesito concretar el diseño antes de seguir. ¿Qué quieres crear y dónde quieres hacerlo?",
             [
-                "Usar el último contenido mencionado.",
-                "Escribirme el contenido exacto.",
-                "Decirme qué plataforma o flujo usar.",
+                "Post para redes.",
+                "Flyer, tarjeta o anuncio.",
+                "Diseño en Canva u otra plataforma.",
             ],
             "target_workflow_or_platform",
         ),
         "target_content": (
-            "Necesito saber qué contenido quieres usar.",
+            "¿Qué contenido quieres usar?",
             [
-                "Usar el último contenido mencionado.",
-                "Escribirme el contenido exacto.",
+                "Pegar o escribir el contenido exacto.",
+                "Describir la idea que quieres usar.",
                 "Cancelar esta acción.",
             ],
             "target_content",
         ),
         "missing_details": (
-            "Necesito más detalles para continuar.",
+            "Necesito un dato concreto antes de seguir.",
             [
-                "Usar el último contexto disponible.",
-                "Escribirme el detalle exacto.",
+                "Escribirme la acción exacta.",
+                "Dar más contexto.",
                 "Cancelar esta acción.",
             ],
             "missing_details",
@@ -212,7 +212,20 @@ class ClarificationBuilder:
             missing_info_override if missing_info_override is not None else context.router_decision.missing_info
         )
         inferred_reason = reason_hint or self._infer_reason(context, missing_info)
+
+        forced = self._forced_spec_for_pending(context, missing_info, inferred_reason)
+        if forced is not None:
+            text = self._format_text(forced.question, forced.options)
+            return ClarificationResult(
+                text=text,
+                pending_clarification=forced.pending_clarification,
+                reason=forced.reason,
+                missing_info=forced.missing_info,
+                options=forced.options,
+            )
+
         spec = self._select_spec(context, missing_info, inferred_reason, resolution)
+        spec = self._clean_spec_for_pending(spec)
         text = self._format_text(spec.question, spec.options)
         return ClarificationResult(
             text=text,
@@ -221,6 +234,181 @@ class ClarificationBuilder:
             missing_info=spec.missing_info,
             options=spec.options,
         )
+
+    def _pending_from_current_signal(
+        self,
+        context: ContextPackage,
+        missing_info: list[str],
+        inferred_reason: str | None,
+    ) -> str | None:
+        joined_missing = " ".join(missing_info or []).lower()
+        reason = (inferred_reason or "").lower()
+        decision = context.router_decision
+        action = (getattr(decision, "action", "") or "").lower()
+        domain = (getattr(decision, "domain", "") or "").lower()
+        tools = set(getattr(decision, "suggested_tools", []) or [])
+
+        signal = " ".join([joined_missing, reason, action, domain, " ".join(tools)])
+
+        if "window_action" in signal or "window_native_tiling" in signal or "window" in signal:
+            return "window_action"
+
+        if "target_app" in signal or ("open_app" in tools and "browser_search" not in tools):
+            return "target_app"
+
+        if "search_query" in signal or "web_search" in tools:
+            return "search_query"
+
+        if (
+            "target_url" in signal
+            or "browser_search" in tools
+            or action in {"browser_search", "open_url", "open_page"}
+            or domain == "browser"
+        ):
+            return "target_url"
+
+        if (
+            "target_workflow_or_platform" in signal
+            or "workflow" in signal
+            or "canva" in signal
+            or "design" in signal
+            or "diseño" in signal
+        ):
+            return "target_workflow_or_platform"
+
+        if "target" in joined_missing:
+            if "open_app" in tools and "browser_search" not in tools:
+                return "target_app"
+            if "web_search" in tools:
+                return "search_query"
+            if "browser_search" in tools or domain == "browser":
+                return "target_url"
+
+        # Rescue semántico: algunos guards llegan con missing_details,
+        # pero la señal actual dice claramente web/search/window.
+        user_text = (context.user_message or "").lower()
+        if any(x in user_text for x in ("llévame", "llevame", "ese sitio", "esa página", "esa pagina", "ese website")):
+            return "target_url"
+
+        if any(x in user_text for x in ("investiga eso", "consulta eso", "averigua eso", "busca eso")):
+            return "search_query"
+
+        if any(x in user_text for x in ("mueve la ventana", "acomoda la ventana", "coloca la ventana")):
+            return "window_action"
+
+        return None
+
+    def _forced_spec_for_pending(
+        self,
+        context: ContextPackage,
+        missing_info: list[str],
+        inferred_reason: str,
+    ):
+        pending = self._pending_from_current_signal(context, missing_info, inferred_reason)
+        if pending is None:
+            pending = self._pending_hint(context)
+
+        if pending == "window_action":
+            return ClarificationSpec(
+                question="Necesito saber qué acción quieres hacer con la ventana.",
+                options=[
+                    "Moverla a la izquierda.",
+                    "Moverla a la derecha.",
+                    "Centrarla.",
+                    "Cancelar esta acción.",
+                ],
+                pending_clarification="window_action",
+                reason=inferred_reason or "window_action",
+                missing_info=missing_info or ["window_action"],
+            )
+
+        if pending == "target_url":
+            return ClarificationSpec(
+                question="¿Qué página o sitio quieres abrir?",
+                options=[
+                    "Escribirme la URL o nombre exacto.",
+                    "Buscar el sitio por nombre.",
+                    "Cancelar esta acción.",
+                ],
+                pending_clarification="target_url",
+                reason=inferred_reason or "target_url",
+                missing_info=missing_info or ["target_url"],
+            )
+
+        if pending == "target_app":
+            return ClarificationSpec(
+                question="¿Qué app quieres abrir?",
+                options=[
+                    "Escribirme el nombre exacto de la app.",
+                    "Listar apps disponibles.",
+                    "Cancelar esta acción.",
+                ],
+                pending_clarification="target_app",
+                reason=inferred_reason or "target_app",
+                missing_info=missing_info or ["target_app"],
+            )
+
+        if pending == "target_workflow_or_platform":
+            return ClarificationSpec(
+                question="Necesito concretar el diseño antes de seguir. ¿Qué quieres crear y dónde quieres hacerlo?",
+                options=[
+                    "Diseño gráfico.",
+                    "Post para redes.",
+                    "Diseño en Canva.",
+                    "Otra cosa.",
+                ],
+                pending_clarification="target_workflow_or_platform",
+                reason=inferred_reason or "target_workflow_or_platform",
+                missing_info=missing_info or ["target_workflow_or_platform"],
+            )
+
+        return None
+
+    def _clean_spec_for_pending(self, spec: ClarificationSpec) -> ClarificationSpec:
+        pending = spec.pending_clarification
+
+        if pending == "window_action":
+            return ClarificationSpec(
+                question="Necesito saber qué acción quieres hacer con la ventana.",
+                options=[
+                    "Moverla a la izquierda.",
+                    "Moverla a la derecha.",
+                    "Centrarla.",
+                    "Cancelar esta acción.",
+                ],
+                pending_clarification="window_action",
+                reason=spec.reason,
+                missing_info=spec.missing_info,
+            )
+
+        if pending == "target_workflow_or_platform":
+            return ClarificationSpec(
+                question="Necesito concretar el diseño antes de seguir. ¿Qué quieres crear y dónde quieres hacerlo?",
+                options=[
+                    "Diseño gráfico.",
+                    "Post para redes.",
+                    "Diseño en Canva.",
+                    "Otra cosa.",
+                ],
+                pending_clarification="target_workflow_or_platform",
+                reason=spec.reason,
+                missing_info=spec.missing_info,
+            )
+
+        if pending == "target_app":
+            return ClarificationSpec(
+                question="¿Qué app quieres abrir?",
+                options=[
+                    "Escribirme el nombre exacto de la app.",
+                    "Listar apps disponibles.",
+                    "Cancelar esta acción.",
+                ],
+                pending_clarification="target_app",
+                reason=spec.reason,
+                missing_info=spec.missing_info,
+            )
+
+        return spec
 
     def _select_spec(
         self,
@@ -237,12 +425,21 @@ class ClarificationBuilder:
             return inferred
 
         pending = self._pending_hint(context) or "missing_details"
-        question = "Necesito confirmar qué quieres hacer antes de seguir."
-        options = [
-            "Usar lo último mencionado.",
-            "Escribirme la acción exacta.",
-            "Cancelar esta acción.",
-        ]
+        topic = self._extract_topic_from_text_or_history(context)
+        if topic:
+            question = f"Necesito confirmar si te refieres a {topic} antes de seguir."
+            options = [
+                f"Sí, usar {topic}.",
+                "No, me refiero a otra cosa.",
+                "Cancelar esta acción.",
+            ]
+        else:
+            question = "Necesito un dato concreto antes de seguir. ¿Qué quieres que haga exactamente?"
+            options = [
+                "Escribirme la acción exacta.",
+                "Dar más contexto.",
+                "Cancelar esta acción.",
+            ]
         return ClarificationSpec(
             question=question,
             options=options,
@@ -305,7 +502,7 @@ class ClarificationBuilder:
             return ClarificationSpec(
                 question="Necesito más detalles para continuar.",
                 options=[
-                    "Usar el último contexto disponible.",
+                    "Dar más contexto concreto.",
                     "Escribirme el detalle exacto.",
                     "Cancelar esta acción.",
                 ],
@@ -343,7 +540,7 @@ class ClarificationBuilder:
                 return ClarificationSpec(
                     question="Necesito más detalles para continuar.",
                     options=[
-                        "Usar el último contexto disponible.",
+                        "Dar más contexto concreto.",
                         "Escribirme el detalle exacto.",
                         "Cancelar esta acción.",
                     ],
@@ -427,7 +624,7 @@ class ClarificationBuilder:
 
         question = "Necesito aclarar un dato antes de seguir."
         options = [
-            "Usar el último contexto disponible.",
+            "Dar más contexto concreto.",
             "Escribirme el dato exacto.",
             "Cancelar esta acción.",
         ]
@@ -476,7 +673,7 @@ class ClarificationBuilder:
             return ClarificationSpec(
                 question='Necesito saber qué tema quieres que busque con “eso”.',
                 options=[
-                    "Buscar el último tema mencionado.",
+                    "Escribirme el tema exacto.",
                     "Buscar sobre ToolPlanner.",
                     "Escribirme el tema exacto.",
                 ],

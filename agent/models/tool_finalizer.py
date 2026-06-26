@@ -62,6 +62,14 @@ class ToolFinalizerModel:
         tool_call: ToolCall,
         tool_result: ToolResult,
     ) -> ToolFinalizerResult:
+        simple_text = self._deterministic_simple_finalize(tool_call, tool_result)
+        if simple_text is not None:
+            return ToolFinalizerResult(
+                model_used="deterministic_simple_finalizer",
+                text=simple_text,
+                fallback=True,
+            )
+
         payload = {
             "user_message": user_message,
             "tool_call": tool_call.model_dump(mode="json"),
@@ -90,6 +98,24 @@ class ToolFinalizerModel:
                 fallback=True,
                 error=str(exc),
             )
+
+    def _deterministic_simple_finalize(
+        self,
+        tool_call: ToolCall,
+        tool_result: ToolResult,
+    ) -> str | None:
+        simple_tools = {
+            "browser_search",
+            "open_app",
+            "macos_space_mission_control",
+            "macos_space_next",
+            "macos_space_previous",
+            "macos_space_switch_desktop_number",
+            "window_native_tiling",
+        }
+        if tool_result.tool_name not in simple_tools:
+            return None
+        return self._fallback_finalize(tool_call, tool_result)
 
     def _fallback_finalize(self, tool_call: ToolCall, tool_result: ToolResult) -> str:
         if tool_result.tool_name == "browser_search":

@@ -5,6 +5,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from agent.clarification.pending_actions import pending_clarification_tool_call
 from agent.capabilities.tools.schemas import ToolCall
 from agent.gateway.direct_actions import direct_browser_search_call
 from agent.gateway.message_types import ContextPackage
@@ -41,6 +42,16 @@ class ToolPlanner:
         self.model = model
 
     def plan(self, context: ContextPackage) -> ToolPlannerResult:
+        pending_call = pending_clarification_tool_call(context)
+        if pending_call is not None:
+            tool_call, reason = pending_call
+            return ToolPlannerResult(
+                model_used="deterministic_pending_clarification",
+                tool_calls=[tool_call],
+                raw={"source": reason},
+                no_tool_reason=None,
+            )
+
         direct_call = fallback_web_result_reference_call(context)
         if direct_call is None:
             direct_call = direct_browser_search_call(
