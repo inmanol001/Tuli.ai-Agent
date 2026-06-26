@@ -6,7 +6,9 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from agent.capabilities.tools.schemas import ToolCall
+from agent.gateway.direct_actions import direct_browser_search_call
 from agent.gateway.message_types import ContextPackage
+from agent.gateway.tool_fallbacks import fallback_web_result_reference_call
 from agent.models.ollama_client import OllamaClient
 
 
@@ -39,6 +41,22 @@ class ToolPlanner:
         self.model = model
 
     def plan(self, context: ContextPackage) -> ToolPlannerResult:
+        direct_call = fallback_web_result_reference_call(context)
+        if direct_call is None:
+            direct_call = direct_browser_search_call(
+                context.user_message,
+                context.selected_tools,
+            )
+
+        if direct_call is not None:
+            tool_call, reason = direct_call
+            return ToolPlannerResult(
+                model_used="deterministic_direct_action",
+                tool_calls=[tool_call],
+                raw={"source": reason},
+                no_tool_reason=None,
+            )
+
         tools = self._ollama_tools(context.selected_tools)
         messages = self._messages(context)
         try:
