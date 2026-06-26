@@ -190,7 +190,7 @@ def _print_table(rows: list[dict[str, Any]]) -> None:
             f"tools={context['selected_tools_count']}/"
             f"{context['selected_tools_json_chars']} chars, "
             f"behavior_chars={context['behavior_json_chars']}, "
-            f"session_state_chars={context['session_state_json_chars]}"
+            f"session_state_chars={context['session_state_json_chars']}"
         )
         if row["tool_result"]:
             print(f"tool_result={row['tool_result']}")
