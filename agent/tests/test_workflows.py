@@ -1,15 +1,18 @@
 from __future__ import annotations
 
+from pathlib import Path
 from types import SimpleNamespace
 
 from agent.capabilities.tools.schemas import ToolCall, ToolDefinition
 from agent.gateway.message_types import ContextPackage
+from agent.gateway.session_manager import SessionState
 from agent.action_macros.schemas import ActionMacroPlan
 from agent.executor.results import ToolResult
 from agent.models.tool_planner import ToolPlannerResult
 from agent.response_action.controller import ResponseController
 from agent.router.router_schema import RouterDecision
 from agent.workflows.finalizer import FullWorkflowFinalizer
+from agent.workflows.plan_manager import WorkflowPlanManager
 from agent.workflows.reasoner import WorkflowReasonerResult
 from agent.workflows.runner import FullWorkflowRunner
 from agent.workflows.schemas import (
@@ -253,13 +256,41 @@ def test_full_workflow_runner_simulates_design_canva_post():
     assert result.phases[2].status == "completed"
     assert result.phases[2].tool_calls
     assert result.phases[2].tool_results
+    assert result.phases[2].action_runs
+    assert result.phases[2].reflection_traces
+    assert result.phases[2].retry_count == 0
     assert result.phases[3].phase_name == "open_chatgpt"
     assert result.phases[3].kind == "tool"
     assert result.phases[3].status == "completed"
     assert result.phases[3].tool_calls
     assert result.phases[3].tool_results
+    assert result.phases[3].action_runs
     assert result.state.get_value("image_prompt") == "Prompt creativo base para Día del Padre."
     assert result.state.get_value("brief_summary") == "Tema principal: Día del Padre."
+
+
+def test_full_workflow_runner_persists_runtime_plan_and_keeps_simulation_honest(tmp_path):
+    runner, tool_planner, executor, plan = make_design_canva_runner()
+    plan_manager = WorkflowPlanManager(base_dir=tmp_path / "runtime" / "plans")
+    runner.plan_manager = plan_manager
+    runner.loop_controller.plan_manager = plan_manager
+
+    result = runner.run(
+        plan,
+        make_context("haz un post en Canva del Día del Padre"),
+        SessionState(session_id="session-fullworkflow"),
+    )
+
+    assert result.workflow_name == "design_canva_post"
+    assert result.plan_path is not None
+    assert Path(result.plan_path).exists()
+    assert "# Workflow Plan: design_canva_post" in Path(result.plan_path).read_text()
+    assert result.phases
+    assert "screenshot" in result.missing_tools
+    assert result.success is False
+    assert result.status == "simulated"
+    assert tool_planner.calls
+    assert executor.calls
 
 
 def test_full_workflow_tool_phase_uses_tool_planner():

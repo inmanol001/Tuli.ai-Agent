@@ -16,8 +16,11 @@ class ToolValidator:
             raise ToolBlockedError(f"Tool not declared for current phase: {call.tool_name}")
         if not isinstance(tool.parameters, dict):
             raise ToolBlockedError(f"Tool missing valid parameter schema: {call.tool_name}")
-        if call.tool_name == "browser_search" and not call.arguments.get("query"):
-            raise ToolBlockedError("browser_search requires a query argument")
+        if call.tool_name == "browser_search":
+            target = (call.arguments.get("target") or "auto").strip().lower()
+            query = (call.arguments.get("query") or "").strip()
+            if not query and target not in {"google_home", "youtube_home"}:
+                raise ToolBlockedError("browser_search requires a query argument")
         if call.tool_name == "open_app" and not call.arguments.get("app_name"):
             raise ToolBlockedError("open_app requires an app_name argument")
         if call.tool_name == "window_native_tiling":

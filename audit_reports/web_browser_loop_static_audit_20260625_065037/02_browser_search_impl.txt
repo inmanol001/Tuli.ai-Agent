@@ -1,0 +1,181 @@
+agent/capabilities/tools/registry.py:31:            "browser_search": ToolDefinition(
+agent/capabilities/tools/registry.py:32:                name="browser_search",
+agent/capabilities/tools/registry.py.bak_web_search_20260624_235452:8:            "browser_search": ToolDefinition(
+agent/capabilities/tools/registry.py.bak_web_search_20260624_235452:9:                name="browser_search",
+agent/capabilities/tools/browser_tools.py:102:            "browser_search target must be one of auto, web, google, youtube, url, google_home, youtube_home"
+agent/capabilities/tools/browser_tools.py:113:        raise ValueError("browser_search requires a non-empty query")
+agent/capabilities/tools/browser_tools.py:133:    raise ValueError("browser_search could not resolve a target")
+agent/capabilities/tools/browser_tools.py:136:def browser_search(
+agent/capabilities/tools/browser_tools.py:143:            tool_name="browser_search",
+agent/capabilities/tools/browser_tools.py:151:        tool_name="browser_search",
+agent/capabilities/plugins/installed/browser/plugin.yaml.bak_safe_web_search_skill_20260625_002507:5:  - browser_search
+agent/capabilities/plugins/installed/browser/plugin.yaml.bak_safe_web_search_skill_20260625_002507:7:  - browser_search
+agent/capabilities/plugins/installed/browser/plugin.yaml:5:  - browser_search
+agent/capabilities/plugins/installed/browser/plugin.yaml:9:  - browser_search
+agent/capabilities/plugins/installed/browser/plugin.yaml.bak_add_web_search_skill_20260625_002204:5:  - browser_search
+agent/capabilities/plugins/installed/browser/plugin.yaml.bak_add_web_search_skill_20260625_002204:7:  - browser_search
+agent/capabilities/plugins/installed/browser/plugin.yaml.bak_web_search_20260624_235740:4:  - browser_search
+agent/capabilities/plugins/installed/browser/plugin.yaml.bak_web_search_20260624_235740:6:  - browser_search
+agent/capabilities/skills/web_search/SKILL.md.bak_long_web_search_20260625_003426:18:- `browser_search` = abrir Google, YouTube, una URL o una búsqueda en el navegador.
+agent/capabilities/skills/web_search/SKILL.md.bak_long_web_search_20260625_003426:42:Para eso usa `browser_search`.
+agent/capabilities/skills/web_search/SKILL.md.bak_long_web_search_20260625_003426:50:No uses `browser_search` para responder con información.
+agent/capabilities/skills/web_search/SKILL.md.bak_before_long_skill_20260625_010023:18:- `browser_search` = abrir Google, YouTube, una URL o una búsqueda en el navegador.
+agent/capabilities/skills/web_search/SKILL.md.bak_before_long_skill_20260625_010023:42:Para eso usa `browser_search`.
+agent/capabilities/skills/web_search/SKILL.md.bak_before_long_skill_20260625_010023:50:No uses `browser_search` para responder con información.
+agent/capabilities/skills/web_search/SKILL.md.bak_before_long_skill_20260625_005852:18:- `browser_search` = abrir Google, YouTube, una URL o una búsqueda en el navegador.
+agent/capabilities/skills/web_search/SKILL.md.bak_before_long_skill_20260625_005852:42:Para eso usa `browser_search`.
+agent/capabilities/skills/web_search/SKILL.md.bak_before_long_skill_20260625_005852:50:No uses `browser_search` para responder con información.
+agent/capabilities/skills/web_search/SKILL.md:28:`browser_search` = abrir navegador, abrir Google, abrir YouTube, abrir una URL o navegar visualmente.
+agent/capabilities/skills/web_search/SKILL.md:31:Si el usuario quiere abrir algo, usa `browser_search`.
+agent/capabilities/skills/web_search/SKILL.md:40:No uses `browser_search` para responder con información.
+agent/capabilities/skills/web_search/SKILL.md:131:En esos casos usa `browser_search`.
+agent/capabilities/skills/web_search/SKILL.md:348:Usa `browser_search`.
+agent/capabilities/skills/web_search/SKILL.md:358:Usa `browser_search`.
+agent/capabilities/skills/web_search/SKILL.md:368:Usa `browser_search`.
+agent/capabilities/skills/web_search/SKILL.md:378:Usa `browser_search`.
+agent/capabilities/skills/web_search/SKILL.md:388:Usa `browser_search`.
+agent/capabilities/skills/web_search/SKILL.md:398:Usa `browser_search`.
+agent/capabilities/skills/web_search/SKILL.md:408:Usa `browser_search`.
+agent/capabilities/skills/web_search/SKILL.md:434:Tool preferida: `browser_search`.
+agent/capabilities/skills/web_search/SKILL.md:450:Tool preferida: `browser_search`.
+agent/capabilities/skills/web_search/SKILL.md:466:Tool preferida: `browser_search`.
+agent/capabilities/skills/web_search/SKILL.md:509:- El agente usó `browser_search` para investigación.
+agent/capabilities/skills/web_search/SKILL.md:518:Objetivo de navegación visible = `browser_search`.
+agent/capabilities/skills/macos_observation.md:32:2. Buscar en internet o abrir webs. Para eso usa `browser_search`.
+agent/capabilities/skills/macos_windows.md:31:2. Buscar en internet o abrir webs. Para eso usa `browser_search`.
+agent/capabilities/skills/browser_search/SKILL.md.bak_before_browser_400_20260625_063434:2:name: browser_search
+agent/capabilities/skills/browser_search/SKILL.md.bak_before_browser_400_20260625_063434:5:  - browser_search
+agent/capabilities/skills/browser_search/SKILL.md.bak_before_browser_400_20260625_063434:11:Usa `browser_search` cuando el usuario quiera buscar información, abrir una página web o navegar a contenido usando el navegador por defecto.
+agent/capabilities/skills/browser_search/SKILL.md.bak_before_browser_400_20260625_063434:17:Usa `browser_search` cuando la intención principal del usuario sea una de estas:
+agent/capabilities/skills/browser_search/SKILL.md.bak_before_browser_400_20260625_063434:121:Cuando la intención sea clara, llama `browser_search` con `query` y `target`.
+agent/capabilities/skills/browser_search/SKILL.md:2:name: browser_search
+agent/capabilities/skills/browser_search/SKILL.md:5:  - browser_search
+agent/capabilities/skills/browser_search/SKILL.md:9:# Skill: browser_search
+agent/capabilities/skills/browser_search/SKILL.md:13:Usa browser_search cuando el usuario quiera abrir, navegar o buscar algo visible en el navegador.
+agent/capabilities/skills/browser_search/SKILL.md:14:browser_search abre páginas web.
+agent/capabilities/skills/browser_search/SKILL.md:15:browser_search abre búsquedas visibles.
+agent/capabilities/skills/browser_search/SKILL.md:16:browser_search abre Google.
+agent/capabilities/skills/browser_search/SKILL.md:17:browser_search abre YouTube.
+agent/capabilities/skills/browser_search/SKILL.md:18:browser_search abre URLs.
+agent/capabilities/skills/browser_search/SKILL.md:19:browser_search abre sitios conocidos.
+agent/capabilities/skills/browser_search/SKILL.md:20:browser_search no es para investigar y responder dentro del chat.
+agent/capabilities/skills/browser_search/SKILL.md:21:browser_search no sustituye web_search.
+agent/capabilities/skills/browser_search/SKILL.md:25:browser_search abre.
+agent/capabilities/skills/browser_search/SKILL.md:27:browser_search navega.
+agent/capabilities/skills/browser_search/SKILL.md:29:browser_search muestra algo en navegador.
+agent/capabilities/skills/browser_search/SKILL.md:32:Usa browser_search si el usuario quiere ver algo abierto.
+agent/capabilities/skills/browser_search/SKILL.md:33:Usa browser_search si el usuario dice abrir.
+agent/capabilities/skills/browser_search/SKILL.md:34:Usa browser_search si el usuario dice navegar.
+agent/capabilities/skills/browser_search/SKILL.md:35:Usa browser_search si el usuario dice visitar.
+agent/capabilities/skills/browser_search/SKILL.md:36:Usa browser_search si el usuario quiere YouTube visible.
+agent/capabilities/skills/browser_search/SKILL.md:37:Usa browser_search si el usuario quiere Google visible.
+agent/capabilities/skills/browser_search/SKILL.md:38:Usa browser_search si el usuario da una URL para abrir.
+agent/capabilities/skills/browser_search/SKILL.md:46:Tool: browser_search
+agent/capabilities/skills/browser_search/SKILL.md:66:Si el usuario pide abrir una página, llama browser_search.
+agent/capabilities/skills/browser_search/SKILL.md:67:Si el usuario pide abrir YouTube, llama browser_search.
+agent/capabilities/skills/browser_search/SKILL.md:68:Si el usuario pide abrir Google, llama browser_search.
+agent/capabilities/skills/browser_search/SKILL.md:69:Si el usuario pide abrir una URL, llama browser_search.
+agent/capabilities/skills/browser_search/SKILL.md:70:Si el usuario pide buscar en YouTube, llama browser_search.
+agent/capabilities/skills/browser_search/SKILL.md:71:Si el usuario pide buscar en Google visible, llama browser_search.
+agent/capabilities/skills/browser_search/SKILL.md:80:Tool call esperado: browser_search query=youtube target=youtube_home.
+agent/capabilities/skills/browser_search/SKILL.md:86:Tool call esperado: browser_search query=google target=google_home.
+agent/capabilities/skills/browser_search/SKILL.md:131:No uses browser_search cuando el usuario quiera que Tuli investigue y responda.
+agent/capabilities/skills/browser_search/SKILL.md:172:browser_search query=youtube target=youtube_home
+agent/capabilities/skills/browser_search/SKILL.md:178:browser_search query=youtube target=youtube_home
+agent/capabilities/skills/browser_search/SKILL.md:184:browser_search query=google target=google_home
+agent/capabilities/skills/browser_search/SKILL.md:190:browser_search query=google target=google_home
+agent/capabilities/skills/browser_search/SKILL.md:196:browser_search query=google.com target=auto
+agent/capabilities/skills/browser_search/SKILL.md:202:browser_search query=youtube.com target=auto
+agent/capabilities/skills/browser_search/SKILL.md:208:browser_search query=https://youtube.com target=url
+agent/capabilities/skills/browser_search/SKILL.md:214:browser_search query=https://ollama.com/blog/tool-support target=url
+agent/capabilities/skills/browser_search/SKILL.md:220:browser_search query=video de ollama tool calling target=youtube
+agent/capabilities/skills/browser_search/SKILL.md:226:browser_search query=qwen3 tools target=youtube
+agent/capabilities/skills/browser_search/SKILL.md:232:browser_search query=ollama tool calling target=google
+agent/capabilities/skills/browser_search/SKILL.md:238:browser_search query=ollama tool calling target=google
+agent/capabilities/skills/browser_search/SKILL.md:244:browser_search query=github target=auto
+agent/capabilities/skills/browser_search/SKILL.md:250:browser_search query=Ollama target=auto
+agent/capabilities/skills/browser_search/SKILL.md:256:browser_search query=música de Bad Bunny target=youtube
+agent/capabilities/skills/browser_search/SKILL.md:262:browser_search query=inteligencia artificial target=web
+agent/capabilities/skills/browser_search/SKILL.md:269:No uses browser_search.
+agent/capabilities/skills/browser_search/SKILL.md:275:No uses browser_search.
+agent/capabilities/skills/browser_search/SKILL.md:281:No uses browser_search.
+agent/capabilities/skills/browser_search/SKILL.md:287:No uses browser_search.
+agent/capabilities/skills/browser_search/SKILL.md:293:No uses browser_search.
+agent/capabilities/skills/browser_search/SKILL.md:299:No uses browser_search.
+agent/capabilities/skills/browser_search/SKILL.md:317:Tool preferida: browser_search
+agent/capabilities/skills/browser_search/SKILL.md:322:Tool preferida: browser_search
+agent/capabilities/skills/browser_search/SKILL.md:332:Tool preferida: browser_search
+agent/capabilities/skills/browser_search/SKILL.md:337:Tool preferida: browser_search
+agent/capabilities/skills/browser_search/SKILL.md:347:Tool preferida: browser_search
+agent/capabilities/skills/browser_search/SKILL.md:357:¿El usuario dijo abrir? Sí: browser_search.
+agent/capabilities/skills/browser_search/SKILL.md:358:¿El usuario dio URL absoluta? Sí: browser_search target url.
+agent/capabilities/skills/browser_search/SKILL.md:359:¿El usuario pidió YouTube sin tema? Sí: browser_search target youtube_home.
+agent/capabilities/skills/browser_search/SKILL.md:360:¿El usuario pidió Google sin tema? Sí: browser_search target google_home.
+agent/capabilities/skills/browser_search/SKILL.md:361:¿El usuario pidió buscar en YouTube? Sí: browser_search target youtube.
+agent/capabilities/skills/browser_search/SKILL.md:362:¿El usuario pidió buscar en Google? Sí: browser_search target google.
+agent/capabilities/skills/browser_search/SKILL.md:369:Se llamó browser_search.
+agent/capabilities/skills/browser_search/SKILL.md:385:El agente usó browser_search para noticias resumidas.
+agent/capabilities/skills/browser_search/SKILL.md:386:El agente usó browser_search para documentación resumida.
+agent/capabilities/skills/selector.py:19:            elif name == "browser_search":
+agent/capabilities/skills/selector.py:20:                path = self.root / "browser_search" / "SKILL.md"
+agent/capabilities/skills/selector.py:23:                    if skill.name == "browser_search":
+agent/capabilities/skills/open_app/SKILL.md:26:1. Abrir páginas web, sitios web o URLs. Para eso usa `browser_search`.
+agent/capabilities/skills/open_app/SKILL.md:27:2. Buscar información en internet. Para eso usa `browser_search`.
+agent/capabilities/skills/selector.py.bak_safe_web_search_skill_20260625_002507:13:            if name == "browser_search":
+agent/capabilities/skills/selector.py.bak_safe_web_search_skill_20260625_002507:14:                path = self.root / "browser_search" / "SKILL.md"
+agent/capabilities/skills/selector.py.bak_safe_web_search_skill_20260625_002507:17:                    if skill.name == "browser_search":
+agent/capabilities/skills/macos_spaces.md:32:2. Buscar información o abrir web. Para eso usa `browser_search`.
+agent/capabilities/skills/selector.py.bak_add_web_search_skill_20260625_002204:13:            if name == "browser_search":
+agent/capabilities/skills/selector.py.bak_add_web_search_skill_20260625_002204:14:                path = self.root / "browser_search" / "SKILL.md"
+agent/capabilities/skills/selector.py.bak_add_web_search_skill_20260625_002204:17:                    if skill.name == "browser_search":
+agent/executor/validator.py:19:        if call.tool_name == "browser_search" and not call.arguments.get("query"):
+agent/executor/validator.py:20:            raise ToolBlockedError("browser_search requires a query argument")
+agent/executor/executor.py.bak_web_search_20260624_235452:2:from agent.capabilities.tools.browser_tools import browser_search, open_url
+agent/executor/executor.py.bak_web_search_20260624_235452:29:            if call.tool_name == "browser_search":
+agent/executor/executor.py.bak_web_search_20260624_235452:30:                return browser_search(
+agent/executor/executor.py:2:from agent.capabilities.tools.browser_tools import browser_search, open_url
+agent/executor/executor.py:35:            if call.tool_name == "browser_search":
+agent/executor/executor.py:36:                return browser_search(
+agent/models/tool_finalizer.py:95:        if tool_result.tool_name == "browser_search":
+agent/context_builder/assembler.py.bak_web_search_context_20260624_235740:44:                "open_app with {'app_name': ...}, browser_search with {'query': ..., 'target': ...}, "
+agent/context_builder/assembler.py.bak_web_search_context_20260624_235740:48:                "Use browser_search only when browser navigation or search will actually help. "
+agent/context_builder/assembler.py:44:                "open_app with {'app_name': ...}, web_search with {'query': ..., 'max_results': 5}, browser_search with {'query': ..., 'target': ...}, "
+agent/context_builder/assembler.py:48:                "Use web_search when the user asks to investigate, look up, search the internet, find news, find documentation, or answer using web results. Use browser_search only when opening/navigating the browser will actually help. "
+agent/context_builder/builder.py:32:            "Only web_search, browser_search, open_app, macOS observation tools, fixed macOS window tools, and fixed macOS Spaces tools may be executed in the current phase.",
+agent/context_builder/builder.py:33:            "web_search may search the web and return structured results to the agent. browser_search may open absolute http or https URLs and perform browser-based navigation/search in the browser.",
+agent/context_builder/builder.py:44:                "Only web_search, browser_search, open_app, macOS observation tools, fixed macOS window tools, and fixed macOS Spaces tools may be executed."
+agent/context_builder/builder.py:80:                "Use web_search when the user wants information/results to answer from the web. Use browser_search only for opening browser pages, known web destinations, YouTube/Google navigation, and direct http/https URLs. "
+agent/context_builder/builder.py.bak_web_search_context_20260624_235740:32:            "Only browser_search, open_app, macOS observation tools, fixed macOS window tools, and fixed macOS Spaces tools may be executed in the current phase.",
+agent/context_builder/builder.py.bak_web_search_context_20260624_235740:33:            "browser_search may open absolute http or https URLs and perform browser-based information searches.",
+agent/context_builder/builder.py.bak_web_search_context_20260624_235740:44:                "Only browser_search, open_app, macOS observation tools, fixed macOS window tools, and fixed macOS Spaces tools may be executed."
+agent/context_builder/builder.py.bak_web_search_context_20260624_235740:80:                "Use browser_search for browser-based navigation, information search, known web destinations, and direct http/https URLs. "
+agent/response_action/state_helpers.py:54:        promoted.suggested_skills = ["browser_search"]
+agent/response_action/state_helpers.py:55:        promoted.suggested_tools = ["browser_search"]
+agent/response_action/early_ack.py:5:    "browser_search": [
+agent/action_macros/selector.py.bak_open_ended_search_20260624_231253:76:        if self._looks_like_browser_search(text):
+agent/action_macros/selector.py.bak_open_ended_search_20260624_231253:179:    def _looks_like_browser_search(self, text: str) -> bool:
+agent/action_macros/selector.py.bak_youtube_fix_20260624_230430:67:        if self._looks_like_browser_search(text):
+agent/action_macros/selector.py.bak_youtube_fix_20260624_230430:142:    def _looks_like_browser_search(self, text: str) -> bool:
+agent/action_macros/finalizer.py:112:        if workflow_result.stopped_reason == "step_failed:browser_search":
+agent/action_macros/finalizer.py:113:            error = self._step_error(workflow_result, "browser_search")
+agent/action_macros/finalizer.py:128:        if workflow_result.stopped_reason == "step_failed:browser_search":
+agent/action_macros/finalizer.py:129:            error = self._step_error(workflow_result, "browser_search")
+agent/action_macros/selector.py.bak_youtube_order_20260624_230309:67:        if self._looks_like_browser_search(text):
+agent/action_macros/selector.py.bak_youtube_order_20260624_230309:142:    def _looks_like_browser_search(self, text: str) -> bool:
+agent/action_macros/selector.py.bak_skip_web_search_20260625_000538:83:        if self._looks_like_browser_search(text):
+agent/action_macros/selector.py.bak_skip_web_search_20260625_000538:240:    def _looks_like_browser_search(self, text: str) -> bool:
+agent/action_macros/selector.py.bak_open_ended_resolver_20260624_232919:82:        if self._looks_like_browser_search(text):
+agent/action_macros/selector.py.bak_open_ended_resolver_20260624_232919:210:    def _looks_like_browser_search(self, text: str) -> bool:
+agent/action_macros/selector.py:57:        web_search returns results to the agent; browser_search only opens a page.
+agent/action_macros/selector.py:115:        if self._looks_like_browser_search(text):
+agent/action_macros/selector.py:272:    def _looks_like_browser_search(self, text: str) -> bool:
+agent/action_macros/selector.py.bak_open_ended_inputs_20260624_231532:76:        if self._looks_like_browser_search(text):
+agent/action_macros/selector.py.bak_open_ended_inputs_20260624_231532:181:    def _looks_like_browser_search(self, text: str) -> bool:
+agent/action_macros/selector.py.bak_safe_search_patch_20260624_231353:76:        if self._looks_like_browser_search(text):
+agent/action_macros/selector.py.bak_safe_search_patch_20260624_231353:179:    def _looks_like_browser_search(self, text: str) -> bool:
+agent/action_macros/definitions/play_random_youtube_video.py.bak_open_ended_20260624_231756:16:                tool_name="browser_search",
+agent/action_macros/definitions/open_browser_and_search.py:30:                tool_name="browser_search",
+agent/action_macros/definitions/open_browser_and_search.py.bak_open_ended_resolver_20260624_232919:16:                tool_name="browser_search",
+agent/action_macros/definitions/play_random_youtube_video.py.bak_open_ended_resolver_20260624_232919:26:                tool_name="browser_search",
+agent/action_macros/definitions/play_random_youtube_video.py.bak_open_ended_resolver_20260624_232919:35:        to browser_search.
+agent/action_macros/definitions/play_random_youtube_video.py:33:                tool_name="browser_search",

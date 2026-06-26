@@ -1,0 +1,250 @@
+--- router files ---
+agent/router/.DS_Store
+agent/router/__pycache__/router_prompt.cpython-311.pyc
+agent/router/__pycache__/router_prompt.cpython-312.pyc
+agent/router/__pycache__/router_schema.cpython-311.pyc
+agent/router/__pycache__/router_schema.cpython-312.pyc
+agent/router/__pycache__/router_validator.cpython-311.pyc
+agent/router/__pycache__/router_validator.cpython-312.pyc
+agent/router/__pycache__/xlam_router.cpython-311.pyc
+agent/router/__pycache__/xlam_router.cpython-312.pyc
+agent/router/router_prompt.py
+agent/router/router_schema.py
+agent/router/router_validator.py
+agent/router/xlam_router.py
+
+--- grep mission/window/youtube/canva/action_ready/chat/clarification ---
+agent/router/router_prompt.py:4:Do not execute actions. Prefer clarification when important information is missing.
+agent/router/router_prompt.py:16:- Ambiguous browser search intent with a missing topic or destination: route clarification, needs_tool true.
+agent/router/router_prompt.py:17:- Specific browser search/navigation intent: route action_ready, suggested_tools browser_search.
+agent/router/router_prompt.py:18:- "Open Chrome/Safari/Finder/Terminal/Notes/VS Code": route action_ready, suggested_tools open_app.
+agent/router/router_prompt.py:19:- Opening an absolute http/https URL, a clear domain, or a known website home page: route action_ready, suggested_tools browser_search.
+agent/router/router_prompt.py:20:- Requests to move, resize, center, fill, or restore the active macOS window using fixed native window actions: route action_ready, suggested_tools window_native_tiling.
+agent/router/router_prompt.py:21:- Requests to create, design, prepare, produce, or generate a creative asset such as a post, flyer, card, banner, ad, story, publication, caption, copy, or image should route action_ready, domain workflow, action full_workflow_candidate, suggested_skills full_workflows. This applies even if the user does not mention Canva. If the platform or destination is missing, still route action_ready so FullWorkflowSelector can ask a workflow-specific clarification. Do not route these as normal chat.
+agent/router/router_prompt.py:23:- Asking what app/window is active: route action_ready, suggested_tools macos_observe_frontmost.
+agent/router/router_prompt.py:24:- Asking what windows are visible/open: route action_ready, suggested_tools macos_visible_windows.
+agent/router/router_prompt.py:25:- Asking to check Mac permissions: route action_ready, suggested_tools macos_permissions_check.
+agent/router/router_prompt.py:26:- Asking what apps are available/openable: route action_ready, suggested_tools macos_list_apps.
+agent/router/router_prompt.py:27:- Asking Spaces status: route action_ready, suggested_tools macos_space_status.
+agent/router/router_prompt.py:28:- Asking next/previous Space/Desktop: route action_ready, suggested_tools macos_space_next or macos_space_previous.
+agent/router/router_prompt.py:29:- Asking Mission Control: route action_ready, suggested_tools macos_space_mission_control.
+agent/router/router_prompt.py:30:- Asking for a numbered desktop/space 1-9: route action_ready, suggested_tools macos_space_switch_desktop_number.
+agent/router/router_prompt.py:32:- Delete, install, write files, terminal, or destructive action: route safety_confirmation.
+agent/router/router_prompt.py:35:- window_native_tiling is only for the frontmost macOS window and must use a fixed native menu allowlist.
+agent/router/router_schema.py:11:    "clarification",
+agent/router/router_schema.py:13:    "action_ready",
+agent/router/router_schema.py:16:    "safety_confirmation",
+agent/router/router_schema.py:27:    needs_tool: bool = False
+agent/router/router_schema.py:28:    needs_clarification: bool = False
+agent/router/router_schema.py:36:    suggested_tools: list[str] = Field(default_factory=list)
+agent/router/router_validator.py:7:YOUTUBE_RE = re.compile(r"\b(youtube|you tube)\b", re.I)
+agent/router/router_validator.py:92:    r")\b.*\bcanva\b|"
+agent/router/router_validator.py:93:    r"\bcanva\b.*\b("
+agent/router/router_validator.py:152:        decision = RouterDecision(intent="chat", route="chat", needs_tool=False)
+agent/router/router_validator.py:159:        decision.route = "refuse"
+agent/router/router_validator.py:161:        decision.needs_tool = False
+agent/router/router_validator.py:164:        decision.suggested_tools = []
+agent/router/router_validator.py:170:        decision.action = "confirm_before_action"
+agent/router/router_validator.py:171:        decision.route = "safety_confirmation"
+agent/router/router_validator.py:173:        decision.needs_tool = False
+agent/router/router_validator.py:174:        decision.needs_clarification = False
+agent/router/router_validator.py:177:        decision.suggested_tools = []
+agent/router/router_validator.py:184:        decision.route = "action_ready"
+agent/router/router_validator.py:185:        decision.needs_tool = True
+agent/router/router_validator.py:187:        decision.needs_clarification = False
+agent/router/router_validator.py:190:        decision.suggested_tools = ["macos_permissions_check"]
+agent/router/router_validator.py:197:        decision.route = "action_ready"
+agent/router/router_validator.py:198:        decision.needs_tool = True
+agent/router/router_validator.py:200:        decision.needs_clarification = False
+agent/router/router_validator.py:203:        decision.suggested_tools = ["macos_observe_frontmost"]
+agent/router/router_validator.py:210:        decision.route = "action_ready"
+agent/router/router_validator.py:211:        decision.needs_tool = True
+agent/router/router_validator.py:213:        decision.needs_clarification = False
+agent/router/router_validator.py:216:        decision.suggested_tools = ["macos_visible_windows"]
+agent/router/router_validator.py:223:        decision.route = "action_ready"
+agent/router/router_validator.py:224:        decision.needs_tool = True
+agent/router/router_validator.py:226:        decision.needs_clarification = False
+agent/router/router_validator.py:229:        decision.suggested_tools = ["macos_list_apps"]
+agent/router/router_validator.py:236:        decision.route = "action_ready"
+agent/router/router_validator.py:237:        decision.needs_tool = True
+agent/router/router_validator.py:239:        decision.needs_clarification = False
+agent/router/router_validator.py:241:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py:242:        decision.suggested_tools = ["macos_space_status"]
+agent/router/router_validator.py:249:        decision.route = "action_ready"
+agent/router/router_validator.py:250:        decision.needs_tool = True
+agent/router/router_validator.py:252:        decision.needs_clarification = False
+agent/router/router_validator.py:254:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py:255:        decision.suggested_tools = ["macos_space_next"]
+agent/router/router_validator.py:262:        decision.route = "action_ready"
+agent/router/router_validator.py:263:        decision.needs_tool = True
+agent/router/router_validator.py:265:        decision.needs_clarification = False
+agent/router/router_validator.py:267:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py:268:        decision.suggested_tools = ["macos_space_previous"]
+agent/router/router_validator.py:275:        decision.route = "action_ready"
+agent/router/router_validator.py:276:        decision.needs_tool = True
+agent/router/router_validator.py:278:        decision.needs_clarification = False
+agent/router/router_validator.py:280:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py:281:        decision.suggested_tools = ["macos_space_mission_control"]
+agent/router/router_validator.py:288:        decision.route = "action_ready"
+agent/router/router_validator.py:289:        decision.needs_tool = True
+agent/router/router_validator.py:291:        decision.needs_clarification = False
+agent/router/router_validator.py:293:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py:294:        decision.suggested_tools = ["macos_space_switch_desktop_number"]
+agent/router/router_validator.py:300:        decision.action = "window_native_tiling"
+agent/router/router_validator.py:301:        decision.route = "action_ready"
+agent/router/router_validator.py:302:        decision.needs_tool = True
+agent/router/router_validator.py:304:        decision.needs_clarification = False
+agent/router/router_validator.py:307:        decision.suggested_tools = ["window_native_tiling"]
+agent/router/router_validator.py:313:        decision.action = "window_native_tiling"
+agent/router/router_validator.py:314:        decision.route = "clarification"
+agent/router/router_validator.py:315:        decision.needs_tool = True
+agent/router/router_validator.py:317:        decision.needs_clarification = True
+agent/router/router_validator.py:321:        decision.suggested_tools = ["window_native_tiling"]
+agent/router/router_validator.py:334:        decision.route = "action_ready"
+agent/router/router_validator.py:335:        decision.needs_tool = True
+agent/router/router_validator.py:336:        decision.needs_clarification = False
+agent/router/router_validator.py:343:        decision.suggested_tools = []
+agent/router/router_validator.py:352:        decision.route = "refuse"
+agent/router/router_validator.py:354:        decision.needs_tool = False
+agent/router/router_validator.py:355:        decision.needs_clarification = False
+agent/router/router_validator.py:358:        decision.suggested_tools = []
+agent/router/router_validator.py:365:        decision.route = "action_ready"
+agent/router/router_validator.py:366:        decision.needs_tool = True
+agent/router/router_validator.py:368:        decision.needs_clarification = False
+agent/router/router_validator.py:371:        decision.suggested_tools = ["browser_search"]
+agent/router/router_validator.py:378:        decision.route = "action_ready"
+agent/router/router_validator.py:379:        decision.needs_tool = True
+agent/router/router_validator.py:381:        decision.needs_clarification = False
+agent/router/router_validator.py:384:        decision.suggested_tools = ["browser_search"]
+agent/router/router_validator.py:391:        decision.route = "action_ready"
+agent/router/router_validator.py:392:        decision.needs_tool = True
+agent/router/router_validator.py:394:        decision.needs_clarification = False
+agent/router/router_validator.py:397:        decision.suggested_tools = ["open_app"]
+agent/router/router_validator.py:404:        decision.route = "memory_lookup"
+agent/router/router_validator.py:406:        decision.needs_tool = False
+agent/router/router_validator.py:413:        decision.route = "rag_lookup"
+agent/router/router_validator.py:415:        decision.needs_tool = False
+agent/router/router_validator.py:421:        decision.domain = "youtube"
+agent/router/router_validator.py:423:        decision.needs_tool = True
+agent/router/router_validator.py:427:        decision.suggested_tools = ["browser_search"]
+agent/router/router_validator.py:429:            decision.route = "action_ready"
+agent/router/router_validator.py:430:            decision.needs_clarification = False
+agent/router/router_validator.py:433:            decision.route = "clarification"
+agent/router/router_validator.py:434:            decision.needs_clarification = True
+agent/router/router_validator.py:442:        decision.route = "action_ready"
+agent/router/router_validator.py:443:        decision.needs_tool = True
+agent/router/router_validator.py:445:        decision.needs_clarification = False
+agent/router/router_validator.py:448:        decision.suggested_tools = ["browser_search"]
+agent/router/router_validator.py:455:    if decision.suggested_tools:
+agent/router/router_validator.py:459:            "window_native_tiling",
+agent/router/router_validator.py:464:            "macos_space_status",
+agent/router/router_validator.py:465:            "macos_space_next",
+agent/router/router_validator.py:466:            "macos_space_previous",
+agent/router/router_validator.py:467:            "macos_space_mission_control",
+agent/router/router_validator.py:468:            "macos_space_switch_desktop_number",
+agent/router/router_validator.py:470:        decision.suggested_tools = [
+agent/router/router_validator.py:471:            tool for tool in decision.suggested_tools if tool in allowed_tools
+agent/router/router_validator.py:475:    if decision.route == "rag_lookup":
+agent/router/router_validator.py:480:        decision.needs_tool = False
+agent/gateway/gateway.py:16:    clear_stale_pending_confirmation_for_action,
+agent/gateway/gateway.py:17:    resolve_pending_clarification,
+agent/gateway/gateway.py:57:                route=effective_decision.route,
+agent/gateway/gateway.py:68:                if context.router_decision.route == "action_ready":
+agent/gateway/gateway.py:70:                        context.router_decision.suggested_tools or []
+agent/gateway/gateway.py:79:                            "suggested_tools": context.router_decision.suggested_tools,
+agent/gateway/gateway.py:86:                        "suggested_tools": context.router_decision.suggested_tools,
+agent/gateway/gateway.py:102:                    route=effective_decision.route,
+agent/gateway/gateway.py:121:                route="chat",
+agent/gateway/gateway.py:135:                route="chat",
+agent/gateway/gateway.py:146:        session.previous_route = session.current_route
+agent/gateway/gateway.py:149:        effective_decision = resolve_pending_clarification(
+agent/gateway/gateway.py:152:        clear_stale_pending_confirmation_for_action(session, user_text, effective_decision)
+agent/gateway/gateway.py:160:                effective_decision.route = "action_ready"
+agent/gateway/gateway.py:161:                effective_decision.needs_tool = False
+agent/gateway/gateway.py:162:                effective_decision.needs_clarification = False
+agent/gateway/gateway.py:165:                session.pending_confirmation = None
+agent/gateway/gateway.py:166:        session.current_route = effective_decision.route
+agent/gateway/gateway.py:275:            route=route,
+agent/gateway/gateway.py:292:                    "pending_clarification": session.pending_clarification,
+agent/gateway/gateway.py:293:                    "pending_confirmation": session.pending_confirmation,
+agent/gateway/session_manager.py:12:    pending_clarification: str | None = None
+agent/gateway/session_manager.py:13:    pending_confirmation: dict | None = None
+agent/gateway/session_manager.py:65:            previous_route=state.previous_route,
+agent/gateway/session_manager.py:66:            current_route=state.current_route,
+agent/gateway/session_manager.py:67:            pending_clarification=state.pending_clarification,
+agent/gateway/session_manager.py:68:            pending_confirmation=state.pending_confirmation,
+agent/gateway/session_manager.py:89:            pending_clarification=stored.get("pending_clarification"),
+agent/gateway/session_manager.py:90:            pending_confirmation=stored.get("pending_confirmation"),
+agent/gateway/session_manager.py:92:            previous_route=stored.get("previous_route"),
+agent/gateway/session_manager.py:93:            current_route=stored.get("current_route"),
+agent/gateway/message_types.py:10:    "needs_clarification",
+agent/gateway/message_types.py:11:    "needs_confirmation",
+agent/response_action/state_helpers.py:13:    r"^\s*(s[ií]|si|confirma|hazlo|no|cancela|cancelar|olvidalo|olvídalo)\s*[!.?]*\s*$",
+agent/response_action/state_helpers.py:18:def is_short_clarification_reply(text: str) -> bool:
+agent/response_action/state_helpers.py:32:def resolve_pending_clarification(
+agent/response_action/state_helpers.py:35:    if not session.pending_clarification:
+agent/response_action/state_helpers.py:38:    if decision.route == "action_ready":
+agent/response_action/state_helpers.py:41:    if decision.route == "clarification":
+agent/response_action/state_helpers.py:44:    if decision.route == "chat" and is_short_clarification_reply(user_text):
+agent/response_action/state_helpers.py:49:        promoted.route = "action_ready"
+agent/response_action/state_helpers.py:50:        promoted.needs_tool = True
+agent/response_action/state_helpers.py:51:        promoted.needs_clarification = False
+agent/response_action/state_helpers.py:55:        promoted.suggested_tools = ["browser_search"]
+agent/response_action/state_helpers.py:63:        session.pending_clarification = None
+agent/response_action/state_helpers.py:64:        session.pending_confirmation = None
+agent/response_action/state_helpers.py:73:        session.pending_confirmation = None
+agent/response_action/state_helpers.py:74:        session.pending_clarification = None
+agent/response_action/state_helpers.py:77:def clear_stale_pending_confirmation_for_action(
+agent/response_action/state_helpers.py:80:    if not session.pending_confirmation:
+agent/response_action/state_helpers.py:82:    if decision.route != "action_ready" or decision.risk_level != "low":
+agent/response_action/state_helpers.py:86:    session.pending_confirmation = None
+agent/response_action/controller.py:98:        route = context.router_decision.route
+agent/response_action/controller.py:99:        if route == "clarification":
+agent/response_action/controller.py:100:            return self.handle_clarification(context, session, debug=debug)
+agent/response_action/controller.py:101:        if route == "memory_lookup":
+agent/response_action/controller.py:103:        if route == "rag_lookup":
+agent/response_action/controller.py:105:        if route == "safety_confirmation":
+agent/response_action/controller.py:106:            return self.handle_safety_confirmation(context, session, debug=debug)
+agent/response_action/controller.py:107:        if route == "action_ready":
+agent/response_action/controller.py:108:            return self.handle_action_ready(context, session, debug=debug)
+agent/response_action/controller.py:109:        if route == "refuse":
+agent/response_action/controller.py:125:    def handle_clarification(
+agent/response_action/controller.py:132:        session.pending_clarification = ",".join(
+agent/response_action/controller.py:135:        if context.router_decision.action == "window_native_tiling":
+agent/response_action/controller.py:146:            "needs_clarification",
+agent/response_action/controller.py:153:    def handle_action_ready(
+agent/response_action/controller.py:160:        session.pending_clarification = None
+agent/response_action/controller.py:168:                session.pending_confirmation = None
+agent/response_action/controller.py:169:                session.pending_clarification = None
+agent/response_action/controller.py:182:            if full_workflow_plan.status == "needs_clarification":
+agent/response_action/controller.py:183:                clarification_text = "Claro. ¿Sobre qué tema quieres que prepare el post?"
+agent/response_action/controller.py:185:                    clarification_text = (
+agent/response_action/controller.py:187:                        "o quieres crearlo como diseño en Canva?"
+agent/response_action/controller.py:190:                    clarification_text = (
+agent/response_action/controller.py:195:                    "needs_clarification",
+agent/response_action/controller.py:196:                    clarification_text,
+agent/response_action/controller.py:275:            session.pending_clarification = None
+agent/response_action/controller.py:288:            session.pending_clarification = None
+agent/response_action/controller.py:309:                if active_checkpoint in {"approval", "safety_confirmation", "visual_validation"}:
+agent/response_action/controller.py:375:                or checkpoint_kind in {"approval", "safety_confirmation", "visual_validation"}
+agent/response_action/controller.py:414:                session.pending_confirmation = {
+agent/response_action/controller.py:421:                session.pending_confirmation = None
+agent/response_action/controller.py:422:            session.pending_clarification = None
+agent/response_action/controller.py:424:                "needs_confirmation"
+agent/response_action/controller.py:426:                else "needs_clarification"
+agent/response_action/controller.py:447:        session.pending_confirmation = None
+agent/response_action/controller.py:552:                "El modelo no devolvio un tool_call valido para action_ready.",
+agent/response_action/controller.py:653:    def handle_safety_confirmation(
+agent/response_action/controller.py:660:        session.pending_confirmation = {"message": context.user_message}
+agent/response_action/controller.py:663:            "needs_confirmation",
+agent/response_action/controller.py:664:            "Esa accion requiere confirmacion y no se ejecutara en la fase actual.",
+agent/response_action/controller.py:677:        session.pending_clarification = None
+agent/response_action/controller.py:678:        session.pending_confirmation = None
+agent/response_action/early_ack.py:37:    "macos_space_status": [
+agent/response_action/early_ack.py:42:    "macos_space_next": [
+agent/response_action/early_ack.py:47:    "macos_space_previous": [
+agent/response_action/early_ack.py:52:    "macos_space_mission_control": [
+agent/response_action/early_ack.py:57:    "macos_space_switch_desktop_number": [
+agent/response_action/early_ack.py:72:def build_early_ack(suggested_tools: list[str]) -> str:
+agent/response_action/early_ack.py:73:    tool_name = suggested_tools[0] if suggested_tools else ""
+agent/response_action/final_response.py:18:        route=route,

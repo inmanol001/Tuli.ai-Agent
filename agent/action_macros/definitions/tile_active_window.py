@@ -4,6 +4,8 @@ from agent.capabilities.tools.schemas import ToolCall
 
 
 class TileActiveWindowActionMacro:
+    """Recipe macro: inspect the frontmost window and apply one tiling action."""
+
     name = "tile_active_window"
 
     def build_steps(self, inputs) -> list[ToolCall]:

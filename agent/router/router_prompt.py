@@ -14,7 +14,8 @@ User message:
 Routing rules:
 - Greeting or casual chat: route chat.
 - Ambiguous browser search intent with a missing topic or destination: route clarification, needs_tool true.
-- Specific browser search/navigation intent: route action_ready, suggested_tools browser_search.
+- Web information/research intent where the agent should answer using search results: route action_ready, suggested_tools web_search.
+- Browser navigation/opening intent: route action_ready, suggested_tools browser_search.
 - "Open Chrome/Safari/Finder/Terminal/Notes/VS Code": route action_ready, suggested_tools open_app.
 - Opening an absolute http/https URL, a clear domain, or a known website home page: route action_ready, suggested_tools browser_search.
 - Requests to move, resize, center, fill, or restore the active macOS window using fixed native window actions: route action_ready, suggested_tools window_native_tiling.
@@ -31,7 +32,8 @@ Routing rules:
 - "Observe my screen" must not use screenshots in this phase.
 - Delete, install, write files, terminal, or destructive action: route safety_confirmation.
 - Local paths, file://, javascript:, data:, and ftp: URLs must not use browser_search.
-- Browser_search is for browser navigation, web information search, known web destinations, and absolute http/https URLs.
+- web_search is for searching the web and returning structured results to the agent.
+- browser_search is for browser navigation, known web destinations, YouTube/Google navigation, and absolute http/https URLs.
 - window_native_tiling is only for the frontmost macOS window and must use a fixed native menu allowlist.
 - Memory questions like "what did we do" or "remember": route memory_lookup.
 """

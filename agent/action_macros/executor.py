@@ -1,29 +1,40 @@
 from __future__ import annotations
 
-from agent.executor.executor import Executor
-from agent.executor.results import ToolResult
-from agent.action_macros.registry import ActionMacroRegistry
 from agent.action_macros.schemas import (
     ActionMacroPlan,
     ActionMacroResult,
     ActionMacroStepResult,
 )
+from agent.execution.action_runner import ActionRunner
+from agent.executor.executor import Executor
+from agent.executor.results import ToolResult
+from agent.reflection.checker import ReflectionChecker
+from agent.action_macros.registry import ActionMacroRegistry
 
 
 class ActionMacroExecutor:
+    """Execute a fixed macro recipe step by step through ActionRunner."""
+
     def __init__(
         self,
         executor: Executor,
-        reflection_checker=None,
+        reflection_checker: ReflectionChecker | None = None,
+        action_runner: ActionRunner | None = None,
         max_retries: int = 2,
         registry: ActionMacroRegistry | None = None,
     ) -> None:
         self.executor = executor
         self.reflection_checker = reflection_checker
         self.max_retries = max_retries
+        self.action_runner = action_runner or ActionRunner(
+            executor=self.executor,
+            reflection_checker=self.reflection_checker or ReflectionChecker(),
+            max_retries=max_retries,
+        )
         self.registry = registry or ActionMacroRegistry()
 
     def run(self, macro_plan: ActionMacroPlan) -> ActionMacroResult:
+        """Build the macro's fixed ToolCalls and execute each one with retry/reflection."""
         macro_name = macro_plan.workflow_name or ""
         macro = self.registry.get(macro_name)
         if macro is None:
@@ -46,7 +57,8 @@ class ActionMacroExecutor:
 
         results: list[ActionMacroStepResult] = []
         for step_index, tool_call in enumerate(steps):
-            tool_result = self.executor.execute(tool_call)
+            action_run = self.action_runner.run_tool_call(tool_call)
+            tool_result = action_run.final_tool_result
             stopped, stop_reason = self._step_stop_reason(
                 macro_name, step_index, tool_result
             )
@@ -54,18 +66,23 @@ class ActionMacroExecutor:
                 step_index=step_index,
                 tool_call=tool_call,
                 tool_result=tool_result,
-                success=tool_result.success and not stopped,
+                success=action_run.success and not stopped,
                 stopped=stopped,
                 stop_reason=stop_reason,
+                action_run=action_run.model_dump(mode="json"),
+                reflection_trace=action_run.reflection_trace,
+                retry_count=action_run.retry_count,
             )
             results.append(step_result)
-            if stopped or not tool_result.success:
+            if stopped or not action_run.success:
                 return ActionMacroResult(
                     workflow_name=macro_name,
                     inputs=dict(macro_plan.inputs),
                     steps=results,
                     success=False,
-                    stopped_reason=stop_reason or f"step_failed:{tool_call.tool_name}",
+                    stopped_reason=stop_reason
+                    or action_run.stop_reason
+                    or f"step_failed:{tool_call.tool_name}",
                 )
 
         return ActionMacroResult(

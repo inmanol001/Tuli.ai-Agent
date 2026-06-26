@@ -40,7 +40,11 @@ def test_context_excludes_rag_screenshots_and_desktop_tools():
     assert "fixed macOS Spaces tools may be executed" in context.system_prompt
     assert any("No screenshots" in rule for rule in context.safety_rules)
     assert any(
-        "perform browser-based information searches" in rule
+        "web_search may search the web" in rule
+        for rule in context.safety_rules
+    )
+    assert any(
+        "browser_search may open absolute http or https URLs" in rule
         for rule in context.safety_rules
     )
     assert any(
@@ -49,7 +53,11 @@ def test_context_excludes_rag_screenshots_and_desktop_tools():
     )
     assert any("macOS observation tools" in rule for rule in context.safety_rules)
     assert (
-        "Use browser_search for browser-based navigation, information search, known web destinations, and direct http/https URLs."
+        "Use web_search when the user wants information/results to answer from the web."
+        in context.task_instruction
+    )
+    assert (
+        "Use browser_search only for opening browser pages, known web destinations, YouTube/Google navigation, and direct http/https URLs."
         in context.task_instruction
     )
     assert "Use window_native_tiling for moving, centering, filling, or resizing the frontmost macOS window with fixed native menu actions." in context.task_instruction
@@ -84,7 +92,11 @@ def test_assembler_includes_history_and_session_state():
     assert "Current route: chat" in system_payload
     assert "Pending clarification: artist_or_genre" in system_payload
     assert "user: hola" in system_payload
-    assert "selected_tools" not in system_payload
+    # SOUL.md puede mencionar selected_tools como documentación de debugging.
+    # Lo que este test debe proteger es que el assembler no agregue una sección
+    # operativa de selected_tools cuando la ruta es chat.
+    assert "\nselected_tools:" not in system_payload
+    assert "\nSelected tools:" not in system_payload
 
 
 def test_context_omits_capabilities_when_router_does_not_request_them():

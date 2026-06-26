@@ -1,6 +1,5 @@
 from pathlib import Path
 
-import yaml
 from pydantic import BaseModel, Field
 
 
@@ -21,6 +20,10 @@ class PluginRegistry:
         self._plugins = self._load()
 
     def _load(self) -> dict[str, PluginDefinition]:
+        try:
+            import yaml
+        except ModuleNotFoundError:
+            return {}
         plugins: dict[str, PluginDefinition] = {}
         for plugin_yaml in self.path.glob("*/plugin.yaml"):
             data = yaml.safe_load(plugin_yaml.read_text(encoding="utf-8")) or {}

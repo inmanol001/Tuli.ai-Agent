@@ -11,21 +11,31 @@ FullWorkflowStatus = Literal[
     "not_selected",
     "selected",
     "needs_clarification",
+    "waiting_user_input",
+    "waiting_approval",
+    "needs_revision",
     "simulated",
     "blocked_missing_tools",
+    "blocked",
     "running",
     "completed",
     "failed",
+    "cancelled",
 ]
 
 FullWorkflowPhaseStatus = Literal[
     "pending",
     "running",
     "completed",
+    "waiting_user_input",
+    "waiting_approval",
+    "needs_revision",
     "simulated",
     "skipped",
     "blocked_missing_tools",
     "failed",
+    "blocked",
+    "cancelled",
 ]
 
 FullWorkflowStepKind = Literal[
@@ -36,6 +46,8 @@ FullWorkflowStepKind = Literal[
     "verify",
     "wait",
     "branch",
+    "ask_user",
+    "approval",
     "simulated",
     "blocked_missing_tools",
 ]
@@ -92,6 +104,14 @@ class FullWorkflowPhaseResult(BaseModel):
     summary: str | None = None
     tool_calls: list[dict[str, Any]] = Field(default_factory=list)
     tool_results: list[dict[str, Any]] = Field(default_factory=list)
+    action_runs: list[dict[str, Any]] = Field(default_factory=list)
+    reflection_traces: list[dict[str, Any]] = Field(default_factory=list)
+    retry_count: int = 0
+    requires_user_input: bool = False
+    requires_approval: bool = False
+    question: str | None = None
+    approval_request: str | None = None
+    checkpoint_id: str | None = None
     reasoning_output: str | None = None
     state_updates: dict[str, Any] = Field(default_factory=dict)
     simulated_actions: list[str] = Field(default_factory=list)
@@ -105,10 +125,18 @@ class FullWorkflowResult(BaseModel):
     workflow_name: str
     inputs: dict[str, Any] = Field(default_factory=dict)
     state: FullWorkflowState = Field(default_factory=FullWorkflowState)
+    workflow_id: str | None = None
+    plan_path: str | None = None
     status: FullWorkflowStatus = "running"
     phases: list[FullWorkflowPhaseResult] = Field(default_factory=list)
     success: bool = False
     simulation_mode: bool = False
+    needs_user_input: bool = False
+    needs_approval: bool = False
+    question: str | None = None
+    approval_request: str | None = None
+    checkpoint_id: str | None = None
+    current_step_id: str | None = None
     stopped_reason: str | None = None
     missing_tools: list[str] = Field(default_factory=list)
     error: str | None = None

@@ -1,0 +1,54 @@
+
+================================================================================
+FILE: agent/capabilities/skills/browser_search/SKILL.md
+NAME: browser_search
+DESCRIPTION: Buscar información o abrir contenido web usando el navegador por defecto.
+TOOLS: ['browser_search']
+CONTENT_LEN: 4920
+LINE_COUNT: 133
+QUALITY_CHECKS: {'has_when_to_use': True, 'has_when_not_to_use': True, 'has_examples': True, 'has_tool_call': True, 'has_failure_rules': True, 'has_success_criteria': False}
+
+================================================================================
+FILE: agent/capabilities/skills/macos_observation.md
+NAME: macos_observation
+DESCRIPTION: Observar estado básico de macOS sin controlar la pantalla ni modificar nada.
+TOOLS: ['macos_permissions_check', 'macos_observe_frontmost', 'macos_visible_windows', 'macos_list_apps']
+CONTENT_LEN: 3173
+LINE_COUNT: 89
+QUALITY_CHECKS: {'has_when_to_use': True, 'has_when_not_to_use': True, 'has_examples': False, 'has_tool_call': True, 'has_failure_rules': True, 'has_success_criteria': False}
+
+================================================================================
+FILE: agent/capabilities/skills/macos_spaces.md
+NAME: macos_spaces
+DESCRIPTION: Navegar de forma segura entre macOS Spaces, escritorios y Mission Control usando acciones fijas.
+TOOLS: ['macos_space_status', 'macos_space_next', 'macos_space_previous', 'macos_space_mission_control', 'macos_space_switch_desktop_number']
+CONTENT_LEN: 3485
+LINE_COUNT: 110
+QUALITY_CHECKS: {'has_when_to_use': True, 'has_when_not_to_use': True, 'has_examples': False, 'has_tool_call': True, 'has_failure_rules': True, 'has_success_criteria': False}
+
+================================================================================
+FILE: agent/capabilities/skills/macos_windows.md
+NAME: macos_windows
+DESCRIPTION: Mover o redimensionar la ventana activa de macOS usando acciones nativas seguras.
+TOOLS: ['window_native_tiling']
+CONTENT_LEN: 3719
+LINE_COUNT: 104
+QUALITY_CHECKS: {'has_when_to_use': True, 'has_when_not_to_use': True, 'has_examples': False, 'has_tool_call': True, 'has_failure_rules': True, 'has_success_criteria': False}
+
+================================================================================
+FILE: agent/capabilities/skills/open_app/SKILL.md
+NAME: open_app
+DESCRIPTION: Abrir aplicaciones instaladas de macOS por nombre usando una acción segura del sistema.
+TOOLS: ['open_app']
+CONTENT_LEN: 3123
+LINE_COUNT: 102
+QUALITY_CHECKS: {'has_when_to_use': True, 'has_when_not_to_use': True, 'has_examples': True, 'has_tool_call': True, 'has_failure_rules': True, 'has_success_criteria': False}
+
+================================================================================
+FILE: agent/capabilities/skills/web_search/SKILL.md
+NAME: web_search
+DESCRIPTION: Buscar información en internet y devolver resultados estructurados al agente para responder.
+TOOLS: ['web_search']
+CONTENT_LEN: 1849
+LINE_COUNT: 72
+QUALITY_CHECKS: {'has_when_to_use': True, 'has_when_not_to_use': True, 'has_examples': True, 'has_tool_call': True, 'has_failure_rules': False, 'has_success_criteria': False}

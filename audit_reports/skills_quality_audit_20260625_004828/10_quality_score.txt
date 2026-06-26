@@ -1,0 +1,42 @@
+
+================================================================================
+SKILL: web_search
+FILE: agent/capabilities/skills/web_search/SKILL.md
+LINES: 72
+SCORE: 6 / 9 WEAK
+NOTES: falta fallos/errores; falta criterios/checklist
+
+================================================================================
+SKILL: macos_observation
+FILE: agent/capabilities/skills/macos_observation.md
+LINES: 89
+SCORE: 6 / 9 WEAK
+NOTES: falta ejemplos; falta criterios/checklist
+
+================================================================================
+SKILL: macos_windows
+FILE: agent/capabilities/skills/macos_windows.md
+LINES: 104
+SCORE: 6 / 9 WEAK
+NOTES: falta ejemplos; falta criterios/checklist
+
+================================================================================
+SKILL: macos_spaces
+FILE: agent/capabilities/skills/macos_spaces.md
+LINES: 110
+SCORE: 6 / 9 WEAK
+NOTES: falta ejemplos; falta criterios/checklist
+
+================================================================================
+SKILL: open_app
+FILE: agent/capabilities/skills/open_app/SKILL.md
+LINES: 102
+SCORE: 7 / 9 GOOD
+NOTES: falta criterios/checklist
+
+================================================================================
+SKILL: browser_search
+FILE: agent/capabilities/skills/browser_search/SKILL.md
+LINES: 133
+SCORE: 8 / 9 GOOD
+NOTES: falta criterios/checklist

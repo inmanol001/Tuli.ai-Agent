@@ -1,0 +1,146 @@
+agent/capabilities/tools/registry.py:8:            "web_search": ToolDefinition(
+agent/capabilities/tools/registry.py:9:                name="web_search",
+agent/capabilities/tools/web_search_tools.py:8:def web_search(
+agent/capabilities/tools/web_search_tools.py:24:            tool_name="web_search",
+agent/capabilities/tools/web_search_tools.py:26:            error="web_search requires a non-empty query",
+agent/capabilities/tools/web_search_tools.py:41:            tool_name="web_search",
+agent/capabilities/tools/web_search_tools.py:60:            tool_name="web_search",
+agent/capabilities/tools/web_search_tools.py:62:            error=f"web_search failed: {exc}",
+agent/capabilities/tools/web_search_tools.py:85:        tool_name="web_search",
+agent/capabilities/plugins/installed/browser/plugin.yaml.bak_safe_web_search_skill_20260625_002507:4:  - web_search
+agent/capabilities/plugins/installed/browser/plugin.yaml:4:  - web_search
+agent/capabilities/plugins/installed/browser/plugin.yaml:7:  - web_search
+agent/capabilities/plugins/installed/browser/plugin.yaml.bak_add_web_search_skill_20260625_002204:4:  - web_search
+agent/capabilities/skills/web_search/SKILL.md.bak_long_web_search_20260625_003426:2:name: web_search
+agent/capabilities/skills/web_search/SKILL.md.bak_long_web_search_20260625_003426:5:  - web_search
+agent/capabilities/skills/web_search/SKILL.md.bak_long_web_search_20260625_003426:11:Usa `web_search` cuando el usuario quiera investigar, buscar información en internet, noticias, documentación, información actual, referencias, mejores prácticas, guías o tutoriales.
+agent/capabilities/skills/web_search/SKILL.md.bak_long_web_search_20260625_003426:13:`web_search` no abre el navegador. Devuelve resultados estructurados al agente: título, URL y snippet.
+agent/capabilities/skills/web_search/SKILL.md.bak_long_web_search_20260625_003426:17:- `web_search` = buscar resultados web para responder dentro del chat.
+agent/capabilities/skills/web_search/SKILL.md.bak_long_web_search_20260625_003426:20:# Cuándo usar web_search
+agent/capabilities/skills/web_search/SKILL.md.bak_long_web_search_20260625_003426:22:Usa `web_search` para frases como:
+agent/capabilities/skills/web_search/SKILL.md.bak_long_web_search_20260625_003426:31:# Cuándo NO usar web_search
+agent/capabilities/skills/web_search/SKILL.md.bak_long_web_search_20260625_003426:33:No uses `web_search` para:
+agent/capabilities/skills/web_search/SKILL.md.bak_long_web_search_20260625_003426:46:Si `web_search` está disponible y el usuario pide investigar, buscar información, noticias o documentación, llama la tool `web_search`.
+agent/capabilities/skills/web_search/SKILL.md.bak_before_long_skill_20260625_010023:2:name: web_search
+agent/capabilities/skills/web_search/SKILL.md.bak_before_long_skill_20260625_010023:5:  - web_search
+agent/capabilities/skills/web_search/SKILL.md.bak_before_long_skill_20260625_010023:11:Usa `web_search` cuando el usuario quiera investigar, buscar información en internet, noticias, documentación, información actual, referencias, mejores prácticas, guías o tutoriales.
+agent/capabilities/skills/web_search/SKILL.md.bak_before_long_skill_20260625_010023:13:`web_search` no abre el navegador. Devuelve resultados estructurados al agente: título, URL y snippet.
+agent/capabilities/skills/web_search/SKILL.md.bak_before_long_skill_20260625_010023:17:- `web_search` = buscar resultados web para responder dentro del chat.
+agent/capabilities/skills/web_search/SKILL.md.bak_before_long_skill_20260625_010023:20:# Cuándo usar web_search
+agent/capabilities/skills/web_search/SKILL.md.bak_before_long_skill_20260625_010023:22:Usa `web_search` para frases como:
+agent/capabilities/skills/web_search/SKILL.md.bak_before_long_skill_20260625_010023:31:# Cuándo NO usar web_search
+agent/capabilities/skills/web_search/SKILL.md.bak_before_long_skill_20260625_010023:33:No uses `web_search` para:
+agent/capabilities/skills/web_search/SKILL.md.bak_before_long_skill_20260625_010023:46:Si `web_search` está disponible y el usuario pide investigar, buscar información, noticias o documentación, llama la tool `web_search`.
+agent/capabilities/skills/web_search/SKILL.md.bak_before_long_skill_20260625_005852:2:name: web_search
+agent/capabilities/skills/web_search/SKILL.md.bak_before_long_skill_20260625_005852:5:  - web_search
+agent/capabilities/skills/web_search/SKILL.md.bak_before_long_skill_20260625_005852:11:Usa `web_search` cuando el usuario quiera investigar, buscar información en internet, noticias, documentación, información actual, referencias, mejores prácticas, guías o tutoriales.
+agent/capabilities/skills/web_search/SKILL.md.bak_before_long_skill_20260625_005852:13:`web_search` no abre el navegador. Devuelve resultados estructurados al agente: título, URL y snippet.
+agent/capabilities/skills/web_search/SKILL.md.bak_before_long_skill_20260625_005852:17:- `web_search` = buscar resultados web para responder dentro del chat.
+agent/capabilities/skills/web_search/SKILL.md.bak_before_long_skill_20260625_005852:20:# Cuándo usar web_search
+agent/capabilities/skills/web_search/SKILL.md.bak_before_long_skill_20260625_005852:22:Usa `web_search` para frases como:
+agent/capabilities/skills/web_search/SKILL.md.bak_before_long_skill_20260625_005852:31:# Cuándo NO usar web_search
+agent/capabilities/skills/web_search/SKILL.md.bak_before_long_skill_20260625_005852:33:No uses `web_search` para:
+agent/capabilities/skills/web_search/SKILL.md.bak_before_long_skill_20260625_005852:46:Si `web_search` está disponible y el usuario pide investigar, buscar información, noticias o documentación, llama la tool `web_search`.
+agent/capabilities/skills/web_search/SKILL.md:2:name: web_search
+agent/capabilities/skills/web_search/SKILL.md:5:  - web_search
+agent/capabilities/skills/web_search/SKILL.md:9:# Skill: web_search
+agent/capabilities/skills/web_search/SKILL.md:13:Usa `web_search` cuando el usuario quiera investigar, buscar información en internet, encontrar documentación, revisar noticias, comparar fuentes o responder usando resultados web.
+agent/capabilities/skills/web_search/SKILL.md:15:`web_search` devuelve resultados estructurados al agente: título, URL y snippet.
+agent/capabilities/skills/web_search/SKILL.md:17:`web_search` no abre navegador.
+agent/capabilities/skills/web_search/SKILL.md:18:`web_search` no abre Google.
+agent/capabilities/skills/web_search/SKILL.md:19:`web_search` no abre YouTube.
+agent/capabilities/skills/web_search/SKILL.md:20:`web_search` no reproduce videos.
+agent/capabilities/skills/web_search/SKILL.md:21:`web_search` no hace clicks.
+agent/capabilities/skills/web_search/SKILL.md:22:`web_search` no navega visualmente.
+agent/capabilities/skills/web_search/SKILL.md:26:`web_search` = buscar información para responder en el chat.
+agent/capabilities/skills/web_search/SKILL.md:30:Si el usuario quiere información, usa `web_search`.
+agent/capabilities/skills/web_search/SKILL.md:35:Si `web_search` está disponible y el usuario pide investigar, buscar información, noticias, documentación, fuentes, referencias, latest/current/recent info o comparación, llama la tool `web_search`.
+agent/capabilities/skills/web_search/SKILL.md:47:web_search
+agent/capabilities/skills/web_search/SKILL.md:93:## Cuándo usar web_search
+agent/capabilities/skills/web_search/SKILL.md:95:Usa `web_search` para:
+agent/capabilities/skills/web_search/SKILL.md:114:## Cuándo NO usar web_search
+agent/capabilities/skills/web_search/SKILL.md:116:No uses `web_search` para:
+agent/capabilities/skills/web_search/SKILL.md:135:Si el usuario pide documentación, usa `web_search`.
+agent/capabilities/skills/web_search/SKILL.md:147:Si el usuario pide noticias, usa `web_search`.
+agent/capabilities/skills/web_search/SKILL.md:162:Si el usuario pide comparar, usa `web_search`.
+agent/capabilities/skills/web_search/SKILL.md:172:Si el usuario pega un error y pide investigar, usa `web_search`.
+agent/capabilities/skills/web_search/SKILL.md:207:  "tool_name": "web_search",
+agent/capabilities/skills/web_search/SKILL.md:221:  "tool_name": "web_search",
+agent/capabilities/skills/web_search/SKILL.md:235:  "tool_name": "web_search",
+agent/capabilities/skills/web_search/SKILL.md:249:  "tool_name": "web_search",
+agent/capabilities/skills/web_search/SKILL.md:263:  "tool_name": "web_search",
+agent/capabilities/skills/web_search/SKILL.md:277:  "tool_name": "web_search",
+agent/capabilities/skills/web_search/SKILL.md:291:  "tool_name": "web_search",
+agent/capabilities/skills/web_search/SKILL.md:305:  "tool_name": "web_search",
+agent/capabilities/skills/web_search/SKILL.md:319:  "tool_name": "web_search",
+agent/capabilities/skills/web_search/SKILL.md:333:  "tool_name": "web_search",
+agent/capabilities/skills/web_search/SKILL.md:346:No uses `web_search`.
+agent/capabilities/skills/web_search/SKILL.md:356:No uses `web_search`.
+agent/capabilities/skills/web_search/SKILL.md:366:No uses `web_search`.
+agent/capabilities/skills/web_search/SKILL.md:376:No uses `web_search`.
+agent/capabilities/skills/web_search/SKILL.md:386:No uses `web_search`.
+agent/capabilities/skills/web_search/SKILL.md:396:No uses `web_search`.
+agent/capabilities/skills/web_search/SKILL.md:406:No uses `web_search`.
+agent/capabilities/skills/web_search/SKILL.md:418:Tool preferida: `web_search`.
+agent/capabilities/skills/web_search/SKILL.md:426:Tool preferida: `web_search`.
+agent/capabilities/skills/web_search/SKILL.md:442:Tool preferida: `web_search`.
+agent/capabilities/skills/web_search/SKILL.md:458:Tool preferida: `web_search`.
+agent/capabilities/skills/web_search/SKILL.md:474:Tool preferida: `web_search`.
+agent/capabilities/skills/web_search/SKILL.md:489:Si el usuario pidió buscar y `web_search` está disponible, llama la herramienta.
+agent/capabilities/skills/web_search/SKILL.md:495:- Se llamó `web_search`.
+agent/capabilities/skills/web_search/SKILL.md:516:Objetivo de información = `web_search`.
+agent/capabilities/skills/browser_search/SKILL.md:21:browser_search no sustituye web_search.
+agent/capabilities/skills/browser_search/SKILL.md:26:web_search investiga.
+agent/capabilities/skills/browser_search/SKILL.md:28:web_search informa.
+agent/capabilities/skills/browser_search/SKILL.md:30:web_search devuelve resultados al agente.
+agent/capabilities/skills/browser_search/SKILL.md:39:Usa web_search si el usuario quiere información para responder dentro del chat.
+agent/capabilities/skills/browser_search/SKILL.md:40:Usa web_search si el usuario quiere noticias resumidas.
+agent/capabilities/skills/browser_search/SKILL.md:41:Usa web_search si el usuario quiere documentación resumida.
+agent/capabilities/skills/browser_search/SKILL.md:42:Usa web_search si el usuario quiere comparar fuentes.
+agent/capabilities/skills/browser_search/SKILL.md:74:No uses web_search para abrir navegador.
+agent/capabilities/skills/browser_search/SKILL.md:129:## Casos que pertenecen a web_search
+agent/capabilities/skills/browser_search/SKILL.md:132:Usa web_search para investiga Ollama tool calling.
+agent/capabilities/skills/browser_search/SKILL.md:133:Usa web_search para busca documentación de Ollama tool calling.
+agent/capabilities/skills/browser_search/SKILL.md:134:Usa web_search para busca noticias de inteligencia artificial.
+agent/capabilities/skills/browser_search/SKILL.md:135:Usa web_search para compara Qwen y Llama.
+agent/capabilities/skills/browser_search/SKILL.md:136:Usa web_search para busca fuentes sobre agentes locales.
+agent/capabilities/skills/browser_search/SKILL.md:137:Usa web_search para latest news about AI.
+agent/capabilities/skills/browser_search/SKILL.md:138:Usa web_search para official documentation.
+agent/capabilities/skills/browser_search/SKILL.md:139:Usa web_search para best practices.
+agent/capabilities/skills/browser_search/SKILL.md:270:Usa web_search.
+agent/capabilities/skills/browser_search/SKILL.md:276:Usa web_search.
+agent/capabilities/skills/browser_search/SKILL.md:282:Usa web_search.
+agent/capabilities/skills/browser_search/SKILL.md:288:Usa web_search.
+agent/capabilities/skills/browser_search/SKILL.md:294:Usa web_search.
+agent/capabilities/skills/browser_search/SKILL.md:300:Usa web_search.
+agent/capabilities/skills/browser_search/SKILL.md:307:Tool preferida: web_search
+agent/capabilities/skills/browser_search/SKILL.md:312:Tool preferida: web_search
+agent/capabilities/skills/browser_search/SKILL.md:327:Tool preferida: web_search
+agent/capabilities/skills/browser_search/SKILL.md:342:Tool preferida: web_search
+agent/capabilities/skills/browser_search/SKILL.md:352:Tool preferida: web_search
+agent/capabilities/skills/browser_search/SKILL.md:363:¿El usuario pidió investigar? Sí: web_search.
+agent/capabilities/skills/browser_search/SKILL.md:364:¿El usuario pidió noticias? Sí: web_search.
+agent/capabilities/skills/browser_search/SKILL.md:365:¿El usuario pidió documentación para responder? Sí: web_search.
+agent/capabilities/skills/browser_search/SKILL.md:378:Investigación usa web_search.
+agent/capabilities/skills/browser_search/SKILL.md:383:El agente usó web_search para abrir YouTube.
+agent/capabilities/skills/browser_search/SKILL.md:384:El agente usó web_search para abrir Google.
+agent/capabilities/skills/selector.py:13:            if name == "web_search":
+agent/capabilities/skills/selector.py:14:                path = self.root / "web_search" / "SKILL.md"
+agent/capabilities/skills/selector.py:17:                    if skill.name == "web_search":
+agent/executor/executor.py:3:from agent.capabilities.tools.web_search_tools import web_search
+agent/executor/executor.py:30:            if call.tool_name == "web_search":
+agent/executor/executor.py:31:                return web_search(
+agent/context_builder/assembler.py:44:                "open_app with {'app_name': ...}, web_search with {'query': ..., 'max_results': 5}, browser_search with {'query': ..., 'target': ...}, "
+agent/context_builder/assembler.py:48:                "Use web_search when the user asks to investigate, look up, search the internet, find news, find documentation, or answer using web results. Use browser_search only when opening/navigating the browser will actually help. "
+agent/context_builder/builder.py:32:            "Only web_search, browser_search, open_app, macOS observation tools, fixed macOS window tools, and fixed macOS Spaces tools may be executed in the current phase.",
+agent/context_builder/builder.py:33:            "web_search may search the web and return structured results to the agent. browser_search may open absolute http or https URLs and perform browser-based navigation/search in the browser.",
+agent/context_builder/builder.py:44:                "Only web_search, browser_search, open_app, macOS observation tools, fixed macOS window tools, and fixed macOS Spaces tools may be executed."
+agent/context_builder/builder.py:80:                "Use web_search when the user wants information/results to answer from the web. Use browser_search only for opening browser pages, known web destinations, YouTube/Google navigation, and direct http/https URLs. "
+agent/action_macros/selector.py:53:    def _router_wants_web_search(self, context) -> bool:
+agent/action_macros/selector.py:54:        """Return True when router/context already selected web_search.
+agent/action_macros/selector.py:57:        web_search returns results to the agent; browser_search only opens a page.
+agent/action_macros/selector.py:64:        if action == "web_search":
+agent/action_macros/selector.py:66:        if "web_search" in suggested_tools:
+agent/action_macros/selector.py:71:            if isinstance(tool, dict) and tool.get("name") == "web_search":
+agent/action_macros/selector.py:78:        if self._router_wants_web_search(context):
+agent/action_macros/selector.py:83:                reason="router_selected_web_search",

@@ -2,7 +2,15 @@ from collections.abc import Iterable
 from collections.abc import Iterator
 from typing import Any
 
-import ollama
+
+def _ollama_module():
+    try:
+        import ollama
+    except ModuleNotFoundError as exc:  # pragma: no cover - environment dependent
+        raise ModuleNotFoundError(
+            "ollama is required for live model calls but is not installed in this environment"
+        ) from exc
+    return ollama
 
 
 class OllamaClient:
@@ -16,6 +24,7 @@ class OllamaClient:
         think: bool | str | None = None,
         options: dict[str, Any] | None = None,
     ) -> str:
+        ollama = _ollama_module()
         response = ollama.chat(
             model=model,
             messages=list(messages),
@@ -36,6 +45,7 @@ class OllamaClient:
         *,
         options: dict[str, Any] | None = None,
     ) -> Any:
+        ollama = _ollama_module()
         return ollama.chat(
             model=model,
             messages=list(messages),
@@ -55,6 +65,7 @@ class OllamaClient:
     ) -> Iterator[str]:
         if format_schema is not None:
             raise ValueError("Streaming with format_schema is not supported.")
+        ollama = _ollama_module()
         response = ollama.chat(
             model=model,
             messages=list(messages),

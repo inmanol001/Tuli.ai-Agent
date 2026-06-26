@@ -1,0 +1,16 @@
+== direct candidate imports ==
+OK agent.models: None
+ERR agent.model: ModuleNotFoundError: No module named 'agent.model'
+ERR agent.llm: ModuleNotFoundError: No module named 'agent.llm'
+ERR agent.ollama: ModuleNotFoundError: No module named 'agent.ollama'
+ERR agent.main_model: ModuleNotFoundError: No module named 'agent.main_model'
+ERR agent.clients: ModuleNotFoundError: No module named 'agent.clients'
+ERR agent.clients.ollama: ModuleNotFoundError: No module named 'agent.clients'
+ERR agent.brains: ModuleNotFoundError: No module named 'agent.brains'
+ERR agent.planner: ModuleNotFoundError: No module named 'agent.planner'
+ERR agent.tool_planner: ModuleNotFoundError: No module named 'agent.tool_planner'
+ERR agent.response: ModuleNotFoundError: No module named 'agent.response'
+OK agent.response_action: None
+OK agent.router: None
+
+== walk agent modules matching keywords ==

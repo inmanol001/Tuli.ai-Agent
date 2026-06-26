@@ -11,7 +11,7 @@ from agent.models.ollama_client import OllamaClient
 
 
 TOOL_PLANNER_SYSTEM_PROMPT = """You are a macOS tool-calling agent.
-You have tools for browser navigation/search, macOS apps, macOS observation, fixed macOS window actions, and fixed macOS Spaces actions.
+You have tools for web search results, browser navigation/search, macOS apps, macOS observation, fixed macOS window actions, and fixed macOS Spaces actions.
 When the user asks for an action or asks to observe current app/window state, call the matching tool.
 Never say you cannot do something when a matching tool is available.
 Do not pretend you executed an action.
@@ -72,6 +72,21 @@ class ToolPlanner:
             f"current_route={context.session_state.get('current_route')}",
         ]
         tool_names = ", ".join(tool.get("name", "") for tool in context.selected_tools)
+
+        skill_sections = []
+        for skill in context.selected_skills:
+            name = skill.get("name", "unknown_skill")
+            description = skill.get("description", "")
+            content = skill.get("content", "") or ""
+            if content:
+                skill_sections.append(
+                    f"## Skill: {name}\n"
+                    f"Description: {description}\n\n"
+                    f"{content}"
+                )
+
+        selected_skill_content = "\n\n".join(skill_sections) or "(none)"
+
         return [
             {"role": "system", "content": TOOL_PLANNER_SYSTEM_PROMPT},
             {
@@ -82,7 +97,9 @@ class ToolPlanner:
                     "Selected plugins: "
                     f"{[plugin.get('name') for plugin in context.selected_plugins]}\n"
                     "Selected skills: "
-                    f"{[skill.get('name') for skill in context.selected_skills]}\n"
+                    f"{[skill.get('name') for skill in context.selected_skills]}\n\n"
+                    "Selected skill instructions:\n"
+                    f"{selected_skill_content}\n\n"
                     "Safety rules:\n- "
                     + "\n- ".join(context.safety_rules)
                     + "\nSession state:\n- "

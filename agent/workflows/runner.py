@@ -4,12 +4,18 @@ from typing import Any
 
 from agent.action_macros.executor import ActionMacroExecutor
 from agent.capabilities.tools.registry import ToolRegistry
+from agent.execution.action_runner import ActionRunner
 from agent.executor.executor import Executor
 from agent.gateway.message_types import ContextPackage
 from agent.models.tool_planner import ToolPlanner
+from agent.reflection.checker import ReflectionChecker
 from agent.router.router_schema import RouterDecision
+from agent.workflows.loop_controller import WorkflowLoopController
+from agent.workflows.plan_manager import WorkflowPlanManager
+from agent.workflows.plan_schemas import WorkflowPlanStep
 from agent.workflows.reasoner import WorkflowReasoner
 from agent.workflows.registry import FullWorkflowRegistry
+from agent.workflows.requirement_checker import RequirementChecker, RequirementContext
 from agent.workflows.schemas import (
     FullWorkflowPhaseResult,
     FullWorkflowPhaseSpec,
@@ -24,6 +30,7 @@ class FullWorkflowRunner:
     def __init__(
         self,
         executor: Executor,
+        action_runner: ActionRunner | None = None,
         registry: FullWorkflowRegistry | None = None,
         reasoner: WorkflowReasoner | None = None,
         action_macro_executor: ActionMacroExecutor | None = None,
@@ -31,13 +38,35 @@ class FullWorkflowRunner:
         tool_registry: ToolRegistry | None = None,
     ) -> None:
         self.executor = executor
+        self.reflection_checker = ReflectionChecker()
+        self.requirement_checker = RequirementChecker()
+        self.action_runner = action_runner or ActionRunner(
+            executor=self.executor,
+            reflection_checker=self.reflection_checker,
+        )
         self.registry = registry or FullWorkflowRegistry()
         self.reasoner = reasoner or WorkflowReasoner()
         self.action_macro_executor = action_macro_executor
         self.tool_planner = tool_planner or ToolPlanner()
         self.tool_registry = tool_registry or ToolRegistry()
+        self.plan_manager = WorkflowPlanManager()
+        self.loop_controller = WorkflowLoopController(
+            executor=self.executor,
+            action_runner=self.action_runner,
+            action_macro_executor=self.action_macro_executor,
+            reasoner=self.reasoner,
+            tool_planner=self.tool_planner,
+            tool_registry=self.tool_registry,
+            plan_manager=self.plan_manager,
+            reflection_checker=self.reflection_checker,
+        )
 
-    def run(self, workflow_plan: FullWorkflowPlan) -> FullWorkflowResult:
+    def run(
+        self,
+        workflow_plan: FullWorkflowPlan,
+        context: ContextPackage | None = None,
+        session: Any | None = None,
+    ) -> FullWorkflowResult:
         workflow_name = workflow_plan.workflow_name or ""
         workflow = self.registry.get(workflow_name)
         if workflow is None:
@@ -51,7 +80,7 @@ class FullWorkflowRunner:
             )
 
         try:
-            step_defs = workflow.build_phases(workflow_plan.inputs)
+            step_defs = list(workflow.build_phases(dict(workflow_plan.inputs)))
         except Exception as exc:
             return FullWorkflowResult(
                 workflow_name=workflow_name,
@@ -60,6 +89,70 @@ class FullWorkflowRunner:
                 success=False,
                 simulation_mode=workflow_plan.simulation_mode,
                 error=str(exc),
+            )
+
+        live_plan = self._create_runtime_plan(workflow_name, workflow_plan, step_defs)
+
+        if context is not None and session is not None and live_plan.steps:
+            requirement_result = self.requirement_checker.check(
+                RequirementContext(
+                    workflow_name=workflow_name,
+                    user_goal=context.user_message,
+                    step_kind=live_plan.steps[0].kind,
+                    step_title=live_plan.steps[0].title,
+                    state=dict(live_plan.state),
+                    requires_visual_validation=live_plan.steps[0].kind == "verify",
+                    requires_approval=live_plan.steps[0].kind == "approval",
+                )
+            )
+            self.plan_manager.apply_requirement_check(
+                live_plan,
+                live_plan.steps[0].id,
+                requirement_result,
+            )
+            if not requirement_result.can_continue:
+                self.plan_manager.save_plan(live_plan)
+                status = "waiting_approval" if requirement_result.needs_approval else "waiting_user_input"
+                return FullWorkflowResult(
+                    workflow_name=workflow_name,
+                    inputs=dict(workflow_plan.inputs),
+                    state=FullWorkflowState(data=dict(live_plan.state)),
+                    workflow_id=live_plan.workflow_id,
+                    plan_path=str(
+                        self.plan_manager._plan_markdown_path(
+                            live_plan.workflow_id, session_id=live_plan.session_id
+                        )
+                    ),
+                    status=status,
+                    phases=[],
+                    success=False,
+                    simulation_mode=workflow_plan.simulation_mode,
+                    needs_user_input=requirement_result.needs_user_input,
+                    needs_approval=requirement_result.needs_approval,
+                    question=(
+                        requirement_result.questions[0]
+                        if requirement_result.questions
+                        else requirement_result.approval_request
+                    ),
+                    approval_request=requirement_result.approval_request,
+                    checkpoint_id=live_plan.active_checkpoint_id,
+                    current_step_id=(
+                        live_plan.steps[live_plan.current_step_index].id
+                        if live_plan.current_step_index < len(live_plan.steps)
+                        else None
+                    ),
+                    stopped_reason=requirement_result.reason,
+                    missing_tools=list(workflow_plan.missing_tools),
+                    error=None,
+                )
+
+            live_plan = self.plan_manager.save_plan(live_plan)
+            return self.loop_controller.run(
+                workflow_plan,
+                workflow,
+                context,
+                session,
+                existing_plan=live_plan,
             )
 
         state = FullWorkflowState(
@@ -77,6 +170,9 @@ class FullWorkflowRunner:
         failed = False
 
         for step_def in step_defs:
+            step_plan = live_plan.steps[len(results)] if len(live_plan.steps) > len(results) else None
+            if step_plan is not None:
+                live_plan = self.plan_manager.mark_step_running(live_plan, step_plan.id)
             phase_result = self._run_step(
                 step_def,
                 workflow_name,
@@ -93,6 +189,10 @@ class FullWorkflowRunner:
                 failed = True
             for key, value in phase_result.state_updates.items():
                 state.set_value(key, value)
+                live_plan.state[key] = value
+            if step_plan is not None:
+                self._apply_phase_result_to_plan(live_plan, step_plan.id, phase_result)
+                live_plan = self.plan_manager.save_plan(live_plan)
 
         status = "completed"
         success = True
@@ -120,6 +220,76 @@ class FullWorkflowRunner:
             stopped_reason=stopped_reason,
             missing_tools=sorted(missing_tools),
         )
+
+    def _create_runtime_plan(
+        self,
+        workflow_name: str,
+        workflow_plan: FullWorkflowPlan,
+        step_defs: list[FullWorkflowPhaseSpec],
+    ):
+        runtime_plan = self.plan_manager.create_plan(
+            workflow_name=workflow_name,
+            user_goal=workflow_plan.inputs.get("original_user_message")
+            or workflow_plan.inputs.get("topic")
+            or workflow_name,
+            steps=[self._to_runtime_step(step_def) for step_def in step_defs],
+            state=dict(workflow_plan.inputs),
+            session_id=workflow_plan.inputs.get("session_id"),
+            status="planning",
+        )
+        runtime_plan.status = "running"
+        return self.plan_manager.save_plan(runtime_plan)
+
+    def _to_runtime_step(self, step_def: FullWorkflowPhaseSpec) -> WorkflowPlanStep:
+        return WorkflowPlanStep(
+            title=step_def.description,
+            kind=step_def.kind,
+            description=step_def.description,
+            expected_result=step_def.expected_result,
+            selected_tool=step_def.tool_name
+            or (step_def.allowed_tools[0] if step_def.allowed_tools else None),
+            selected_macro=step_def.tool_name
+            if step_def.kind in {"action_macro", "macro"}
+            else None,
+        )
+
+    def _apply_phase_result_to_plan(
+        self,
+        plan,
+        step_id: str,
+        phase_result: FullWorkflowPhaseResult,
+    ) -> None:
+        step = next((item for item in plan.steps if item.id == step_id), None)
+        if step is None:
+            return
+        if phase_result.status == "completed":
+            step.status = "completed"
+            step.result_summary = phase_result.summary or phase_result.reasoning_output
+            step.error = None
+        elif phase_result.status == "failed":
+            step.status = "failed"
+            step.error = phase_result.error or phase_result.stop_reason
+        elif phase_result.status == "blocked_missing_tools":
+            step.status = "blocked"
+            step.error = phase_result.stop_reason
+        elif phase_result.status == "waiting_user_input":
+            step.status = "waiting_user_input"
+            step.question = phase_result.summary
+            step.requires_user_input = True
+        elif phase_result.status == "waiting_approval":
+            step.status = "waiting_approval"
+            step.approval_request = phase_result.summary
+            step.requires_approval = True
+        else:
+            step.status = "skipped" if phase_result.status == "simulated" else step.status
+        if phase_result.state_updates:
+            plan.state.update(phase_result.state_updates)
+        if phase_result.status in {"completed", "simulated"}:
+            plan.current_step_index = min(plan.current_step_index + 1, len(plan.steps))
+            if plan.current_step_index >= len(plan.steps) and plan.status == "running":
+                plan.status = "completed"
+        elif phase_result.status in {"failed", "blocked_missing_tools"}:
+            plan.status = "failed" if phase_result.status == "failed" else "blocked"
 
     def _run_step(
         self,
@@ -323,10 +493,24 @@ class FullWorkflowRunner:
             )
 
         tool_results = []
+        action_runs = []
+        reflection_traces = []
+        retry_count = 0
         for call in planner_result.tool_calls:
-            tool_results.append(self.executor.execute(call))
+            action_run = self.action_runner.run_tool_call(call)
+            action_runs.append(action_run.model_dump(mode="json"))
+            reflection_traces.append(
+                {
+                    "tool_call": call.model_dump(mode="json"),
+                    "reflection_trace": action_run.reflection_trace,
+                    "retry_count": action_run.retry_count,
+                    "stop_reason": action_run.stop_reason,
+                }
+            )
+            retry_count += action_run.retry_count
+            tool_results.append(action_run.final_tool_result)
 
-        if any(not result.success for result in tool_results):
+        if any(not action_run["success"] for action_run in action_runs):
             return FullWorkflowPhaseResult(
                 phase_name=step_def.phase_name,
                 kind=step_def.kind,
@@ -338,12 +522,18 @@ class FullWorkflowRunner:
                 tool_results=[
                     result.model_dump(mode="json") for result in tool_results
                 ],
+                action_runs=action_runs,
+                reflection_traces=reflection_traces,
+                retry_count=retry_count,
                 error=next(
                     (result.error for result in tool_results if not result.success),
                     None,
                 ),
                 stopped=True,
-                stop_reason="tool_failed",
+                stop_reason=next(
+                    (action_run.get("stop_reason") for action_run in action_runs if not action_run["success"]),
+                    "tool_failed",
+                ),
                 missing_tools=missing_tools,
             )
 
@@ -356,6 +546,9 @@ class FullWorkflowRunner:
                 call.model_dump(mode="json") for call in planner_result.tool_calls
             ],
             tool_results=[result.model_dump(mode="json") for result in tool_results],
+            action_runs=action_runs,
+            reflection_traces=reflection_traces,
+            retry_count=retry_count,
             missing_tools=missing_tools,
         )
 

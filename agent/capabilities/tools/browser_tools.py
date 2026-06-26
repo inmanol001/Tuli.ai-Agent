@@ -15,6 +15,18 @@ ALLOWED_BROWSER_TARGETS = {
     "google_home",
     "youtube_home",
 }
+KNOWN_SITE_URLS = {
+    "google": "https://www.google.com",
+    "youtube": "https://www.youtube.com",
+    "you tube": "https://www.youtube.com",
+    "github": "https://github.com",
+    "openai": "https://openai.com",
+    "ollama": "https://ollama.com",
+    "canva": "https://www.canva.com",
+    "facebook": "https://www.facebook.com",
+    "instagram": "https://www.instagram.com",
+    "tiktok": "https://www.tiktok.com",
+}
 
 
 def normalize_http_url(url: str) -> str:
@@ -94,6 +106,19 @@ def _youtube_search_url(query: str) -> str:
     return "https://www.youtube.com/results?" + urlencode({"search_query": query})
 
 
+def _normalize_query_key(query: str) -> str:
+    return " ".join((query or "").strip().lower().split())
+
+
+def _looks_like_direct_url(query: str) -> bool:
+    clean = (query or "").strip()
+    if not clean or " " in clean:
+        return False
+    if clean.startswith(("http://", "https://", "www.")):
+        return True
+    return "." in clean
+
+
 def _resolve_browser_target(query: str, target: str) -> tuple[str, str]:
     clean_query = (query or "").strip()
     normalized_target = (target or "auto").strip().lower()
@@ -112,18 +137,13 @@ def _resolve_browser_target(query: str, target: str) -> tuple[str, str]:
     if not clean_query and normalized_target not in {"google_home", "youtube_home"}:
         raise ValueError("browser_search requires a non-empty query")
 
-    query_lower = clean_query.lower()
+    query_key = _normalize_query_key(clean_query)
     if normalized_target == "auto":
-        if "://" in clean_query or clean_query.startswith("www.") or "." in clean_query:
-            try:
-                return "url", normalize_http_url(clean_query)
-            except ValueError:
-                pass
-        if query_lower in {"google", "google.com", "abre google", "open google"}:
-            return "google_home", "https://www.google.com"
-        if query_lower in {"youtube", "youtube.com", "abre youtube", "open youtube"}:
-            return "youtube_home", "https://www.youtube.com"
-        if "youtube" in query_lower:
+        if query_key in KNOWN_SITE_URLS:
+            return "url", KNOWN_SITE_URLS[query_key]
+        if _looks_like_direct_url(clean_query):
+            return "url", normalize_http_url(clean_query)
+        if "youtube" in query_key:
             return "youtube", _youtube_search_url(clean_query)
         return "web", _google_search_url(clean_query)
     if normalized_target in {"web", "google"}:

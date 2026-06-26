@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import json
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -14,7 +16,6 @@ class GatewayLogger:
     def write(self, stream: str, event: dict[str, Any] | BaseModel) -> None:
         path = self.log_dir / f"{stream}.jsonl"
         payload = event.model_dump(mode="json") if isinstance(event, BaseModel) else event
-        payload = {"timestamp": datetime.now(UTC).isoformat(), **payload}
+        payload = {"timestamp": datetime.now(timezone.utc).isoformat(), **payload}
         with path.open("a", encoding="utf-8") as fh:
             fh.write(json.dumps(payload, ensure_ascii=True) + "\n")
-

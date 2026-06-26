@@ -1,0 +1,7 @@
+- FOUND: Ollama/main model references exist in code.
+- FOUND: MainModel/main_model naming appears in code/config.
+- FOUND: ToolPlanner exists and may already call the main model.
+- FOUND: Direct Ollama HTTP usage exists somewhere in code.
+- FOUND: At least one model/planner class can instantiate without args; inspect 60_probe_model_runtime.txt.
+- CURRENT: Resolver has its own local-model function; this should be replaced/wired to the main model API.
+- FOUND: model_used debug traces exist; can use those to confirm resolver uses same model later.

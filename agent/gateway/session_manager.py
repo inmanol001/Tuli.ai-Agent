@@ -1,8 +1,11 @@
 from dataclasses import dataclass, field
+from typing import Any
 from uuid import uuid4
 
 from agent.gateway.message_types import ConversationTurn
 from agent.memory.sqlite_store import SQLiteStore
+from agent.conversation_state.persistence import load_conversation_state, save_conversation_state
+from agent.conversation_state.state import default_conversation_state, normalize_conversation_state
 
 
 @dataclass
@@ -11,8 +14,10 @@ class SessionState:
     history: list[ConversationTurn] = field(default_factory=list)
     pending_clarification: str | None = None
     pending_confirmation: dict | None = None
+    pending_workflow: dict | None = None
     previous_route: str | None = None
     current_route: str | None = None
+    conversation_state: dict[str, Any] = field(default_factory=default_conversation_state)
 
 
 class SessionManager:
@@ -59,13 +64,16 @@ class SessionManager:
         if state is None:
             state = SessionState(session_id=session_id)
             self._sessions[session_id] = state
+        state.conversation_state = normalize_conversation_state(state.conversation_state)
         self.store.upsert_session_state(
             session_id=state.session_id,
             previous_route=state.previous_route,
             current_route=state.current_route,
             pending_clarification=state.pending_clarification,
             pending_confirmation=state.pending_confirmation,
+            pending_workflow=state.pending_workflow,
         )
+        save_conversation_state(self.store, state.session_id, state.conversation_state)
 
     def load_recent_history(
         self, session_id: str, limit: int | None = None
@@ -86,6 +94,8 @@ class SessionManager:
             history=self.load_recent_history(session_id, self.max_history),
             pending_clarification=stored.get("pending_clarification"),
             pending_confirmation=stored.get("pending_confirmation"),
+            pending_workflow=stored.get("pending_workflow"),
             previous_route=stored.get("previous_route"),
             current_route=stored.get("current_route"),
+            conversation_state=load_conversation_state(self.store, session_id),
         )

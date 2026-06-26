@@ -1,0 +1,48 @@
+
+====================================================================================================
+USER: investiga ollama tool calling best practices
+DECISION: {'intent': 'action', 'domain': 'browser', 'action': 'web_search', 'route': 'action_ready', 'needs_tool': True, 'needs_clarification': False, 'missing_info': [], 'needs_memory': False, 'needs_rag': False, 'needs_vision': False, 'risk_level': 'low', 'suggested_plugins': ['browser'], 'suggested_skills': ['web_search'], 'suggested_tools': ['web_search'], 'context_needed': []}
+SELECTED_TOOLS: ['web_search']
+SELECTED_SKILLS: ['web_search']
+PROMPT_LEN: 3771
+PROMPT_HAS_Skill: web_search: True
+CONTENT_LEN_web_search: 1849
+
+====================================================================================================
+USER: abre youtube
+DECISION: {'intent': 'action', 'domain': 'browser', 'action': 'browser_search', 'route': 'action_ready', 'needs_tool': True, 'needs_clarification': False, 'missing_info': [], 'needs_memory': False, 'needs_rag': False, 'needs_vision': False, 'risk_level': 'low', 'suggested_plugins': ['browser'], 'suggested_skills': ['browser_search'], 'suggested_tools': ['browser_search'], 'context_needed': []}
+SELECTED_TOOLS: ['browser_search']
+SELECTED_SKILLS: ['browser_search']
+PROMPT_LEN: 6803
+PROMPT_HAS_Skill: browser_search: True
+CONTENT_LEN_browser_search: 4920
+
+====================================================================================================
+USER: abre calculadora
+DECISION: {'intent': 'action', 'domain': 'general', 'action': 'respond', 'route': 'chat', 'needs_tool': False, 'needs_clarification': False, 'missing_info': [], 'needs_memory': False, 'needs_rag': False, 'needs_vision': False, 'risk_level': 'low', 'suggested_plugins': [], 'suggested_skills': [], 'suggested_tools': ['web_search'], 'context_needed': []}
+SELECTED_TOOLS: ['web_search']
+SELECTED_SKILLS: []
+PROMPT_LEN: 1743
+
+====================================================================================================
+USER: observa mi pantalla
+DECISION: {'intent': 'refuse', 'domain': 'macos', 'action': 'screen_observation_unavailable', 'route': 'refuse', 'needs_tool': False, 'needs_clarification': False, 'missing_info': [], 'needs_memory': False, 'needs_rag': False, 'needs_vision': False, 'risk_level': 'medium', 'suggested_plugins': [], 'suggested_skills': [], 'suggested_tools': [], 'context_needed': []}
+SELECTED_TOOLS: []
+SELECTED_SKILLS: []
+PROMPT_LEN: 1744
+
+====================================================================================================
+USER: move the active window to the left
+DECISION: {'intent': 'action', 'domain': 'general', 'action': 'respond', 'route': 'chat', 'needs_tool': False, 'needs_clarification': False, 'missing_info': [], 'needs_memory': False, 'needs_rag': False, 'needs_vision': False, 'risk_level': 'low', 'suggested_plugins': [], 'suggested_skills': [], 'suggested_tools': ['browser_search'], 'context_needed': []}
+SELECTED_TOOLS: ['browser_search']
+SELECTED_SKILLS: []
+PROMPT_LEN: 1765
+
+====================================================================================================
+USER: activa mission control
+DECISION: {'intent': 'action', 'domain': 'macos', 'action': 'space_mission_control', 'route': 'action_ready', 'needs_tool': True, 'needs_clarification': False, 'missing_info': [], 'needs_memory': False, 'needs_rag': False, 'needs_vision': False, 'risk_level': 'low', 'suggested_plugins': ['macos'], 'suggested_skills': ['macos_spaces'], 'suggested_tools': ['macos_space_mission_control'], 'context_needed': []}
+SELECTED_TOOLS: ['macos_space_mission_control']
+SELECTED_SKILLS: ['macos_spaces']
+PROMPT_LEN: 5408
+PROMPT_HAS_Skill: macos_spaces: True
+CONTENT_LEN_macos_spaces: 3485

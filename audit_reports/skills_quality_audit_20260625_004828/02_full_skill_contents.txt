@@ -1,0 +1,635 @@
+===== 02 full skill contents =====
+
+================================================================================
+FILE: agent/capabilities/skills/browser_search/SKILL.md
+================================================================================
+---
+name: browser_search
+description: Buscar información o abrir contenido web usando el navegador por defecto.
+tools:
+  - browser_search
+risk: low
+---
+
+# Objetivo
+
+Usa `browser_search` cuando el usuario quiera buscar información, abrir una página web o navegar a contenido usando el navegador por defecto.
+
+Esta skill no controla aplicaciones de macOS, no hace screenshots, no hace clicks, no escribe texto, no lee páginas y no ejecuta comandos.
+
+# Cuándo usar esta skill
+
+Usa `browser_search` cuando la intención principal del usuario sea una de estas:
+
+1. Buscar información en internet.
+2. Investigar un tema.
+3. Abrir una página web.
+4. Abrir una URL absoluta `http` o `https`.
+5. Navegar a un sitio web conocido.
+6. Buscar contenido en un destino web específico si el usuario lo indica claramente.
+
+No uses esta skill para:
+
+1. Abrir aplicaciones de macOS. Para eso usa `open_app`.
+2. Observar la app activa o ventanas. Para eso usa las tools de observación de macOS.
+3. Cambiar de escritorio o Mission Control. Para eso usa las tools de macOS Spaces.
+4. Leer una página web después de abrirla.
+5. Hacer screenshots.
+6. Hacer clicks.
+7. Escribir o pegar texto.
+8. Ejecutar comandos.
+9. Abrir rutas locales, archivos locales o esquemas inseguros.
+
+# Cómo construir los argumentos
+
+La tool recibe:
+
+```json
+{
+  "query": "texto o URL solicitada por el usuario",
+  "target": "auto"
+}
+```
+
+`query` debe contener el tema real de búsqueda, el nombre del sitio o la URL indicada por el usuario.
+
+Antes de llenar `query`, elimina palabras de comando que no formen parte del tema real, por ejemplo:
+
+* busca
+* buscar
+* investiga
+* abre
+* abrir
+* muéstrame
+* pon
+* en internet
+* en la web
+
+Conserva las palabras que sí formen parte del tema solicitado.
+
+# Uso de `target`
+
+Usa `target="auto"` cuando el destino no esté completamente claro o cuando una resolución automática sea suficiente.
+
+Usa `target="web"` cuando el usuario pida una búsqueda general de información en internet.
+
+Usa `target="google"` cuando el usuario pida explícitamente buscar usando Google.
+
+Usa `target="youtube"` cuando el usuario pida explícitamente buscar contenido en YouTube o cuando el contenido solicitado sea claramente de video/música y el usuario indique ese destino.
+
+Usa `target="url"` solo si el usuario proporciona una URL absoluta que empieza con `http://` o `https://`.
+
+Usa `target="google_home"` solo si el usuario pide abrir la página principal de Google, no una búsqueda.
+
+Usa `target="youtube_home"` solo si el usuario pide abrir la página principal de YouTube, no una búsqueda.
+
+# Reglas importantes
+
+1. No inventes URLs.
+2. No conviertas una búsqueda general en una búsqueda de YouTube si el usuario no lo pidió.
+3. No conviertas una búsqueda general en abrir una página principal.
+4. No uses `target="url"` si el usuario no proporcionó una URL absoluta `http` o `https`.
+5. No abras rutas locales.
+6. No abras esquemas como `file://`, `javascript:`, `data:` o `ftp:`.
+7. Si el usuario solo quiere conversar o preguntar algo que puedes responder sin navegador, no uses esta skill.
+8. Si el usuario pide una acción del sistema operativo, no uses esta skill.
+9. Si falta el tema de búsqueda, pide una aclaración breve.
+10. Si hay una tool más específica para la intención del usuario, usa la tool específica.
+
+# Etapa 1: detectar intención
+
+Primero decide si la intención pertenece al navegador.
+
+La intención pertenece al navegador si el usuario quiere buscar, investigar, abrir una web, abrir una URL o navegar a contenido web.
+
+La intención no pertenece al navegador si el usuario quiere abrir una app, controlar macOS, cambiar ventanas, cambiar escritorios, leer archivos, ejecutar comandos o hacer automatización de escritorio.
+
+# Etapa 2: extraer el tema real
+
+Extrae de la petición el contenido importante.
+
+Elimina solamente las palabras de instrucción. No elimines nombres, temas, títulos, marcas, artistas, productos, tecnologías o frases que forman parte de la búsqueda.
+
+# Etapa 3: elegir target
+
+Elige el target más seguro:
+
+* `auto` si no hace falta especificar.
+* `web` para búsqueda general.
+* `google` si el usuario lo pidió explícitamente.
+* `youtube` si el usuario pidió explícitamente YouTube o contenido claramente destinado a YouTube.
+* `url` si hay URL absoluta.
+* `google_home` o `youtube_home` si pidió abrir la página principal.
+
+# Etapa 4: llamar la tool
+
+Cuando la intención sea clara, llama `browser_search` con `query` y `target`.
+
+No respondas como si hubieras abierto o buscado algo sin haber llamado la tool.
+
+# Etapa 5: respuesta después de ejecutar
+
+La respuesta final debe basarse en el resultado real de la tool.
+
+Si la tool abrió una búsqueda, responde de forma natural indicando que abriste la búsqueda en el navegador.
+
+Si la tool abrió una página, responde indicando que abriste la página.
+
+Si la tool falló, explica brevemente que no se pudo abrir y muestra el error si está disponible.
+
+================================================================================
+FILE: agent/capabilities/skills/macos_observation.md
+================================================================================
+---
+name: macos_observation
+description: Observar estado básico de macOS sin controlar la pantalla ni modificar nada.
+tools:
+  - macos_permissions_check
+  - macos_observe_frontmost
+  - macos_visible_windows
+  - macos_list_apps
+risk: low
+---
+
+# Objetivo
+
+Usa `macos_observation` cuando el usuario quiera revisar información básica del estado actual de macOS sin ejecutar acciones de control.
+
+Esta skill solo observa estado. No hace screenshots, no usa visión, no hace clicks, no escribe texto, no mueve ventanas y no cambia de escritorio.
+
+# Cuándo usar esta skill
+
+Usa esta skill cuando el usuario quiera:
+
+1. Saber qué app está activa.
+2. Saber cuál ventana está al frente.
+3. Ver qué ventanas visibles hay.
+4. Revisar permisos relevantes del agente.
+5. Listar apps conocidas o disponibles.
+6. Diagnosticar si el agente tiene permisos suficientes para observar o controlar macOS.
+
+No uses esta skill para:
+
+1. Abrir apps. Para eso usa `open_app`.
+2. Buscar en internet o abrir webs. Para eso usa `browser_search`.
+3. Cambiar de escritorio, Space o Mission Control. Para eso usa `macos_spaces`.
+4. Leer visualmente la pantalla.
+5. Hacer screenshots.
+6. Hacer clicks.
+7. Escribir o pegar texto.
+8. Mover, cerrar, minimizar o redimensionar ventanas.
+9. Ejecutar comandos.
+10. Pedir permisos al sistema.
+
+# Selección de tool
+
+Usa `macos_permissions_check` cuando el usuario quiera revisar permisos, diagnosticar permisos o saber si el agente tiene acceso necesario.
+
+Usa `macos_observe_frontmost` cuando el usuario quiera saber qué app está activa, qué ventana está al frente o cuál es la app actual.
+
+Usa `macos_visible_windows` cuando el usuario quiera listar ventanas abiertas o visibles.
+
+Usa `macos_list_apps` cuando el usuario quiera saber qué apps puede abrir, qué apps están disponibles o qué apps conoce el agente.
+
+# Reglas importantes
+
+1. No confundas observar app activa con hacer screenshot.
+2. No prometas leer contenido visual de la pantalla.
+3. No digas que viste la pantalla completa.
+4. No cambies nada del sistema.
+5. No uses esta skill para acciones de control.
+6. Si el usuario pide observar visualmente la pantalla, y no hay herramienta de screenshot o visión activa, responde que esa observación visual no está disponible en esta fase.
+7. La respuesta final debe basarse en el `ToolResult`.
+8. Si la tool falla, explica brevemente el error.
+9. Si la información no está disponible en el resultado, no la inventes.
+
+# Etapa 1: detectar intención
+
+Determina si el usuario está pidiendo observar estado de macOS o controlar macOS.
+
+Si solo quiere información de estado, usa esta skill.
+
+Si quiere abrir, buscar, cambiar, escribir, hacer clicks o ejecutar comandos, usa otra skill.
+
+# Etapa 2: elegir tool
+
+Elige la tool más específica según la pregunta.
+
+* Permisos → `macos_permissions_check`
+* App o ventana activa → `macos_observe_frontmost`
+* Ventanas visibles → `macos_visible_windows`
+* Apps disponibles o conocidas → `macos_list_apps`
+
+# Etapa 3: llamar la tool
+
+Llama la tool elegida sin argumentos.
+
+# Etapa 4: responder después de ejecutar
+
+Responde usando los datos reales devueltos por la tool.
+
+Si la tool falla, explica brevemente el error.
+
+================================================================================
+FILE: agent/capabilities/skills/macos_spaces.md
+================================================================================
+---
+name: macos_spaces
+description: Navegar de forma segura entre macOS Spaces, escritorios y Mission Control usando acciones fijas.
+tools:
+  - macos_space_status
+  - macos_space_next
+  - macos_space_previous
+  - macos_space_mission_control
+  - macos_space_switch_desktop_number
+risk: low
+---
+
+# Objetivo
+
+Usa `macos_spaces` cuando el usuario quiera navegar entre escritorios o Spaces de macOS, revisar el estado básico de Spaces o abrir Mission Control.
+
+Esta skill solo usa acciones fijas y seguras. No ejecuta AppleScript generado por el modelo, no hace screenshots, no hace clicks, no escribe texto y no mueve ventanas.
+
+# Cuándo usar esta skill
+
+Usa esta skill cuando el usuario quiera:
+
+1. Cambiar al siguiente escritorio o Space.
+2. Volver al escritorio o Space anterior.
+3. Cambiar a un escritorio o Space por número.
+4. Abrir Mission Control.
+5. Revisar el estado básico de Spaces o del escritorio actual.
+
+No uses esta skill para:
+
+1. Abrir apps. Para eso usa `open_app`.
+2. Buscar información o abrir web. Para eso usa `browser_search`.
+3. Observar app activa, ventanas o permisos. Para eso usa `macos_observation`.
+4. Hacer screenshots.
+5. Hacer clicks.
+6. Mover ventanas entre escritorios.
+7. Hacer window tiling.
+8. Crear, borrar o renombrar escritorios.
+9. Ejecutar AppleScript dinámico generado por el modelo.
+10. Ejecutar comandos de terminal.
+
+# Selección de tool
+
+Usa `macos_space_status` cuando el usuario pregunte por el estado actual de Spaces o del escritorio.
+
+Usa `macos_space_next` cuando el usuario quiera ir al siguiente escritorio o Space.
+
+Usa `macos_space_previous` cuando el usuario quiera volver al escritorio o Space anterior.
+
+Usa `macos_space_mission_control` cuando el usuario quiera abrir Mission Control.
+
+Usa `macos_space_switch_desktop_number` cuando el usuario indique un número de escritorio o Space.
+
+# Cómo construir los argumentos
+
+Solo `macos_space_switch_desktop_number` requiere argumento:
+
+```json
+{
+  "number": 1
+}
+```
+
+`number` debe ser un entero entre 1 y 9.
+
+Si el usuario indica un número fuera de rango, no llames la tool. Pide una aclaración breve o explica el límite.
+
+# Reglas importantes
+
+1. No inventes números de escritorio.
+2. No uses esta skill si el usuario no pidió cambiar o revisar Spaces.
+3. No digas que verificaste el cambio si la tool solo envió un atajo.
+4. Si la tool solo envía un atajo, la respuesta final debe usar lenguaje honesto como “Envié el atajo...”.
+5. No ejecutes scripts dinámicos.
+6. No uses screenshots.
+7. No hagas clicks.
+8. No muevas ventanas.
+9. No hagas window tiling.
+10. La respuesta final debe basarse en el `ToolResult`.
+11. Si la tool falla, explica brevemente el error.
+
+# Etapa 1: detectar intención
+
+Determina si la intención pertenece a navegación de Spaces, escritorios o Mission Control.
+
+# Etapa 2: elegir tool
+
+Elige la tool más específica.
+
+* Estado de Spaces → `macos_space_status`
+* Siguiente escritorio → `macos_space_next`
+* Escritorio anterior → `macos_space_previous`
+* Mission Control → `macos_space_mission_control`
+* Escritorio por número → `macos_space_switch_desktop_number`
+
+# Etapa 3: validar argumentos
+
+Si se requiere número, valida que exista y que sea entre 1 y 9.
+
+# Etapa 4: llamar la tool
+
+Llama solo la tool necesaria.
+
+# Etapa 5: responder después de ejecutar
+
+Responde usando el resultado real de la tool.
+
+Si no hay verificación final del escritorio activo, usa lenguaje honesto como “Envié el atajo...”.
+
+Si la tool falla, explica brevemente el error.
+
+================================================================================
+FILE: agent/capabilities/skills/macos_windows.md
+================================================================================
+---
+name: macos_windows
+description: Mover o redimensionar la ventana activa de macOS usando acciones nativas seguras.
+tools:
+  - window_native_tiling
+risk: low
+---
+
+# Objetivo
+
+Usa `macos_windows` cuando el usuario quiera mover, redimensionar, centrar, llenar o acomodar la ventana activa/frontmost usando las acciones nativas de macOS.
+
+Esta skill solo controla la ventana activa con acciones fijas permitidas. No hace clicks libres, no arrastra el mouse, no usa coordenadas, no escribe texto, no hace screenshots y no mueve ventanas arbitrarias por título.
+
+# Cuándo usar esta skill
+
+Usa esta skill cuando el usuario quiera:
+
+1. Mover la ventana activa a la izquierda.
+2. Mover la ventana activa a la derecha.
+3. Mover la ventana activa arriba o abajo.
+4. Mover la ventana activa a una esquina.
+5. Centrar la ventana activa.
+6. Hacer que la ventana activa llene la pantalla.
+7. Volver la ventana activa a su tamaño anterior.
+8. Usar una acción nativa de organización de ventanas de macOS.
+
+No uses esta skill para:
+
+1. Abrir apps. Para eso usa `open_app`.
+2. Buscar en internet o abrir webs. Para eso usa `browser_search`.
+3. Cambiar de escritorio, Space o Mission Control. Para eso usa `macos_spaces`.
+4. Observar app activa, ventanas o permisos. Para eso usa `macos_observation`.
+5. Hacer screenshots.
+6. Hacer clicks libres.
+7. Escribir o pegar texto.
+8. Cerrar, minimizar o ocultar ventanas.
+9. Mover una ventana específica por título.
+10. Mover varias ventanas a la vez.
+11. Ejecutar AppleScript dinámico generado por el modelo.
+12. Usar coordenadas manuales.
+
+# Selección de acción
+
+Usa `window_native_tiling` con estos valores:
+
+- `fill`: llenar pantalla o hacer la ventana grande usando la acción nativa Fill.
+- `center`: centrar la ventana.
+- `left`: mover/redimensionar la ventana hacia la izquierda.
+- `right`: mover/redimensionar la ventana hacia la derecha.
+- `top`: mover/redimensionar la ventana hacia arriba.
+- `bottom`: mover/redimensionar la ventana hacia abajo.
+- `top-left`: mover/redimensionar a la esquina superior izquierda.
+- `top-right`: mover/redimensionar a la esquina superior derecha.
+- `bottom-left`: mover/redimensionar a la esquina inferior izquierda.
+- `bottom-right`: mover/redimensionar a la esquina inferior derecha.
+- `left-right`: usar la acción nativa Left & Right.
+- `quarters`: usar la acción nativa Quarters.
+- `return`: volver al tamaño anterior.
+
+# Cómo construir los argumentos
+
+La tool recibe:
+
+```json
+{
+  "action": "right"
+}
+```
+
+`action` debe ser uno de los valores permitidos.
+
+No inventes acciones fuera de la lista.
+
+# Reglas importantes
+
+1. Esta tool solo afecta la ventana activa/frontmost.
+2. Si el usuario no especifica qué acción quiere hacer con la ventana, pide una aclaración breve.
+3. Si el usuario pide controlar una ventana que no está activa, primero puede necesitarse observar el estado o pedirle que ponga esa ventana al frente.
+4. No prometas verificación visual.
+5. Si `verified=false`, la respuesta final debe decir que se envió la acción o se solicitó el cambio, no que se verificó visualmente.
+6. No uses esta skill para acciones destructivas.
+7. No uses AppleScript generado por el modelo.
+8. La respuesta final debe basarse en el `ToolResult`.
+
+# Etapa 1: detectar intención
+
+Determina si el usuario quiere mover o redimensionar la ventana activa.
+
+# Etapa 2: elegir acción
+
+Mapea la intención del usuario a una acción permitida.
+
+# Etapa 3: llamar la tool
+
+Llama `window_native_tiling` con el `action` correcto.
+
+# Etapa 4: responder después de ejecutar
+
+Responde usando el resultado real de la tool.
+
+Si la tool falla, explica brevemente el error.
+
+Si la tool solo envió la acción y no verificó la posición final, responde de forma honesta.
+
+================================================================================
+FILE: agent/capabilities/skills/open_app/SKILL.md
+================================================================================
+---
+name: open_app
+description: Abrir aplicaciones instaladas de macOS por nombre usando una acción segura del sistema.
+tools:
+  - open_app
+risk: low
+---
+
+# Objetivo
+
+Usa `open_app` cuando el usuario quiera abrir o lanzar una aplicación instalada en macOS.
+
+Esta skill solo abre aplicaciones. No controla ventanas, no escribe texto, no hace clicks, no abre páginas web, no ejecuta comandos y no modifica archivos.
+
+# Cuándo usar esta skill
+
+Usa `open_app` cuando la intención principal del usuario sea una de estas:
+
+1. Abrir una aplicación instalada.
+2. Lanzar una app por nombre.
+3. Traer una aplicación al frente si el usuario pide abrirla.
+4. Abrir una app del sistema o una app conocida instalada.
+
+No uses esta skill para:
+
+1. Abrir páginas web, sitios web o URLs. Para eso usa `browser_search`.
+2. Buscar información en internet. Para eso usa `browser_search`.
+3. Leer archivos locales.
+4. Ejecutar comandos de terminal.
+5. Escribir, pegar o hacer clicks.
+6. Cambiar de escritorio, Space o Mission Control. Para eso usa `macos_spaces`.
+7. Observar ventanas, app activa o permisos. Para eso usa `macos_observation`.
+8. Instalar aplicaciones.
+9. Borrar, mover o modificar archivos.
+
+# Cómo construir los argumentos
+
+La tool recibe:
+
+```json
+{
+  "app_name": "nombre de la aplicación"
+}
+```
+
+`app_name` debe contener solo el nombre de la aplicación que el usuario quiere abrir.
+
+Antes de llenar `app_name`, elimina palabras de comando que no formen parte del nombre real de la app, por ejemplo:
+
+* abre
+* abrir
+* lanza
+* iniciar
+* inicia
+* ejecuta
+* pon
+* abre la app de
+* abre la aplicación
+* quiero abrir
+* puedes abrir
+
+Conserva el nombre real de la aplicación.
+
+# Reglas importantes
+
+1. No inventes una app si el usuario no dijo cuál quiere abrir.
+2. Si falta el nombre de la app, pide una aclaración breve.
+3. No uses `open_app` para URLs, dominios o sitios web.
+4. No uses `open_app` para rutas locales.
+5. No uses `open_app` para comandos de terminal.
+6. No digas que la app se abrió si no existe un `ToolResult`.
+7. La respuesta final debe basarse en el resultado real de la tool.
+8. Si la tool solo envió la orden pero no confirmó que la app quedó activa, responde de forma honesta.
+9. Si la tool falla, explica brevemente el error.
+
+# Etapa 1: detectar intención
+
+Primero decide si la intención pertenece a abrir una aplicación local de macOS.
+
+Pertenece a `open_app` si el usuario quiere abrir una app instalada.
+
+No pertenece a `open_app` si el usuario quiere buscar en internet, abrir una URL, controlar ventanas, escribir texto, hacer clicks, cambiar Spaces o ejecutar comandos.
+
+# Etapa 2: extraer `app_name`
+
+Extrae el nombre de la app solicitada.
+
+No incluyas palabras de comando en `app_name`.
+
+# Etapa 3: llamar la tool
+
+Cuando la app esté clara, llama `open_app` con `app_name`.
+
+# Etapa 4: responder después de ejecutar
+
+La respuesta final debe usar el resultado real de la tool.
+
+Si la app se abrió correctamente, responde natural y breve.
+
+Si la tool falló, explica que no se pudo abrir y muestra el error disponible.
+
+Si no se pudo verificar que la app quedó activa, no digas que lo verificaste.
+
+================================================================================
+FILE: agent/capabilities/skills/web_search/SKILL.md
+================================================================================
+---
+name: web_search
+description: Buscar información en internet y devolver resultados estructurados al agente para responder.
+tools:
+  - web_search
+risk: low
+---
+
+# Objetivo
+
+Usa `web_search` cuando el usuario quiera investigar, buscar información en internet, noticias, documentación, información actual, referencias, mejores prácticas, guías o tutoriales.
+
+`web_search` no abre el navegador. Devuelve resultados estructurados al agente: título, URL y snippet.
+
+Diferencia principal:
+
+- `web_search` = buscar resultados web para responder dentro del chat.
+- `browser_search` = abrir Google, YouTube, una URL o una búsqueda en el navegador.
+
+# Cuándo usar web_search
+
+Usa `web_search` para frases como:
+
+- investiga ollama tool calling best practices
+- busca en internet noticias de inteligencia artificial
+- busca documentación de ollama tool calling
+- busca información actual sobre un tema
+- latest/current/recent docs
+- compara fuentes sobre un tema
+
+# Cuándo NO usar web_search
+
+No uses `web_search` para:
+
+- abrir YouTube
+- abrir Google
+- abrir una URL
+- poner música o videos
+- buscar videos en YouTube
+- navegar visualmente
+
+Para eso usa `browser_search`.
+
+# Regla obligatoria
+
+Si `web_search` está disponible y el usuario pide investigar, buscar información, noticias o documentación, llama la tool `web_search`.
+
+No respondas diciendo que no tienes capacidad para buscar.
+No preguntes si quiere buscar cuando la intención ya es clara.
+No uses `browser_search` para responder con información.
+
+# Argumentos
+
+Usa:
+
+{
+  "query": "tema real de búsqueda",
+  "max_results": 5
+}
+
+La query debe quitar palabras de comando como: investiga, busca, busca en internet, noticias de, documentación de.
+
+Ejemplo:
+
+Usuario: investiga ollama tool calling best practices
+
+Tool call:
+
+{
+  "query": "ollama tool calling best practices",
+  "max_results": 5
+}

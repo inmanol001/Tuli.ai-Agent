@@ -1,0 +1,196 @@
+--- action macro files ---
+agent/action_macros/__init__.py
+agent/action_macros/__pycache__/__init__.cpython-311.pyc
+agent/action_macros/__pycache__/__init__.cpython-312.pyc
+agent/action_macros/__pycache__/executor.cpython-311.pyc
+agent/action_macros/__pycache__/executor.cpython-312.pyc
+agent/action_macros/__pycache__/finalizer.cpython-311.pyc
+agent/action_macros/__pycache__/finalizer.cpython-312.pyc
+agent/action_macros/__pycache__/registry.cpython-311.pyc
+agent/action_macros/__pycache__/registry.cpython-312.pyc
+agent/action_macros/__pycache__/schemas.cpython-311.pyc
+agent/action_macros/__pycache__/schemas.cpython-312.pyc
+agent/action_macros/__pycache__/selector.cpython-311.pyc
+agent/action_macros/__pycache__/selector.cpython-312.pyc
+agent/action_macros/definitions/__init__.py
+agent/action_macros/definitions/__pycache__/__init__.cpython-311.pyc
+agent/action_macros/definitions/__pycache__/__init__.cpython-312.pyc
+agent/action_macros/definitions/__pycache__/open_app_and_tile_window.cpython-311.pyc
+agent/action_macros/definitions/__pycache__/open_app_and_tile_window.cpython-312.pyc
+agent/action_macros/definitions/__pycache__/open_browser_and_search.cpython-311.pyc
+agent/action_macros/definitions/__pycache__/open_browser_and_search.cpython-312.pyc
+agent/action_macros/definitions/__pycache__/open_work_setup.cpython-311.pyc
+agent/action_macros/definitions/__pycache__/open_work_setup.cpython-312.pyc
+agent/action_macros/definitions/__pycache__/play_random_youtube_video.cpython-311.pyc
+agent/action_macros/definitions/__pycache__/play_random_youtube_video.cpython-312.pyc
+agent/action_macros/definitions/__pycache__/tile_active_window.cpython-311.pyc
+agent/action_macros/definitions/__pycache__/tile_active_window.cpython-312.pyc
+agent/action_macros/definitions/open_app_and_tile_window.py
+agent/action_macros/definitions/open_browser_and_search.py
+agent/action_macros/definitions/open_work_setup.py
+agent/action_macros/definitions/play_random_youtube_video.py
+agent/action_macros/definitions/tile_active_window.py
+agent/action_macros/executor.py
+agent/action_macros/finalizer.py
+agent/action_macros/registry.py
+agent/action_macros/schemas.py
+agent/action_macros/selector.py
+
+--- grep macro selection/order/tools ---
+agent/action_macros/finalizer.py:50:        if workflow_result.workflow_name == "tile_active_window":
+agent/action_macros/finalizer.py:51:            return self._finalize_tile_active_window(workflow_result)
+agent/action_macros/finalizer.py:52:        if workflow_result.workflow_name == "open_app_and_tile_window":
+agent/action_macros/finalizer.py:53:            return self._finalize_open_app_and_tile_window(workflow_result)
+agent/action_macros/finalizer.py:54:        if workflow_result.workflow_name == "open_browser_and_search":
+agent/action_macros/finalizer.py:55:            return self._finalize_open_browser_and_search(workflow_result)
+agent/action_macros/finalizer.py:56:        if workflow_result.workflow_name == "play_random_youtube_video":
+agent/action_macros/finalizer.py:57:            return self._finalize_play_random_youtube_video(workflow_result)
+agent/action_macros/finalizer.py:58:        if workflow_result.workflow_name == "open_work_setup":
+agent/action_macros/finalizer.py:59:            return self._finalize_open_work_setup(workflow_result)
+agent/action_macros/finalizer.py:62:    def _finalize_tile_active_window(self, workflow_result: ActionMacroResult) -> str:
+agent/action_macros/finalizer.py:64:            action = workflow_result.inputs.get("window_action", "window_action")
+agent/action_macros/finalizer.py:67:        if workflow_result.stopped_reason == "no_frontmost_window":
+agent/action_macros/finalizer.py:70:        if workflow_result.stopped_reason == "step_failed:window_native_tiling":
+agent/action_macros/finalizer.py:71:            error = self._step_error(workflow_result, "window_native_tiling")
+agent/action_macros/finalizer.py:76:    def _finalize_open_app_and_tile_window(self, workflow_result: ActionMacroResult) -> str:
+agent/action_macros/finalizer.py:78:        action = workflow_result.inputs.get("window_action", "window_action")
+agent/action_macros/finalizer.py:90:        if workflow_result.stopped_reason == "step_failed:window_native_tiling":
+agent/action_macros/finalizer.py:91:            error = self._step_error(workflow_result, "window_native_tiling")
+agent/action_macros/finalizer.py:96:    def _finalize_open_browser_and_search(self, workflow_result: ActionMacroResult) -> str:
+agent/action_macros/finalizer.py:100:            if target == "youtube":
+agent/action_macros/finalizer.py:106:    def _finalize_play_random_youtube_video(self, workflow_result: ActionMacroResult) -> str:
+agent/action_macros/finalizer.py:112:        if workflow_result.stopped_reason == "step_failed:browser_search":
+agent/action_macros/finalizer.py:113:            error = self._step_error(workflow_result, "browser_search")
+agent/action_macros/finalizer.py:118:    def _finalize_open_work_setup(self, workflow_result: ActionMacroResult) -> str:
+agent/action_macros/finalizer.py:128:        if workflow_result.stopped_reason == "step_failed:browser_search":
+agent/action_macros/finalizer.py:129:            error = self._step_error(workflow_result, "browser_search")
+agent/action_macros/finalizer.py:131:        if workflow_result.stopped_reason == "step_failed:open_url":
+agent/action_macros/finalizer.py:132:            error = self._step_error(workflow_result, "open_url")
+agent/action_macros/registry.py:17:            "open_app_and_tile_window": OpenAppAndTileWindowActionMacro(),
+agent/action_macros/registry.py:18:            "open_browser_and_search": OpenBrowserAndSearchActionMacro(),
+agent/action_macros/registry.py:19:            "open_work_setup": OpenWorkSetupActionMacro(),
+agent/action_macros/registry.py:20:            "play_random_youtube_video": PlayRandomYoutubeVideoActionMacro(),
+agent/action_macros/registry.py:21:            "tile_active_window": TileActiveWindowActionMacro(),
+agent/action_macros/selector.py:7:from agent.capabilities.tools.macos_window_tools import NATIVE_TILING_ACTIONS
+agent/action_macros/selector.py:56:            return ActionMacroPlan(selected=False)
+agent/action_macros/selector.py:60:        if self._looks_like_work_setup(text):
+agent/action_macros/selector.py:62:                selected=True,
+agent/action_macros/selector.py:63:                workflow_name="open_work_setup",
+agent/action_macros/selector.py:65:                reason="matched_open_work_setup",
+agent/action_macros/selector.py:67:        if self._looks_like_browser_search(text):
+agent/action_macros/selector.py:69:                selected=True,
+agent/action_macros/selector.py:70:                workflow_name="open_browser_and_search",
+agent/action_macros/selector.py:72:                reason="matched_open_browser_and_search",
+agent/action_macros/selector.py:74:        if self._looks_like_random_youtube_video(text):
+agent/action_macros/selector.py:76:                selected=True,
+agent/action_macros/selector.py:77:                workflow_name="play_random_youtube_video",
+agent/action_macros/selector.py:78:                inputs={"query": self._youtube_query(text)},
+agent/action_macros/selector.py:79:                reason="matched_play_random_youtube_video",
+agent/action_macros/selector.py:81:        window_action = self._detect_window_action(text)
+agent/action_macros/selector.py:82:        if not window_action:
+agent/action_macros/selector.py:83:            return ActionMacroPlan(selected=False)
+agent/action_macros/selector.py:90:                return ActionMacroPlan(selected=False)
+agent/action_macros/selector.py:92:                selected=True,
+agent/action_macros/selector.py:93:                workflow_name="open_app_and_tile_window",
+agent/action_macros/selector.py:94:                inputs={"app_name": app_name, "window_action": window_action},
+agent/action_macros/selector.py:95:                reason="matched_open_app_and_tile_window",
+agent/action_macros/selector.py:98:        if self._mentions_window(text):
+agent/action_macros/selector.py:100:                selected=True,
+agent/action_macros/selector.py:101:                workflow_name="tile_active_window",
+agent/action_macros/selector.py:102:                inputs={"window_action": window_action},
+agent/action_macros/selector.py:103:                reason="matched_tile_active_window",
+agent/action_macros/selector.py:106:        return ActionMacroPlan(selected=False)
+agent/action_macros/selector.py:108:    def _looks_like_random_youtube_video(self, text: str) -> bool:
+agent/action_macros/selector.py:110:            "youtube" in text
+agent/action_macros/selector.py:114:                    "video random",
+agent/action_macros/selector.py:116:                    "video al azar",
+agent/action_macros/selector.py:117:                    "random video",
+agent/action_macros/selector.py:124:    def _youtube_query(self, text: str) -> str:
+agent/action_macros/selector.py:125:        if "youtube" in text and "video" in text:
+agent/action_macros/selector.py:126:            return "random video"
+agent/action_macros/selector.py:127:        return "random video"
+agent/action_macros/selector.py:129:    def _looks_like_work_setup(self, text: str) -> bool:
+agent/action_macros/selector.py:142:    def _looks_like_browser_search(self, text: str) -> bool:
+agent/action_macros/selector.py:168:        if "youtube" in text:
+agent/action_macros/selector.py:169:            return "youtube"
+agent/action_macros/selector.py:172:    def _mentions_window(self, text: str) -> bool:
+agent/action_macros/selector.py:173:        return any(token in text for token in ("ventana", "window", "esta ventana", "ventana activa"))
+agent/action_macros/selector.py:204:    def _detect_window_action(self, text: str) -> str | None:
+agent/action_macros/__init__.py:1:from agent.action_macros.executor import ActionMacroExecutor
+agent/action_macros/schemas.py:7:from agent.capabilities.tools.schemas import ToolCall
+agent/action_macros/schemas.py:8:from agent.executor.results import ToolResult
+agent/action_macros/schemas.py:12:    "tile_active_window",
+agent/action_macros/schemas.py:13:    "open_app_and_tile_window",
+agent/action_macros/schemas.py:14:    "open_browser_and_search",
+agent/action_macros/schemas.py:15:    "play_random_youtube_video",
+agent/action_macros/schemas.py:16:    "open_work_setup",
+agent/action_macros/schemas.py:21:    """Intent-selected recipe for a fast, predeclared action macro."""
+agent/action_macros/schemas.py:23:    selected: bool = False
+agent/action_macros/schemas.py:24:    workflow_name: str | None = None
+agent/action_macros/schemas.py:34:    tool_call: ToolCall
+agent/action_macros/schemas.py:47:    workflow_name: str
+agent/action_macros/definitions/open_app_and_tile_window.py:3:from agent.capabilities.tools.schemas import ToolCall
+agent/action_macros/definitions/open_app_and_tile_window.py:7:    """Recipe macro: open a known app and then tile the resulting window."""
+agent/action_macros/definitions/open_app_and_tile_window.py:9:    name = "open_app_and_tile_window"
+agent/action_macros/definitions/open_app_and_tile_window.py:11:    def build_steps(self, inputs) -> list[ToolCall]:
+agent/action_macros/definitions/open_app_and_tile_window.py:13:        window_action = inputs.get("window_action", "")
+agent/action_macros/definitions/open_app_and_tile_window.py:15:            ToolCall(tool_name="open_app", arguments={"app_name": app_name}),
+agent/action_macros/definitions/open_app_and_tile_window.py:16:            ToolCall(tool_name="macos_observe_frontmost", arguments={}),
+agent/action_macros/definitions/open_app_and_tile_window.py:17:            ToolCall(
+agent/action_macros/definitions/open_app_and_tile_window.py:18:                tool_name="window_native_tiling",
+agent/action_macros/definitions/open_app_and_tile_window.py:19:                arguments={"action": window_action},
+agent/action_macros/definitions/tile_active_window.py:3:from agent.capabilities.tools.schemas import ToolCall
+agent/action_macros/definitions/tile_active_window.py:7:    """Recipe macro: inspect the frontmost window and apply one tiling action."""
+agent/action_macros/definitions/tile_active_window.py:9:    name = "tile_active_window"
+agent/action_macros/definitions/tile_active_window.py:11:    def build_steps(self, inputs) -> list[ToolCall]:
+agent/action_macros/definitions/tile_active_window.py:12:        window_action = inputs.get("window_action", "")
+agent/action_macros/definitions/tile_active_window.py:14:            ToolCall(tool_name="macos_observe_frontmost", arguments={}),
+agent/action_macros/definitions/tile_active_window.py:15:            ToolCall(
+agent/action_macros/definitions/tile_active_window.py:16:                tool_name="window_native_tiling",
+agent/action_macros/definitions/tile_active_window.py:17:                arguments={"action": window_action},
+agent/action_macros/definitions/__init__.py:1:from agent.action_macros.definitions.open_app_and_tile_window import (
+agent/action_macros/definitions/__init__.py:4:from agent.action_macros.definitions.open_browser_and_search import (
+agent/action_macros/definitions/__init__.py:7:from agent.action_macros.definitions.open_work_setup import (
+agent/action_macros/definitions/__init__.py:10:from agent.action_macros.definitions.play_random_youtube_video import (
+agent/action_macros/definitions/__init__.py:13:from agent.action_macros.definitions.tile_active_window import (
+agent/action_macros/definitions/open_browser_and_search.py:3:from agent.capabilities.tools.schemas import ToolCall
+agent/action_macros/definitions/open_browser_and_search.py:9:    name = "open_browser_and_search"
+agent/action_macros/definitions/open_browser_and_search.py:11:    def build_steps(self, inputs) -> list[ToolCall]:
+agent/action_macros/definitions/open_browser_and_search.py:15:            ToolCall(
+agent/action_macros/definitions/open_browser_and_search.py:16:                tool_name="browser_search",
+agent/action_macros/definitions/open_work_setup.py:3:from agent.capabilities.tools.schemas import ToolCall
+agent/action_macros/definitions/open_work_setup.py:9:    name = "open_work_setup"
+agent/action_macros/definitions/open_work_setup.py:11:    def build_steps(self, inputs) -> list[ToolCall]:
+agent/action_macros/definitions/open_work_setup.py:13:            ToolCall(tool_name="open_app", arguments={"app_name": "Google Chrome"}),
+agent/action_macros/definitions/open_work_setup.py:14:            ToolCall(tool_name="open_app", arguments={"app_name": "Visual Studio Code"}),
+agent/action_macros/definitions/open_work_setup.py:15:            ToolCall(tool_name="open_app", arguments={"app_name": "Terminal"}),
+agent/action_macros/definitions/open_work_setup.py:19:                ToolCall(
+agent/action_macros/definitions/open_work_setup.py:20:                    tool_name="open_url",
+agent/action_macros/definitions/play_random_youtube_video.py:3:from agent.capabilities.tools.schemas import ToolCall
+agent/action_macros/definitions/play_random_youtube_video.py:7:    """Recipe macro: open YouTube via Chrome and search for a random video."""
+agent/action_macros/definitions/play_random_youtube_video.py:9:    name = "play_random_youtube_video"
+agent/action_macros/definitions/play_random_youtube_video.py:11:    def build_steps(self, inputs) -> list[ToolCall]:
+agent/action_macros/definitions/play_random_youtube_video.py:12:        query = (inputs.get("query") or "random video").strip()
+agent/action_macros/definitions/play_random_youtube_video.py:14:            ToolCall(tool_name="open_app", arguments={"app_name": "Google Chrome"}),
+agent/action_macros/definitions/play_random_youtube_video.py:15:            ToolCall(
+agent/action_macros/definitions/play_random_youtube_video.py:16:                tool_name="browser_search",
+agent/action_macros/definitions/play_random_youtube_video.py:17:                arguments={"query": query, "target": "youtube"},
+agent/action_macros/executor.py:8:from agent.execution.action_runner import ActionRunner
+agent/action_macros/executor.py:9:from agent.executor.executor import Executor
+agent/action_macros/executor.py:10:from agent.executor.results import ToolResult
+agent/action_macros/executor.py:20:        executor: Executor,
+agent/action_macros/executor.py:22:        action_runner: ActionRunner | None = None,
+agent/action_macros/executor.py:26:        self.executor = executor
+agent/action_macros/executor.py:29:        self.action_runner = action_runner or ActionRunner(
+agent/action_macros/executor.py:30:            executor=self.executor,
+agent/action_macros/executor.py:37:        """Build the macro's fixed ToolCalls and execute each one with retry/reflection."""
+agent/action_macros/executor.py:38:        macro_name = macro_plan.workflow_name or ""
+agent/action_macros/executor.py:42:                workflow_name=macro_name or "unknown",
+agent/action_macros/executor.py:52:                workflow_name=macro_name,
+agent/action_macros/executor.py:60:            action_run = self.action_runner.run_tool_call(tool_call)
+agent/action_macros/executor.py:79:                    workflow_name=macro_name,
+agent/action_macros/executor.py:89:            workflow_name=macro_name,
+agent/action_macros/executor.py:96:        self, workflow_name: str, step_index: int, tool_result: ToolResult
+agent/action_macros/executor.py:98:        if workflow_name == "tile_active_window" and step_index == 0:
+agent/action_macros/executor.py:100:            has_frontmost = bool(data.get("app_name") or data.get("window_title"))
+agent/action_macros/executor.py:104:                return True, "no_frontmost_window"

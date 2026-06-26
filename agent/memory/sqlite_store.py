@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import json
 import sqlite3
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 
 def utc_now() -> str:
-    return datetime.now(UTC).isoformat()
+    return datetime.now(timezone.utc).isoformat()
 
 
 class SQLiteStore:
@@ -28,6 +28,7 @@ class SQLiteStore:
         schema = self.schema_path.read_text(encoding="utf-8")
         with self.connect() as conn:
             conn.executescript(schema)
+            self._ensure_column(conn, "session_state", "pending_workflow_json", "TEXT")
 
     def get_session_state(self, session_id: str) -> dict[str, Any] | None:
         with self.connect() as conn:
@@ -39,8 +40,12 @@ class SQLiteStore:
             return None
         data = dict(row)
         pending_json = data.pop("pending_confirmation_json", None)
+        pending_workflow_json = data.pop("pending_workflow_json", None)
         data["pending_confirmation"] = (
             json.loads(pending_json) if pending_json else None
+        )
+        data["pending_workflow"] = (
+            json.loads(pending_workflow_json) if pending_workflow_json else None
         )
         return data
 
@@ -52,11 +57,17 @@ class SQLiteStore:
         current_route: str | None,
         pending_clarification: str | None,
         pending_confirmation: dict[str, Any] | None,
+        pending_workflow: dict[str, Any] | None,
     ) -> None:
         now = utc_now()
         pending_json = (
             json.dumps(pending_confirmation, ensure_ascii=True)
             if pending_confirmation is not None
+            else None
+        )
+        pending_workflow_json = (
+            json.dumps(pending_workflow, ensure_ascii=True)
+            if pending_workflow is not None
             else None
         )
         with self.connect() as conn:
@@ -65,14 +76,16 @@ class SQLiteStore:
                 INSERT INTO session_state (
                     session_id, previous_route, current_route,
                     pending_clarification, pending_confirmation_json,
+                    pending_workflow_json,
                     created_at, updated_at
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(session_id) DO UPDATE SET
                     previous_route = excluded.previous_route,
                     current_route = excluded.current_route,
                     pending_clarification = excluded.pending_clarification,
                     pending_confirmation_json = excluded.pending_confirmation_json,
+                    pending_workflow_json = excluded.pending_workflow_json,
                     updated_at = excluded.updated_at
                 """,
                 (
@@ -81,6 +94,7 @@ class SQLiteStore:
                     current_route,
                     pending_clarification,
                     pending_json,
+                    pending_workflow_json,
                     now,
                     now,
                 ),
@@ -253,3 +267,18 @@ class SQLiteStore:
                 """,
                 (session_id, summary, utc_now()),
             )
+
+    def _ensure_column(
+        self,
+        conn: sqlite3.Connection,
+        table: str,
+        column: str,
+        column_type: str,
+    ) -> None:
+        columns = {
+            row["name"]
+            for row in conn.execute(f"PRAGMA table_info({table})").fetchall()
+        }
+        if column in columns:
+            return
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {column_type}")

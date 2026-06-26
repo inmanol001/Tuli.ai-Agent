@@ -1,0 +1,11 @@
+NAME                                  ID              SIZE      MODIFIED     
+qwen3-embedding:0.6b                  ac6da0dfba84    639 MB    39 hours ago    
+allenporter/xlam:1b                   72e458458dc6    873 MB    39 hours ago    
+llama3.1:8b                           46e0c10c039e    4.9 GB    2 days ago      
+llama3-groq-tool-use:8b-16k           cc38120d98de    4.7 GB    2 days ago      
+llama3-groq-tool-use:8b               36211dad2b15    4.7 GB    2 days ago      
+qwen3:1.7b                            8f68893c685c    1.4 GB    3 days ago      
+qwen3-0.6b-ud-q8-k-xl-local:latest    035a19f2a4a4    844 MB    4 days ago      
+qwen2.5-coder:7b                      dae161e27b0e    4.7 GB    5 days ago      
+cmdmbox/skill-expert:latest           e7b4ed49708a    4.9 GB    5 days ago      
+qwen3:4b                              359d7dd4bcda    2.5 GB    7 days ago      

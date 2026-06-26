@@ -1,8 +1,11 @@
 name: browser
 description: Capacidades para buscar información y abrir contenido web con el navegador por defecto.
 tools:
+  - web_search
   - browser_search
 skills:
+  - web_search
+
   - browser_search
 risk: low
 enabled: true

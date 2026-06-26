@@ -1,0 +1,583 @@
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:189:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:190:        decision.suggested_tools = ["macos_space_mission_control"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:209:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:210:        decision.suggested_tools = ["macos_space_mission_control"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:221:        decision.suggested_skills = []
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:222:        decision.suggested_tools = []
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:234:        decision.suggested_skills = []
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:235:        decision.suggested_tools = []
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:247:        decision.suggested_skills = ["macos_observation"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:248:        decision.suggested_tools = ["macos_permissions_check"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:260:        decision.suggested_skills = ["macos_observation"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:261:        decision.suggested_tools = ["macos_observe_frontmost"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:273:        decision.suggested_skills = ["macos_observation"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:274:        decision.suggested_tools = ["macos_visible_windows"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:286:        decision.suggested_skills = ["macos_observation"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:287:        decision.suggested_tools = ["macos_list_apps"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:299:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:300:        decision.suggested_tools = ["macos_space_status"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:312:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:313:        decision.suggested_tools = ["macos_space_next"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:325:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:326:        decision.suggested_tools = ["macos_space_previous"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:338:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:339:        decision.suggested_tools = ["macos_space_mission_control"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:351:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:352:        decision.suggested_tools = ["macos_space_switch_desktop_number"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:358:        decision.action = "window_native_tiling"
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:364:        decision.suggested_skills = ["macos_windows"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:365:        decision.suggested_tools = ["window_native_tiling"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:371:        decision.action = "window_native_tiling"
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:378:        decision.suggested_skills = ["macos_windows"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:379:        decision.suggested_tools = ["window_native_tiling"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:400:        decision.suggested_skills = ["full_workflows"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:401:        decision.suggested_tools = []
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:409:        decision.action = "browser_search"
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:415:        decision.suggested_skills = []
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:416:        decision.suggested_tools = []
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:422:        decision.action = "browser_search"
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:428:        decision.suggested_skills = ["browser_search"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:429:        decision.suggested_tools = ["browser_search"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:435:        decision.action = "browser_search"
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:441:        decision.suggested_skills = ["browser_search"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:442:        decision.suggested_tools = ["browser_search"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:448:        decision.action = "open_app"
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:454:        decision.suggested_skills = ["open_app"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:455:        decision.suggested_tools = ["open_app"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:484:        decision.suggested_skills = ["browser_search"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:485:        decision.suggested_tools = ["browser_search"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:501:        decision.action = "web_search"
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:508:        decision.suggested_skills = []
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:509:        decision.suggested_tools = ["web_search"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:514:        decision.action = "browser_search"
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:520:        decision.suggested_skills = ["browser_search"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:521:        decision.suggested_tools = ["browser_search"]
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:528:    if decision.suggested_tools:
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:530:            "web_search",
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:531:            "browser_search",
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:532:            "open_app",
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:533:            "window_native_tiling",
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:535:            "macos_observe_frontmost",
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:536:            "macos_visible_windows",
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:538:            "macos_space_status",
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:539:            "macos_space_next",
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:540:            "macos_space_previous",
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:541:            "macos_space_mission_control",
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:542:            "macos_space_switch_desktop_number",
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:544:        decision.suggested_tools = [
+agent/router/router_validator.py.bak_add_web_search_skill_20260625_002204:545:            tool for tool in decision.suggested_tools if tool in allowed_tools
+agent/router/router_prompt.py:17:- Web information/research intent where the agent should answer using search results: route action_ready, suggested_tools web_search.
+agent/router/router_prompt.py:18:- Browser navigation/opening intent: route action_ready, suggested_tools browser_search.
+agent/router/router_prompt.py:19:- "Open Chrome/Safari/Finder/Terminal/Notes/VS Code": route action_ready, suggested_tools open_app.
+agent/router/router_prompt.py:20:- Opening an absolute http/https URL, a clear domain, or a known website home page: route action_ready, suggested_tools browser_search.
+agent/router/router_prompt.py:21:- Requests to move, resize, center, fill, or restore the active macOS window using fixed native window actions: route action_ready, suggested_tools window_native_tiling.
+agent/router/router_prompt.py:22:- Requests to create, design, prepare, produce, or generate a creative asset such as a post, flyer, card, banner, ad, story, publication, caption, copy, or image should route action_ready, domain workflow, action full_workflow_candidate, suggested_skills full_workflows. This applies even if the user does not mention Canva. If the platform or destination is missing, still route action_ready so FullWorkflowSelector can ask a workflow-specific clarification. Do not route these as normal chat.
+agent/router/router_prompt.py:24:- Asking what app/window is active: route action_ready, suggested_tools macos_observe_frontmost.
+agent/router/router_prompt.py:25:- Asking what windows are visible/open: route action_ready, suggested_tools macos_visible_windows.
+agent/router/router_prompt.py:26:- Asking to check Mac permissions: route action_ready, suggested_tools macos_permissions_check.
+agent/router/router_prompt.py:27:- Asking what apps are available/openable: route action_ready, suggested_tools macos_list_apps.
+agent/router/router_prompt.py:28:- Asking Spaces status: route action_ready, suggested_tools macos_space_status.
+agent/router/router_prompt.py:29:- Asking next/previous Space/Desktop: route action_ready, suggested_tools macos_space_next or macos_space_previous.
+agent/router/router_prompt.py:30:- Asking Mission Control: route action_ready, suggested_tools macos_space_mission_control.
+agent/router/router_prompt.py:31:- Asking for a numbered desktop/space 1-9: route action_ready, suggested_tools macos_space_switch_desktop_number.
+agent/router/router_prompt.py:34:- Local paths, file://, javascript:, data:, and ftp: URLs must not use browser_search.
+agent/router/router_prompt.py:35:- web_search is for searching the web and returning structured results to the agent.
+agent/router/router_prompt.py:36:- browser_search is for browser navigation, known web destinations, YouTube/Google navigation, and absolute http/https URLs.
+agent/router/router_prompt.py:37:- window_native_tiling is only for the frontmost macOS window and must use a fixed native menu allowlist.
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:171:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:172:        decision.suggested_tools = ["macos_space_mission_control"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:183:        decision.suggested_skills = []
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:184:        decision.suggested_tools = []
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:196:        decision.suggested_skills = []
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:197:        decision.suggested_tools = []
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:209:        decision.suggested_skills = ["macos_observation"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:210:        decision.suggested_tools = ["macos_permissions_check"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:222:        decision.suggested_skills = ["macos_observation"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:223:        decision.suggested_tools = ["macos_observe_frontmost"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:235:        decision.suggested_skills = ["macos_observation"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:236:        decision.suggested_tools = ["macos_visible_windows"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:248:        decision.suggested_skills = ["macos_observation"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:249:        decision.suggested_tools = ["macos_list_apps"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:261:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:262:        decision.suggested_tools = ["macos_space_status"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:274:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:275:        decision.suggested_tools = ["macos_space_next"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:287:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:288:        decision.suggested_tools = ["macos_space_previous"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:300:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:301:        decision.suggested_tools = ["macos_space_mission_control"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:313:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:314:        decision.suggested_tools = ["macos_space_switch_desktop_number"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:320:        decision.action = "window_native_tiling"
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:326:        decision.suggested_skills = ["macos_windows"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:327:        decision.suggested_tools = ["window_native_tiling"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:333:        decision.action = "window_native_tiling"
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:340:        decision.suggested_skills = ["macos_windows"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:341:        decision.suggested_tools = ["window_native_tiling"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:362:        decision.suggested_skills = ["full_workflows"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:363:        decision.suggested_tools = []
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:371:        decision.action = "browser_search"
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:377:        decision.suggested_skills = []
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:378:        decision.suggested_tools = []
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:384:        decision.action = "browser_search"
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:390:        decision.suggested_skills = ["browser_search"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:391:        decision.suggested_tools = ["browser_search"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:397:        decision.action = "browser_search"
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:403:        decision.suggested_skills = ["browser_search"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:404:        decision.suggested_tools = ["browser_search"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:410:        decision.action = "open_app"
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:416:        decision.suggested_skills = ["open_app"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:417:        decision.suggested_tools = ["open_app"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:446:        decision.suggested_skills = ["browser_search"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:447:        decision.suggested_tools = ["browser_search"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:461:        decision.action = "browser_search"
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:467:        decision.suggested_skills = ["browser_search"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:468:        decision.suggested_tools = ["browser_search"]
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:475:    if decision.suggested_tools:
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:477:            "browser_search",
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:478:            "open_app",
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:479:            "window_native_tiling",
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:481:            "macos_observe_frontmost",
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:482:            "macos_visible_windows",
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:484:            "macos_space_status",
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:485:            "macos_space_next",
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:486:            "macos_space_previous",
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:487:            "macos_space_mission_control",
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:488:            "macos_space_switch_desktop_number",
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:490:        decision.suggested_tools = [
+agent/router/router_validator.py.bak_capability_routing_20260624_230121:491:            tool for tool in decision.suggested_tools if tool in allowed_tools
+agent/router/router_schema.py:35:    suggested_skills: list[str] = Field(default_factory=list)
+agent/router/router_schema.py:36:    suggested_tools: list[str] = Field(default_factory=list)
+agent/router/router_prompt.py.bak_web_search_router_20260624_235740:17:- Specific browser search/navigation intent: route action_ready, suggested_tools browser_search.
+agent/router/router_prompt.py.bak_web_search_router_20260624_235740:18:- "Open Chrome/Safari/Finder/Terminal/Notes/VS Code": route action_ready, suggested_tools open_app.
+agent/router/router_prompt.py.bak_web_search_router_20260624_235740:19:- Opening an absolute http/https URL, a clear domain, or a known website home page: route action_ready, suggested_tools browser_search.
+agent/router/router_prompt.py.bak_web_search_router_20260624_235740:20:- Requests to move, resize, center, fill, or restore the active macOS window using fixed native window actions: route action_ready, suggested_tools window_native_tiling.
+agent/router/router_prompt.py.bak_web_search_router_20260624_235740:21:- Requests to create, design, prepare, produce, or generate a creative asset such as a post, flyer, card, banner, ad, story, publication, caption, copy, or image should route action_ready, domain workflow, action full_workflow_candidate, suggested_skills full_workflows. This applies even if the user does not mention Canva. If the platform or destination is missing, still route action_ready so FullWorkflowSelector can ask a workflow-specific clarification. Do not route these as normal chat.
+agent/router/router_prompt.py.bak_web_search_router_20260624_235740:23:- Asking what app/window is active: route action_ready, suggested_tools macos_observe_frontmost.
+agent/router/router_prompt.py.bak_web_search_router_20260624_235740:24:- Asking what windows are visible/open: route action_ready, suggested_tools macos_visible_windows.
+agent/router/router_prompt.py.bak_web_search_router_20260624_235740:25:- Asking to check Mac permissions: route action_ready, suggested_tools macos_permissions_check.
+agent/router/router_prompt.py.bak_web_search_router_20260624_235740:26:- Asking what apps are available/openable: route action_ready, suggested_tools macos_list_apps.
+agent/router/router_prompt.py.bak_web_search_router_20260624_235740:27:- Asking Spaces status: route action_ready, suggested_tools macos_space_status.
+agent/router/router_prompt.py.bak_web_search_router_20260624_235740:28:- Asking next/previous Space/Desktop: route action_ready, suggested_tools macos_space_next or macos_space_previous.
+agent/router/router_prompt.py.bak_web_search_router_20260624_235740:29:- Asking Mission Control: route action_ready, suggested_tools macos_space_mission_control.
+agent/router/router_prompt.py.bak_web_search_router_20260624_235740:30:- Asking for a numbered desktop/space 1-9: route action_ready, suggested_tools macos_space_switch_desktop_number.
+agent/router/router_prompt.py.bak_web_search_router_20260624_235740:33:- Local paths, file://, javascript:, data:, and ftp: URLs must not use browser_search.
+agent/router/router_prompt.py.bak_web_search_router_20260624_235740:35:- window_native_tiling is only for the frontmost macOS window and must use a fixed native menu allowlist.
+agent/router/router_validator.py.bak_mission_control:163:        decision.suggested_skills = []
+agent/router/router_validator.py.bak_mission_control:164:        decision.suggested_tools = []
+agent/router/router_validator.py.bak_mission_control:176:        decision.suggested_skills = []
+agent/router/router_validator.py.bak_mission_control:177:        decision.suggested_tools = []
+agent/router/router_validator.py.bak_mission_control:189:        decision.suggested_skills = ["macos_observation"]
+agent/router/router_validator.py.bak_mission_control:190:        decision.suggested_tools = ["macos_permissions_check"]
+agent/router/router_validator.py.bak_mission_control:202:        decision.suggested_skills = ["macos_observation"]
+agent/router/router_validator.py.bak_mission_control:203:        decision.suggested_tools = ["macos_observe_frontmost"]
+agent/router/router_validator.py.bak_mission_control:215:        decision.suggested_skills = ["macos_observation"]
+agent/router/router_validator.py.bak_mission_control:216:        decision.suggested_tools = ["macos_visible_windows"]
+agent/router/router_validator.py.bak_mission_control:228:        decision.suggested_skills = ["macos_observation"]
+agent/router/router_validator.py.bak_mission_control:229:        decision.suggested_tools = ["macos_list_apps"]
+agent/router/router_validator.py.bak_mission_control:241:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_mission_control:242:        decision.suggested_tools = ["macos_space_status"]
+agent/router/router_validator.py.bak_mission_control:254:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_mission_control:255:        decision.suggested_tools = ["macos_space_next"]
+agent/router/router_validator.py.bak_mission_control:267:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_mission_control:268:        decision.suggested_tools = ["macos_space_previous"]
+agent/router/router_validator.py.bak_mission_control:280:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_mission_control:281:        decision.suggested_tools = ["macos_space_mission_control"]
+agent/router/router_validator.py.bak_mission_control:293:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_mission_control:294:        decision.suggested_tools = ["macos_space_switch_desktop_number"]
+agent/router/router_validator.py.bak_mission_control:300:        decision.action = "window_native_tiling"
+agent/router/router_validator.py.bak_mission_control:306:        decision.suggested_skills = ["macos_windows"]
+agent/router/router_validator.py.bak_mission_control:307:        decision.suggested_tools = ["window_native_tiling"]
+agent/router/router_validator.py.bak_mission_control:313:        decision.action = "window_native_tiling"
+agent/router/router_validator.py.bak_mission_control:320:        decision.suggested_skills = ["macos_windows"]
+agent/router/router_validator.py.bak_mission_control:321:        decision.suggested_tools = ["window_native_tiling"]
+agent/router/router_validator.py.bak_mission_control:342:        decision.suggested_skills = ["full_workflows"]
+agent/router/router_validator.py.bak_mission_control:343:        decision.suggested_tools = []
+agent/router/router_validator.py.bak_mission_control:351:        decision.action = "browser_search"
+agent/router/router_validator.py.bak_mission_control:357:        decision.suggested_skills = []
+agent/router/router_validator.py.bak_mission_control:358:        decision.suggested_tools = []
+agent/router/router_validator.py.bak_mission_control:364:        decision.action = "browser_search"
+agent/router/router_validator.py.bak_mission_control:370:        decision.suggested_skills = ["browser_search"]
+agent/router/router_validator.py.bak_mission_control:371:        decision.suggested_tools = ["browser_search"]
+agent/router/router_validator.py.bak_mission_control:377:        decision.action = "browser_search"
+agent/router/router_validator.py.bak_mission_control:383:        decision.suggested_skills = ["browser_search"]
+agent/router/router_validator.py.bak_mission_control:384:        decision.suggested_tools = ["browser_search"]
+agent/router/router_validator.py.bak_mission_control:390:        decision.action = "open_app"
+agent/router/router_validator.py.bak_mission_control:396:        decision.suggested_skills = ["open_app"]
+agent/router/router_validator.py.bak_mission_control:397:        decision.suggested_tools = ["open_app"]
+agent/router/router_validator.py.bak_mission_control:426:        decision.suggested_skills = ["browser_search"]
+agent/router/router_validator.py.bak_mission_control:427:        decision.suggested_tools = ["browser_search"]
+agent/router/router_validator.py.bak_mission_control:441:        decision.action = "browser_search"
+agent/router/router_validator.py.bak_mission_control:447:        decision.suggested_skills = ["browser_search"]
+agent/router/router_validator.py.bak_mission_control:448:        decision.suggested_tools = ["browser_search"]
+agent/router/router_validator.py.bak_mission_control:455:    if decision.suggested_tools:
+agent/router/router_validator.py.bak_mission_control:457:            "browser_search",
+agent/router/router_validator.py.bak_mission_control:458:            "open_app",
+agent/router/router_validator.py.bak_mission_control:459:            "window_native_tiling",
+agent/router/router_validator.py.bak_mission_control:461:            "macos_observe_frontmost",
+agent/router/router_validator.py.bak_mission_control:462:            "macos_visible_windows",
+agent/router/router_validator.py.bak_mission_control:464:            "macos_space_status",
+agent/router/router_validator.py.bak_mission_control:465:            "macos_space_next",
+agent/router/router_validator.py.bak_mission_control:466:            "macos_space_previous",
+agent/router/router_validator.py.bak_mission_control:467:            "macos_space_mission_control",
+agent/router/router_validator.py.bak_mission_control:468:            "macos_space_switch_desktop_number",
+agent/router/router_validator.py.bak_mission_control:470:        decision.suggested_tools = [
+agent/router/router_validator.py.bak_mission_control:471:            tool for tool in decision.suggested_tools if tool in allowed_tools
+agent/router/router_validator.py:189:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py:190:        decision.suggested_tools = ["macos_space_mission_control"]
+agent/router/router_validator.py:209:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py:210:        decision.suggested_tools = ["macos_space_mission_control"]
+agent/router/router_validator.py:221:        decision.suggested_skills = []
+agent/router/router_validator.py:222:        decision.suggested_tools = []
+agent/router/router_validator.py:234:        decision.suggested_skills = []
+agent/router/router_validator.py:235:        decision.suggested_tools = []
+agent/router/router_validator.py:247:        decision.suggested_skills = ["macos_observation"]
+agent/router/router_validator.py:248:        decision.suggested_tools = ["macos_permissions_check"]
+agent/router/router_validator.py:260:        decision.suggested_skills = ["macos_observation"]
+agent/router/router_validator.py:261:        decision.suggested_tools = ["macos_observe_frontmost"]
+agent/router/router_validator.py:273:        decision.suggested_skills = ["macos_observation"]
+agent/router/router_validator.py:274:        decision.suggested_tools = ["macos_visible_windows"]
+agent/router/router_validator.py:286:        decision.suggested_skills = ["macos_observation"]
+agent/router/router_validator.py:287:        decision.suggested_tools = ["macos_list_apps"]
+agent/router/router_validator.py:299:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py:300:        decision.suggested_tools = ["macos_space_status"]
+agent/router/router_validator.py:312:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py:313:        decision.suggested_tools = ["macos_space_next"]
+agent/router/router_validator.py:325:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py:326:        decision.suggested_tools = ["macos_space_previous"]
+agent/router/router_validator.py:338:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py:339:        decision.suggested_tools = ["macos_space_mission_control"]
+agent/router/router_validator.py:351:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py:352:        decision.suggested_tools = ["macos_space_switch_desktop_number"]
+agent/router/router_validator.py:358:        decision.action = "window_native_tiling"
+agent/router/router_validator.py:364:        decision.suggested_skills = ["macos_windows"]
+agent/router/router_validator.py:365:        decision.suggested_tools = ["window_native_tiling"]
+agent/router/router_validator.py:371:        decision.action = "window_native_tiling"
+agent/router/router_validator.py:378:        decision.suggested_skills = ["macos_windows"]
+agent/router/router_validator.py:379:        decision.suggested_tools = ["window_native_tiling"]
+agent/router/router_validator.py:400:        decision.suggested_skills = ["full_workflows"]
+agent/router/router_validator.py:401:        decision.suggested_tools = []
+agent/router/router_validator.py:409:        decision.action = "browser_search"
+agent/router/router_validator.py:415:        decision.suggested_skills = []
+agent/router/router_validator.py:416:        decision.suggested_tools = []
+agent/router/router_validator.py:422:        decision.action = "browser_search"
+agent/router/router_validator.py:428:        decision.suggested_skills = ["browser_search"]
+agent/router/router_validator.py:429:        decision.suggested_tools = ["browser_search"]
+agent/router/router_validator.py:435:        decision.action = "browser_search"
+agent/router/router_validator.py:441:        decision.suggested_skills = ["browser_search"]
+agent/router/router_validator.py:442:        decision.suggested_tools = ["browser_search"]
+agent/router/router_validator.py:448:        decision.action = "open_app"
+agent/router/router_validator.py:454:        decision.suggested_skills = ["open_app"]
+agent/router/router_validator.py:455:        decision.suggested_tools = ["open_app"]
+agent/router/router_validator.py:484:        decision.suggested_skills = ["browser_search"]
+agent/router/router_validator.py:485:        decision.suggested_tools = ["browser_search"]
+agent/router/router_validator.py:501:        decision.action = "web_search"
+agent/router/router_validator.py:508:        decision.suggested_skills = ["web_search"]
+agent/router/router_validator.py:509:        decision.suggested_tools = ["web_search"]
+agent/router/router_validator.py:514:        decision.action = "browser_search"
+agent/router/router_validator.py:520:        decision.suggested_skills = ["browser_search"]
+agent/router/router_validator.py:521:        decision.suggested_tools = ["browser_search"]
+agent/router/router_validator.py:528:    if decision.suggested_tools:
+agent/router/router_validator.py:530:            "web_search",
+agent/router/router_validator.py:531:            "browser_search",
+agent/router/router_validator.py:532:            "open_app",
+agent/router/router_validator.py:533:            "window_native_tiling",
+agent/router/router_validator.py:535:            "macos_observe_frontmost",
+agent/router/router_validator.py:536:            "macos_visible_windows",
+agent/router/router_validator.py:538:            "macos_space_status",
+agent/router/router_validator.py:539:            "macos_space_next",
+agent/router/router_validator.py:540:            "macos_space_previous",
+agent/router/router_validator.py:541:            "macos_space_mission_control",
+agent/router/router_validator.py:542:            "macos_space_switch_desktop_number",
+agent/router/router_validator.py:544:        decision.suggested_tools = [
+agent/router/router_validator.py:545:            tool for tool in decision.suggested_tools if tool in allowed_tools
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:176:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:177:        decision.suggested_tools = ["macos_space_mission_control"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:196:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:197:        decision.suggested_tools = ["macos_space_mission_control"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:208:        decision.suggested_skills = []
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:209:        decision.suggested_tools = []
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:221:        decision.suggested_skills = []
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:222:        decision.suggested_tools = []
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:234:        decision.suggested_skills = ["macos_observation"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:235:        decision.suggested_tools = ["macos_permissions_check"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:247:        decision.suggested_skills = ["macos_observation"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:248:        decision.suggested_tools = ["macos_observe_frontmost"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:260:        decision.suggested_skills = ["macos_observation"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:261:        decision.suggested_tools = ["macos_visible_windows"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:273:        decision.suggested_skills = ["macos_observation"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:274:        decision.suggested_tools = ["macos_list_apps"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:286:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:287:        decision.suggested_tools = ["macos_space_status"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:299:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:300:        decision.suggested_tools = ["macos_space_next"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:312:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:313:        decision.suggested_tools = ["macos_space_previous"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:325:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:326:        decision.suggested_tools = ["macos_space_mission_control"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:338:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:339:        decision.suggested_tools = ["macos_space_switch_desktop_number"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:345:        decision.action = "window_native_tiling"
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:351:        decision.suggested_skills = ["macos_windows"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:352:        decision.suggested_tools = ["window_native_tiling"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:358:        decision.action = "window_native_tiling"
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:365:        decision.suggested_skills = ["macos_windows"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:366:        decision.suggested_tools = ["window_native_tiling"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:387:        decision.suggested_skills = ["full_workflows"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:388:        decision.suggested_tools = []
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:396:        decision.action = "browser_search"
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:402:        decision.suggested_skills = []
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:403:        decision.suggested_tools = []
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:409:        decision.action = "browser_search"
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:415:        decision.suggested_skills = ["browser_search"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:416:        decision.suggested_tools = ["browser_search"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:422:        decision.action = "browser_search"
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:428:        decision.suggested_skills = ["browser_search"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:429:        decision.suggested_tools = ["browser_search"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:435:        decision.action = "open_app"
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:441:        decision.suggested_skills = ["open_app"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:442:        decision.suggested_tools = ["open_app"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:471:        decision.suggested_skills = ["browser_search"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:472:        decision.suggested_tools = ["browser_search"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:486:        decision.action = "browser_search"
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:492:        decision.suggested_skills = ["browser_search"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:493:        decision.suggested_tools = ["browser_search"]
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:500:    if decision.suggested_tools:
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:502:            "browser_search",
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:503:            "open_app",
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:504:            "window_native_tiling",
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:506:            "macos_observe_frontmost",
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:507:            "macos_visible_windows",
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:509:            "macos_space_status",
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:510:            "macos_space_next",
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:511:            "macos_space_previous",
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:512:            "macos_space_mission_control",
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:513:            "macos_space_switch_desktop_number",
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:515:        decision.suggested_tools = [
+agent/router/router_validator.py.bak_web_search_router_20260624_235740:516:            tool for tool in decision.suggested_tools if tool in allowed_tools
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:189:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:190:        decision.suggested_tools = ["macos_space_mission_control"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:209:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:210:        decision.suggested_tools = ["macos_space_mission_control"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:221:        decision.suggested_skills = []
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:222:        decision.suggested_tools = []
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:234:        decision.suggested_skills = []
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:235:        decision.suggested_tools = []
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:247:        decision.suggested_skills = ["macos_observation"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:248:        decision.suggested_tools = ["macos_permissions_check"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:260:        decision.suggested_skills = ["macos_observation"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:261:        decision.suggested_tools = ["macos_observe_frontmost"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:273:        decision.suggested_skills = ["macos_observation"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:274:        decision.suggested_tools = ["macos_visible_windows"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:286:        decision.suggested_skills = ["macos_observation"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:287:        decision.suggested_tools = ["macos_list_apps"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:299:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:300:        decision.suggested_tools = ["macos_space_status"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:312:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:313:        decision.suggested_tools = ["macos_space_next"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:325:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:326:        decision.suggested_tools = ["macos_space_previous"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:338:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:339:        decision.suggested_tools = ["macos_space_mission_control"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:351:        decision.suggested_skills = ["macos_spaces"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:352:        decision.suggested_tools = ["macos_space_switch_desktop_number"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:358:        decision.action = "window_native_tiling"
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:364:        decision.suggested_skills = ["macos_windows"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:365:        decision.suggested_tools = ["window_native_tiling"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:371:        decision.action = "window_native_tiling"
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:378:        decision.suggested_skills = ["macos_windows"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:379:        decision.suggested_tools = ["window_native_tiling"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:400:        decision.suggested_skills = ["full_workflows"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:401:        decision.suggested_tools = []
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:409:        decision.action = "browser_search"
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:415:        decision.suggested_skills = []
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:416:        decision.suggested_tools = []
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:422:        decision.action = "browser_search"
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:428:        decision.suggested_skills = ["browser_search"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:429:        decision.suggested_tools = ["browser_search"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:435:        decision.action = "browser_search"
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:441:        decision.suggested_skills = ["browser_search"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:442:        decision.suggested_tools = ["browser_search"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:448:        decision.action = "open_app"
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:454:        decision.suggested_skills = ["open_app"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:455:        decision.suggested_tools = ["open_app"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:484:        decision.suggested_skills = ["browser_search"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:485:        decision.suggested_tools = ["browser_search"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:501:        decision.action = "web_search"
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:508:        decision.suggested_skills = []
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:509:        decision.suggested_tools = ["web_search"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:514:        decision.action = "browser_search"
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:520:        decision.suggested_skills = ["browser_search"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:521:        decision.suggested_tools = ["browser_search"]
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:528:    if decision.suggested_tools:
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:530:            "web_search",
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:531:            "browser_search",
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:532:            "open_app",
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:533:            "window_native_tiling",
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:535:            "macos_observe_frontmost",
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:536:            "macos_visible_windows",
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:538:            "macos_space_status",
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:539:            "macos_space_next",
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:540:            "macos_space_previous",
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:541:            "macos_space_mission_control",
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:542:            "macos_space_switch_desktop_number",
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:544:        decision.suggested_tools = [
+agent/router/router_validator.py.bak_safe_web_search_skill_20260625_002507:545:            tool for tool in decision.suggested_tools if tool in allowed_tools
+agent/context_builder/assembler.py.bak_web_search_context_20260624_235740:44:                "open_app with {'app_name': ...}, browser_search with {'query': ..., 'target': ...}, "
+agent/context_builder/assembler.py.bak_web_search_context_20260624_235740:46:                "or macOS Spaces tools with {} except macos_space_switch_desktop_number "
+agent/context_builder/assembler.py.bak_web_search_context_20260624_235740:48:                "Use browser_search only when browser navigation or search will actually help. "
+agent/context_builder/assembler.py:44:                "open_app with {'app_name': ...}, web_search with {'query': ..., 'max_results': 5}, browser_search with {'query': ..., 'target': ...}, "
+agent/context_builder/assembler.py:46:                "or macOS Spaces tools with {} except macos_space_switch_desktop_number "
+agent/context_builder/assembler.py:48:                "Use web_search when the user asks to investigate, look up, search the internet, find news, find documentation, or answer using web results. Use browser_search only when opening/navigating the browser will actually help. "
+agent/context_builder/builder.py:32:            "Only web_search, browser_search, open_app, macOS observation tools, fixed macOS window tools, and fixed macOS Spaces tools may be executed in the current phase.",
+agent/context_builder/builder.py:33:            "web_search may search the web and return structured results to the agent. browser_search may open absolute http or https URLs and perform browser-based navigation/search in the browser.",
+agent/context_builder/builder.py:34:            "window_native_tiling may only act on the frontmost window using a fixed native menu allowlist and cannot verify the final position visually.",
+agent/context_builder/builder.py:44:                "Only web_search, browser_search, open_app, macOS observation tools, fixed macOS window tools, and fixed macOS Spaces tools may be executed."
+agent/context_builder/builder.py:79:                "Use open_app for app names. "
+agent/context_builder/builder.py:80:                "Use web_search when the user wants information/results to answer from the web. Use browser_search only for opening browser pages, known web destinations, YouTube/Google navigation, and direct http/https URLs. "
+agent/context_builder/builder.py:81:                "Use window_native_tiling for moving, centering, filling, or resizing the frontmost macOS window with fixed native menu actions. "
+agent/context_builder/capability_context.py:25:            for skill in self.skill_selector.select(decision.suggested_skills)
+agent/context_builder/capability_context.py:29:            for tool in self.tool_registry.find_active(decision.suggested_tools)
+agent/context_builder/builder.py.bak_web_search_context_20260624_235740:32:            "Only browser_search, open_app, macOS observation tools, fixed macOS window tools, and fixed macOS Spaces tools may be executed in the current phase.",
+agent/context_builder/builder.py.bak_web_search_context_20260624_235740:33:            "browser_search may open absolute http or https URLs and perform browser-based information searches.",
+agent/context_builder/builder.py.bak_web_search_context_20260624_235740:34:            "window_native_tiling may only act on the frontmost window using a fixed native menu allowlist and cannot verify the final position visually.",
+agent/context_builder/builder.py.bak_web_search_context_20260624_235740:44:                "Only browser_search, open_app, macOS observation tools, fixed macOS window tools, and fixed macOS Spaces tools may be executed."
+agent/context_builder/builder.py.bak_web_search_context_20260624_235740:79:                "Use open_app for app names. "
+agent/context_builder/builder.py.bak_web_search_context_20260624_235740:80:                "Use browser_search for browser-based navigation, information search, known web destinations, and direct http/https URLs. "
+agent/context_builder/builder.py.bak_web_search_context_20260624_235740:81:                "Use window_native_tiling for moving, centering, filling, or resizing the frontmost macOS window with fixed native menu actions. "
+agent/models/tool_finalizer.py:95:        if tool_result.tool_name == "browser_search":
+agent/models/tool_finalizer.py:104:        if tool_result.tool_name == "open_app":
+agent/models/tool_finalizer.py:126:        if tool_result.tool_name == "macos_observe_frontmost":
+agent/models/tool_finalizer.py:134:        if tool_result.tool_name == "macos_visible_windows":
+agent/models/tool_finalizer.py:150:        if tool_result.tool_name == "macos_space_status":
+agent/models/tool_finalizer.py:157:        if tool_result.tool_name == "macos_space_next":
+agent/models/tool_finalizer.py:162:        if tool_result.tool_name == "macos_space_previous":
+agent/models/tool_finalizer.py:167:        if tool_result.tool_name == "macos_space_mission_control":
+agent/models/tool_finalizer.py:172:        if tool_result.tool_name == "macos_space_switch_desktop_number":
+agent/models/tool_finalizer.py:178:        if tool_result.tool_name == "window_native_tiling":
+agent/response_action/state_helpers.py:54:        promoted.suggested_skills = ["browser_search"]
+agent/response_action/state_helpers.py:55:        promoted.suggested_tools = ["browser_search"]
+agent/response_action/controller.py:135:        if context.router_decision.action == "window_native_tiling":
+agent/response_action/early_ack.py:5:    "browser_search": [
+agent/response_action/early_ack.py:11:    "open_app": [
+agent/response_action/early_ack.py:22:    "macos_observe_frontmost": [
+agent/response_action/early_ack.py:27:    "macos_visible_windows": [
+agent/response_action/early_ack.py:37:    "macos_space_status": [
+agent/response_action/early_ack.py:42:    "macos_space_next": [
+agent/response_action/early_ack.py:47:    "macos_space_previous": [
+agent/response_action/early_ack.py:52:    "macos_space_mission_control": [
+agent/response_action/early_ack.py:57:    "macos_space_switch_desktop_number": [
+agent/response_action/early_ack.py:72:def build_early_ack(suggested_tools: list[str]) -> str:
+agent/response_action/early_ack.py:73:    tool_name = suggested_tools[0] if suggested_tools else ""
+agent/action_macros/selector.py.bak_open_ended_search_20260624_231253:76:        if self._looks_like_browser_search(text):
+agent/action_macros/selector.py.bak_open_ended_search_20260624_231253:87:        open_app_intent = self._has_open_app_intent(text)
+agent/action_macros/selector.py.bak_open_ended_search_20260624_231253:88:        app_name = self._extract_app_name(text) if open_app_intent else None
+agent/action_macros/selector.py.bak_open_ended_search_20260624_231253:90:        if open_app_intent:
+agent/action_macros/selector.py.bak_open_ended_search_20260624_231253:95:                workflow_name="open_app_and_tile_window",
+agent/action_macros/selector.py.bak_open_ended_search_20260624_231253:97:                reason="matched_open_app_and_tile_window",
+agent/action_macros/selector.py.bak_open_ended_search_20260624_231253:179:    def _looks_like_browser_search(self, text: str) -> bool:
+agent/action_macros/selector.py.bak_open_ended_search_20260624_231253:212:    def _has_open_app_intent(self, text: str) -> bool:
+agent/action_macros/selector.py.bak_youtube_fix_20260624_230430:67:        if self._looks_like_browser_search(text):
+agent/action_macros/selector.py.bak_youtube_fix_20260624_230430:85:        open_app_intent = self._has_open_app_intent(text)
+agent/action_macros/selector.py.bak_youtube_fix_20260624_230430:86:        app_name = self._extract_app_name(text) if open_app_intent else None
+agent/action_macros/selector.py.bak_youtube_fix_20260624_230430:88:        if open_app_intent:
+agent/action_macros/selector.py.bak_youtube_fix_20260624_230430:93:                workflow_name="open_app_and_tile_window",
+agent/action_macros/selector.py.bak_youtube_fix_20260624_230430:95:                reason="matched_open_app_and_tile_window",
+agent/action_macros/selector.py.bak_youtube_fix_20260624_230430:142:    def _looks_like_browser_search(self, text: str) -> bool:
+agent/action_macros/selector.py.bak_youtube_fix_20260624_230430:175:    def _has_open_app_intent(self, text: str) -> bool:
+agent/action_macros/finalizer.py:52:        if workflow_result.workflow_name == "open_app_and_tile_window":
+agent/action_macros/finalizer.py:53:            return self._finalize_open_app_and_tile_window(workflow_result)
+agent/action_macros/finalizer.py:68:            error = self._step_error(workflow_result, "macos_observe_frontmost")
+agent/action_macros/finalizer.py:70:        if workflow_result.stopped_reason == "step_failed:window_native_tiling":
+agent/action_macros/finalizer.py:71:            error = self._step_error(workflow_result, "window_native_tiling")
+agent/action_macros/finalizer.py:76:    def _finalize_open_app_and_tile_window(self, workflow_result: ActionMacroResult) -> str:
+agent/action_macros/finalizer.py:84:        if workflow_result.stopped_reason == "step_failed:open_app":
+agent/action_macros/finalizer.py:85:            error = self._step_error(workflow_result, "open_app")
+agent/action_macros/finalizer.py:87:        if workflow_result.stopped_reason == "step_failed:macos_observe_frontmost":
+agent/action_macros/finalizer.py:88:            error = self._step_error(workflow_result, "macos_observe_frontmost")
+agent/action_macros/finalizer.py:90:        if workflow_result.stopped_reason == "step_failed:window_native_tiling":
+agent/action_macros/finalizer.py:91:            error = self._step_error(workflow_result, "window_native_tiling")
+agent/action_macros/finalizer.py:109:        if workflow_result.stopped_reason == "step_failed:open_app":
+agent/action_macros/finalizer.py:110:            error = self._step_error(workflow_result, "open_app")
+agent/action_macros/finalizer.py:112:        if workflow_result.stopped_reason == "step_failed:browser_search":
+agent/action_macros/finalizer.py:113:            error = self._step_error(workflow_result, "browser_search")
+agent/action_macros/finalizer.py:121:        if workflow_result.stopped_reason == "step_failed:open_app":
+agent/action_macros/finalizer.py:128:        if workflow_result.stopped_reason == "step_failed:browser_search":
+agent/action_macros/finalizer.py:129:            error = self._step_error(workflow_result, "browser_search")
+agent/action_macros/selector.py.bak_youtube_order_20260624_230309:67:        if self._looks_like_browser_search(text):
+agent/action_macros/selector.py.bak_youtube_order_20260624_230309:85:        open_app_intent = self._has_open_app_intent(text)
+agent/action_macros/selector.py.bak_youtube_order_20260624_230309:86:        app_name = self._extract_app_name(text) if open_app_intent else None
+agent/action_macros/selector.py.bak_youtube_order_20260624_230309:88:        if open_app_intent:
+agent/action_macros/selector.py.bak_youtube_order_20260624_230309:93:                workflow_name="open_app_and_tile_window",
+agent/action_macros/selector.py.bak_youtube_order_20260624_230309:95:                reason="matched_open_app_and_tile_window",
+agent/action_macros/selector.py.bak_youtube_order_20260624_230309:142:    def _looks_like_browser_search(self, text: str) -> bool:
+agent/action_macros/selector.py.bak_youtube_order_20260624_230309:175:    def _has_open_app_intent(self, text: str) -> bool:
+agent/action_macros/registry.py:17:            "open_app_and_tile_window": OpenAppAndTileWindowActionMacro(),
+agent/action_macros/selector.py.bak_skip_web_search_20260625_000538:83:        if self._looks_like_browser_search(text):
+agent/action_macros/selector.py.bak_skip_web_search_20260625_000538:102:        open_app_intent = self._has_open_app_intent(text)
+agent/action_macros/selector.py.bak_skip_web_search_20260625_000538:103:        app_name = self._extract_app_name(text) if open_app_intent else None
+agent/action_macros/selector.py.bak_skip_web_search_20260625_000538:105:        if open_app_intent:
+agent/action_macros/selector.py.bak_skip_web_search_20260625_000538:110:                workflow_name="open_app_and_tile_window",
+agent/action_macros/selector.py.bak_skip_web_search_20260625_000538:112:                reason="matched_open_app_and_tile_window",
+agent/action_macros/selector.py.bak_skip_web_search_20260625_000538:240:    def _looks_like_browser_search(self, text: str) -> bool:
+agent/action_macros/selector.py.bak_skip_web_search_20260625_000538:300:    def _has_open_app_intent(self, text: str) -> bool:
+agent/action_macros/selector.py.bak_open_ended_resolver_20260624_232919:82:        if self._looks_like_browser_search(text):
+agent/action_macros/selector.py.bak_open_ended_resolver_20260624_232919:100:        open_app_intent = self._has_open_app_intent(text)
+agent/action_macros/selector.py.bak_open_ended_resolver_20260624_232919:101:        app_name = self._extract_app_name(text) if open_app_intent else None
+agent/action_macros/selector.py.bak_open_ended_resolver_20260624_232919:103:        if open_app_intent:
+agent/action_macros/selector.py.bak_open_ended_resolver_20260624_232919:108:                workflow_name="open_app_and_tile_window",
+agent/action_macros/selector.py.bak_open_ended_resolver_20260624_232919:110:                reason="matched_open_app_and_tile_window",
+agent/action_macros/selector.py.bak_open_ended_resolver_20260624_232919:210:    def _looks_like_browser_search(self, text: str) -> bool:
+agent/action_macros/selector.py.bak_open_ended_resolver_20260624_232919:270:    def _has_open_app_intent(self, text: str) -> bool:
+agent/action_macros/selector.py:53:    def _router_wants_web_search(self, context) -> bool:
+agent/action_macros/selector.py:54:        """Return True when router/context already selected web_search.
+agent/action_macros/selector.py:57:        web_search returns results to the agent; browser_search only opens a page.
+agent/action_macros/selector.py:62:        suggested_tools = getattr(decision, "suggested_tools", []) if decision is not None else []
+agent/action_macros/selector.py:64:        if action == "web_search":
+agent/action_macros/selector.py:66:        if "web_search" in suggested_tools:
+agent/action_macros/selector.py:71:            if isinstance(tool, dict) and tool.get("name") == "web_search":
+agent/action_macros/selector.py:78:        if self._router_wants_web_search(context):
+agent/action_macros/selector.py:83:                reason="router_selected_web_search",
+agent/action_macros/selector.py:115:        if self._looks_like_browser_search(text):
+agent/action_macros/selector.py:134:        open_app_intent = self._has_open_app_intent(text)
+agent/action_macros/selector.py:135:        app_name = self._extract_app_name(text) if open_app_intent else None
+agent/action_macros/selector.py:137:        if open_app_intent:
+agent/action_macros/selector.py:142:                workflow_name="open_app_and_tile_window",
+agent/action_macros/selector.py:144:                reason="matched_open_app_and_tile_window",
+agent/action_macros/selector.py:272:    def _looks_like_browser_search(self, text: str) -> bool:
+agent/action_macros/selector.py:332:    def _has_open_app_intent(self, text: str) -> bool:
+agent/action_macros/selector.py.bak_open_ended_inputs_20260624_231532:76:        if self._looks_like_browser_search(text):
+agent/action_macros/selector.py.bak_open_ended_inputs_20260624_231532:87:        open_app_intent = self._has_open_app_intent(text)
+agent/action_macros/selector.py.bak_open_ended_inputs_20260624_231532:88:        app_name = self._extract_app_name(text) if open_app_intent else None
+agent/action_macros/selector.py.bak_open_ended_inputs_20260624_231532:90:        if open_app_intent:
+agent/action_macros/selector.py.bak_open_ended_inputs_20260624_231532:95:                workflow_name="open_app_and_tile_window",
+agent/action_macros/selector.py.bak_open_ended_inputs_20260624_231532:97:                reason="matched_open_app_and_tile_window",
+agent/action_macros/selector.py.bak_open_ended_inputs_20260624_231532:181:    def _looks_like_browser_search(self, text: str) -> bool:
+agent/action_macros/selector.py.bak_open_ended_inputs_20260624_231532:241:    def _has_open_app_intent(self, text: str) -> bool:
+agent/action_macros/schemas.py:13:    "open_app_and_tile_window",
+agent/action_macros/selector.py.bak_safe_search_patch_20260624_231353:76:        if self._looks_like_browser_search(text):
+agent/action_macros/selector.py.bak_safe_search_patch_20260624_231353:87:        open_app_intent = self._has_open_app_intent(text)
+agent/action_macros/selector.py.bak_safe_search_patch_20260624_231353:88:        app_name = self._extract_app_name(text) if open_app_intent else None
+agent/action_macros/selector.py.bak_safe_search_patch_20260624_231353:90:        if open_app_intent:
+agent/action_macros/selector.py.bak_safe_search_patch_20260624_231353:95:                workflow_name="open_app_and_tile_window",
+agent/action_macros/selector.py.bak_safe_search_patch_20260624_231353:97:                reason="matched_open_app_and_tile_window",
+agent/action_macros/selector.py.bak_safe_search_patch_20260624_231353:179:    def _looks_like_browser_search(self, text: str) -> bool:
+agent/action_macros/selector.py.bak_safe_search_patch_20260624_231353:212:    def _has_open_app_intent(self, text: str) -> bool:
+agent/action_macros/definitions/open_app_and_tile_window.py:9:    name = "open_app_and_tile_window"
+agent/action_macros/definitions/open_app_and_tile_window.py:15:            ToolCall(tool_name="open_app", arguments={"app_name": app_name}),
+agent/action_macros/definitions/open_app_and_tile_window.py:16:            ToolCall(tool_name="macos_observe_frontmost", arguments={}),
+agent/action_macros/definitions/open_app_and_tile_window.py:18:                tool_name="window_native_tiling",
+agent/action_macros/definitions/tile_active_window.py:14:            ToolCall(tool_name="macos_observe_frontmost", arguments={}),
+agent/action_macros/definitions/tile_active_window.py:16:                tool_name="window_native_tiling",
+agent/action_macros/definitions/__init__.py:1:from agent.action_macros.definitions.open_app_and_tile_window import (
+agent/action_macros/definitions/play_random_youtube_video.py.bak_open_ended_20260624_231756:14:            ToolCall(tool_name="open_app", arguments={"app_name": "Google Chrome"}),
+agent/action_macros/definitions/play_random_youtube_video.py.bak_open_ended_20260624_231756:16:                tool_name="browser_search",
+agent/action_macros/definitions/open_browser_and_search.py:30:                tool_name="browser_search",
+agent/action_macros/definitions/open_work_setup.py:13:            ToolCall(tool_name="open_app", arguments={"app_name": "Google Chrome"}),
+agent/action_macros/definitions/open_work_setup.py:14:            ToolCall(tool_name="open_app", arguments={"app_name": "Visual Studio Code"}),
+agent/action_macros/definitions/open_work_setup.py:15:            ToolCall(tool_name="open_app", arguments={"app_name": "Terminal"}),
+agent/action_macros/definitions/open_browser_and_search.py.bak_open_ended_resolver_20260624_232919:16:                tool_name="browser_search",
+agent/action_macros/definitions/play_random_youtube_video.py.bak_open_ended_resolver_20260624_232919:26:                tool_name="browser_search",
+agent/action_macros/definitions/play_random_youtube_video.py.bak_open_ended_resolver_20260624_232919:35:        to browser_search.
+agent/action_macros/definitions/play_random_youtube_video.py:33:                tool_name="browser_search",
+agent/action_macros/executor.py:102:                return True, "step_failed:macos_observe_frontmost"

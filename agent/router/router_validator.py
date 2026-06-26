@@ -5,6 +5,41 @@ from agent.router.router_schema import RouterDecision
 
 GREETING_RE = re.compile(r"^\s*(hola|hello|hi|buenas|hey)\s*[!.?]*\s*$", re.I)
 YOUTUBE_RE = re.compile(r"\b(youtube|you tube)\b", re.I)
+KNOWN_WEB_DESTINATION_RE = re.compile(
+    r"\b(google|youtube|you\s*tube|github|openai|ollama|canva|facebook|instagram|tiktok)\b",
+    re.I,
+)
+
+VISIBLE_BROWSER_RE = re.compile(
+    r"\b("
+    r"mu[eé]strame|mu[eé]stralo|muestralo|muestres|mostrar|muestra|quiero\s+ver|ver|ponme|pon"
+    r")\b.*\b("
+    r"navegador|abierto|abierta|sitio|p[aá]gina|web|google|youtube|github|openai|ollama|canva"
+    r")\b|"
+    r"\b("
+    r"navegador|abierto|abierta|sitio|p[aá]gina|web|google|youtube|github|openai|ollama|canva"
+    r")\b.*\b("
+    r"mu[eé]strame|mostrar|muestra|quiero\s+ver|ver|ponme|pon"
+    r")\b",
+    re.I,
+)
+
+GOOGLE_VISIBLE_SEARCH_RE = re.compile(
+    r"\b(busca|buscar|search|abre|abrir|open)\b.*\b(en\s+google|google)\b|"
+    r"\b(en\s+google|google)\b.*\b(busca|buscar|search)\b",
+    re.I,
+)
+
+WEB_RESEARCH_BROAD_RE = re.compile(
+    r"\b("
+    r"compara|comparar|compare|"
+    r"investiga|investigar|investigues|research|"
+    r"fuentes|sources|referencias|references|"
+    r"quiero\s+leer\s+sobre|leer\s+sobre|"
+    r"dime\s+qu[eé]\s+encuentras|qu[eé]\s+encuentras\s+sobre"
+    r")\b",
+    re.I,
+)
 MUSIC_RE = re.compile(r"\b(m[uú]sica|canci[oó]n|video|videos|song|music)\b", re.I)
 OPEN_RE = re.compile(r"\b(abre|abrir|open)\b", re.I)
 HTTP_URL_RE = re.compile(r"\bhttps?://[^\s]+", re.I)
@@ -16,6 +51,19 @@ BROWSER_SEARCH_RE = re.compile(
     r"info sobre|investiga)\b",
     re.I,
 )
+
+WEB_INFO_SEARCH_RE = re.compile(
+    r"\b(?:"
+    r"investiga|investigar|research|look\s+up|"
+    r"busca(?:r)?\s+(?:en\s+internet|en\s+la\s+web|informaci[oó]n|noticias|documentaci[oó]n|docs?)|"
+    r"informaci[oó]n\s+sobre|info\s+sobre|"
+    r"noticias|news|actualidad|"
+    r"[uú]ltim[ao]s?|latest|reciente|current|"
+    r"documentaci[oó]n|docs?"
+    r")\b",
+    re.I,
+)
+
 FRONTMOST_RE = re.compile(
     r"\b(qu[eé]\s+app\s+est[aá]\s+abierta|qu[eé]\s+estoy\s+viendo|"
     r"observa\s+la\s+app\s+actual|cu[aá]l\s+es\s+la\s+ventana\s+activa|"
@@ -23,8 +71,18 @@ FRONTMOST_RE = re.compile(
     re.I,
 )
 VISIBLE_WINDOWS_RE = re.compile(
-    r"\b(qu[eé]\s+ventanas\s+(hay|ves)|lista\s+ventanas\s+visibles|"
-    r"ventanas\s+abiertas|ventanas\s+visibles)\b",
+    r"\b("
+    r"mu[eé]strame|muestra|listar|lista|ver|ense[ñn]ame|dime"
+    r")\b.*\b("
+    r"ventanas|windows"
+    r")\b.*\b("
+    r"visibles|disponibles|abiertas|abiertos|actuales|activas"
+    r")\b|"
+    r"\b("
+    r"ventanas|windows"
+    r")\b.*\b("
+    r"visibles|disponibles|abiertas|actuales|activas"
+    r")\b",
     re.I,
 )
 PERMISSIONS_RE = re.compile(
@@ -49,8 +107,13 @@ SPACE_PREVIOUS_RE = re.compile(
     re.I,
 )
 MISSION_CONTROL_RE = re.compile(
-    r"\b(abre\s+mission\s+control|muestra\s+mission\s+control|"
-    r"abre\s+control\s+de\s+misi[oó]n)\b",
+    r"\b(?:"
+    r"mission\s+control|"
+    r"mision\s+control|"
+    r"misión\s+control|"
+    r"control\s+de\s+misi[oó]n|"
+    r"vista\s+de\s+escritorios"
+    r")\b",
     re.I,
 )
 SPACE_SWITCH_NUMBER_RE = re.compile(
@@ -150,6 +213,46 @@ def validate_and_correct_router_decision(
 
     if GREETING_RE.search(text):
         decision = RouterDecision(intent="chat", route="chat", needs_tool=False)
+        return decision, True
+
+    # Capability guard: Mission Control is a known macOS Spaces capability.
+    # If the user mentions this capability, do not let the router fall back to chat.
+    if MISSION_CONTROL_RE.search(text):
+        decision.intent = "action"
+        decision.domain = "macos"
+        decision.action = "space_mission_control"
+        decision.route = "action_ready"
+        decision.needs_tool = True
+        decision.risk_level = "low"
+        decision.needs_clarification = False
+        decision.missing_info = []
+        decision.context_needed = []
+        decision.needs_memory = False
+        decision.needs_rag = False
+        decision.needs_vision = False
+        decision.suggested_plugins = ["macos"]
+        decision.suggested_skills = ["macos_spaces"]
+        decision.suggested_tools = ["macos_space_mission_control"]
+        return decision, True
+
+    # Guard clause: Mission Control must never fall through to generic chat.
+    # The macOS Spaces tool is low-risk and deterministic.
+    if MISSION_CONTROL_RE.search(text):
+        decision.intent = "action"
+        decision.domain = "macos"
+        decision.action = "space_mission_control"
+        decision.route = "action_ready"
+        decision.needs_tool = True
+        decision.risk_level = "low"
+        decision.needs_clarification = False
+        decision.missing_info = []
+        decision.context_needed = []
+        decision.needs_memory = False
+        decision.needs_rag = False
+        decision.needs_vision = False
+        decision.suggested_plugins = ["macos"]
+        decision.suggested_skills = ["macos_spaces"]
+        decision.suggested_tools = ["macos_space_mission_control"]
         return decision, True
 
     if SCREEN_OBSERVE_RE.search(text):
@@ -343,6 +446,32 @@ def validate_and_correct_router_decision(
         decision.suggested_tools = []
         corrected = True
 
+    elif OPEN_RE.search(text) and KNOWN_WEB_DESTINATION_RE.search(text):
+        decision.intent = "action"
+        decision.domain = "browser"
+        decision.action = "browser_search"
+        decision.route = "action_ready"
+        decision.needs_tool = True
+        decision.risk_level = "low"
+        decision.needs_clarification = False
+        decision.suggested_plugins = ["browser"]
+        decision.suggested_skills = ["browser_search"]
+        decision.suggested_tools = ["browser_search"]
+        corrected = True
+
+    elif VISIBLE_BROWSER_RE.search(text) and KNOWN_WEB_DESTINATION_RE.search(text):
+        decision.intent = "action"
+        decision.domain = "browser"
+        decision.action = "browser_search"
+        decision.route = "action_ready"
+        decision.needs_tool = True
+        decision.risk_level = "low"
+        decision.needs_clarification = False
+        decision.suggested_plugins = ["browser"]
+        decision.suggested_skills = ["browser_search"]
+        decision.suggested_tools = ["browser_search"]
+        corrected = True
+
     elif OPEN_RE.search(text) and (
         DANGEROUS_URL_RE.search(text) or LOCAL_PATH_RE.search(text)
     ):
@@ -435,6 +564,49 @@ def validate_and_correct_router_decision(
             decision.missing_info = ["artist_or_genre"]
         corrected = True
 
+    elif GOOGLE_VISIBLE_SEARCH_RE.search(text):
+        decision.intent = "action"
+        decision.domain = "browser"
+        decision.action = "browser_search"
+        decision.route = "action_ready"
+        decision.needs_tool = True
+        decision.risk_level = "low"
+        decision.needs_clarification = False
+        decision.missing_info = []
+        decision.suggested_plugins = ["browser"]
+        decision.suggested_skills = ["browser_search"]
+        decision.suggested_tools = ["browser_search"]
+        corrected = True
+
+    elif WEB_RESEARCH_BROAD_RE.search(text) and not YOUTUBE_RE.search(text) and not GOOGLE_VISIBLE_SEARCH_RE.search(text):
+        decision.intent = "action"
+        decision.domain = "browser"
+        decision.action = "web_search"
+        decision.route = "action_ready"
+        decision.needs_tool = True
+        decision.risk_level = "low"
+        decision.needs_clarification = False
+        decision.missing_info = []
+        decision.suggested_plugins = ["browser"]
+        decision.suggested_skills = ["web_search"]
+        decision.suggested_tools = ["web_search"]
+        corrected = True
+
+    elif WEB_INFO_SEARCH_RE.search(text) and not YOUTUBE_RE.search(text) and not (
+        OPEN_RE.search(text) and (HTTP_URL_RE.search(text) or DOMAIN_RE.search(text))
+    ):
+        decision.intent = "action"
+        decision.domain = "browser"
+        decision.action = "web_search"
+        decision.route = "action_ready"
+        decision.needs_tool = True
+        decision.risk_level = "low"
+        decision.needs_clarification = False
+        decision.missing_info = []
+        decision.suggested_plugins = ["browser"]
+        decision.suggested_skills = ["web_search"]
+        decision.suggested_tools = ["web_search"]
+
     elif BROWSER_SEARCH_RE.search(text):
         decision.intent = "action"
         decision.domain = "browser"
@@ -454,6 +626,7 @@ def validate_and_correct_router_decision(
 
     if decision.suggested_tools:
         allowed_tools = {
+            "web_search",
             "browser_search",
             "open_app",
             "window_native_tiling",

@@ -1,13 +1,18 @@
 from pathlib import Path
 import subprocess
+from types import SimpleNamespace
 
 from agent.models.action_models import ModelAction
 from agent.capabilities.tools.schemas import ToolCall
 from agent.gateway.gateway import Gateway
+from agent.gateway.message_types import AgentResponse
 from agent.gateway.gateway_logger import GatewayLogger
 from agent.gateway.pipeline import Pipeline
 from agent.gateway.session_manager import SessionManager
 from agent.context_builder.builder import ContextBuilder
+from agent.action_macros.executor import ActionMacroExecutor
+from agent.action_macros.finalizer import ActionMacroFinalizer
+from agent.action_macros.selector import ActionMacroSelector
 from agent.executor.results import ToolResult
 from agent.memory.sqlite_store import SQLiteStore
 from agent.models.main_model import MainModel
@@ -15,6 +20,10 @@ from agent.models.tool_finalizer import ToolFinalizerResult
 from agent.models.tool_planner import ToolPlannerResult
 from agent.response_action.controller import ResponseController
 from agent.router.router_schema import RouterDecision, RouterResult
+from agent.reflection.schemas import ReflectionDecision
+from agent.workflows.plan_manager import WorkflowPlanManager
+from agent.workflows.plan_schemas import WorkflowPlanStep
+from agent.workflows.schemas import FullWorkflowResult, FullWorkflowState
 
 
 class FakeRouter:
@@ -257,6 +266,91 @@ class SequenceExecutor:
         )
 
 
+class CapturingResponseController:
+    def __init__(self):
+        self.calls = []
+
+    def handle(self, context, session, debug=None):
+        self.calls.append(
+            {
+                "route": context.router_decision.route,
+                "pending_workflow": dict(session.pending_workflow or {}),
+                "session_state_pending_workflow": context.session_state.get(
+                    "pending_workflow"
+                ),
+            }
+        )
+        return AgentResponse(
+            session_id=session.session_id,
+            status="ok",
+            text="workflow resumido",
+            route=context.router_decision.route,
+            debug=debug or {},
+        )
+
+
+class ResumeLoopController:
+    def __init__(self, plan_manager: WorkflowPlanManager):
+        self.plan_manager = plan_manager
+        self.calls = []
+
+    def run(self, workflow_plan, workflow, context, session, existing_plan=None):
+        self.calls.append(
+            {
+                "workflow_plan": workflow_plan,
+                "workflow": workflow,
+                "context": context,
+                "session_id": session.session_id,
+                "existing_plan": existing_plan,
+            }
+        )
+        if existing_plan is not None:
+            existing_plan.current_step_index = min(1, len(existing_plan.steps))
+            existing_plan.status = "running"
+            self.plan_manager.save_plan(existing_plan)
+            workflow_id = existing_plan.workflow_id
+            plan_path = str(
+                self.plan_manager._plan_markdown_path(
+                    existing_plan.workflow_id, session_id=existing_plan.session_id
+                )
+            )
+            state = FullWorkflowState(data=dict(existing_plan.state))
+            workflow_name = existing_plan.workflow_name
+        else:
+            workflow_id = "wf-resume"
+            plan_path = None
+            state = FullWorkflowState()
+            workflow_name = workflow_plan.workflow_name
+        return FullWorkflowResult(
+            workflow_name=workflow_name,
+            inputs=dict(workflow_plan.inputs),
+            state=state,
+            workflow_id=workflow_id,
+            plan_path=plan_path,
+            status="completed",
+            phases=[],
+            success=True,
+            simulation_mode=True,
+            current_step_id=(
+                existing_plan.steps[existing_plan.current_step_index].id
+                if existing_plan is not None and existing_plan.current_step_index < len(existing_plan.steps)
+                else None
+            ),
+        )
+
+
+class ResumeRegistry:
+    def get(self, name):
+        return SimpleNamespace(name=name)
+
+
+class ResumeFullWorkflowRunner:
+    def __init__(self, plan_manager: WorkflowPlanManager):
+        self.plan_manager = plan_manager
+        self.registry = ResumeRegistry()
+        self.loop_controller = ResumeLoopController(plan_manager)
+
+
 def make_gateway(tmp_path: Path, *, router=None, response_controller=None) -> Gateway:
     return Gateway(
         session_manager=SessionManager(store=SQLiteStore(tmp_path / "memory.db")),
@@ -279,11 +373,15 @@ def test_gateway_response_session_and_logs(tmp_path: Path):
 
 def test_gateway_asks_clarification_for_ambiguous_youtube(tmp_path: Path):
     gateway = make_gateway(tmp_path)
-    response = gateway.handle_message("busca música en YouTube")
+    response = gateway.handle_message("busca música en YouTube", debug=True)
     assert response.status == "needs_clarification"
     assert response.needs_user_input is True
     assert response.tool_calls == []
-    assert response.text == "Claro. ¿Qué tema o destino web quieres que abra o busque?"
+    assert "Necesito saber qué quieres buscar." in response.text
+    assert "Opciones:" in response.text
+    assert "1." in response.text
+    assert response.debug["clarification"]["source"] == "clarification_builder"
+    assert response.debug["clarification"]["pending_clarification"] == "search_query"
 
 
 def test_gateway_asks_clarification_for_ambiguous_window_action(tmp_path: Path):
@@ -311,7 +409,34 @@ def test_gateway_asks_clarification_for_ambiguous_window_action(tmp_path: Path):
     response = gateway.handle_message("mueve la ventana")
 
     assert response.status == "needs_clarification"
-    assert "ventana activa" in response.text
+    assert "acción quieres hacer con la ventana" in response.text
+    assert "Opciones:" in response.text
+
+
+def test_gateway_resolves_single_reference_and_asks_confirmation(tmp_path: Path):
+    gateway = make_gateway(tmp_path)
+    first = gateway.handle_message("vamos a trabajar con Canva")
+    second = gateway.handle_message("ábrela", session_id=first.session_id, debug=True)
+
+    assert second.status == "needs_clarification"
+    assert second.route == "clarification"
+    assert "Canva" in second.text
+    assert "abrir Canva" in second.text
+    assert second.debug["chat_clarification_guard"]["reason"] == "resolved_reference_confirmation"
+    assert second.debug["chat_clarification_guard"]["resolved_reference"] == "Canva"
+
+
+def test_gateway_ambiguous_reference_stays_in_clarification(tmp_path: Path):
+    gateway = make_gateway(tmp_path)
+    first = gateway.handle_message("tenemos dos opciones: Canva y GitHub")
+    second = gateway.handle_message("ábrela", session_id=first.session_id, debug=True)
+
+    assert second.status == "needs_clarification"
+    assert second.route == "clarification"
+    assert "Canva" in second.text
+    assert "GitHub" in second.text
+    assert second.debug["chat_clarification_guard"]["reason"] == "ambiguous_reference"
+    assert "context_resolution" in second.debug
 
 
 def test_gateway_action_ready_stays_conversational(tmp_path: Path, monkeypatch):
@@ -335,7 +460,7 @@ def test_gateway_action_ready_stays_conversational(tmp_path: Path, monkeypatch):
             ),
         ),
     )
-    response = gateway.handle_message("busca omega en youtube")
+    response = gateway.handle_message("busca omega en youtube", debug=True)
     assert response.status == "ok"
     assert response.route == "action_ready"
     assert len(response.tool_calls) == 1
@@ -347,6 +472,220 @@ def test_gateway_action_ready_stays_conversational(tmp_path: Path, monkeypatch):
     assert response.debug["tool_result"]["data"]["target"] == "youtube"
     assert calls[0][0][0] == "/usr/bin/open"
     assert calls[0][0][1].startswith("https://www.youtube.com/results?")
+
+
+def test_gateway_runs_open_app_through_action_runner_and_keeps_internal_debug(tmp_path: Path):
+    class OpenAppRouter:
+        def route(self, user_text: str) -> RouterResult:
+            return RouterResult(
+                decision=RouterDecision(
+                    intent="action",
+                    domain="macos",
+                    action="open_app",
+                    route="action_ready",
+                    needs_tool=True,
+                    suggested_tools=["open_app"],
+                ),
+                model_used="fake",
+                raw="{}",
+                corrected=True,
+            )
+
+    class OpenAppPlanner:
+        def __init__(self):
+            self.calls = []
+
+        def plan(self, context):
+            self.calls.append(context)
+            return ToolPlannerResult(
+                model_used="fake",
+                tool_calls=[
+                    ToolCall(
+                        tool_name="open_app",
+                        arguments={"app_name": "Google Chrome"},
+                        risk_level="low",
+                        requires_confirmation=False,
+                    )
+                ],
+            )
+
+    class OpenAppExecutor:
+        def __init__(self):
+            self.calls = []
+
+        def execute(self, tool_call):
+            self.calls.append(tool_call)
+            return ToolResult(
+                tool_name=tool_call.tool_name,
+                success=True,
+                data={"app_name": "Google Chrome"},
+            )
+
+    class AlwaysSuccessReflectionChecker:
+        def __init__(self):
+            self.calls = []
+
+        def evaluate(self, tool_call, tool_result, retry_state):
+            self.calls.append((tool_call, tool_result, retry_state))
+            return ReflectionDecision(
+                should_stop=False,
+                should_retry=False,
+                reason="tool_success",
+                user_message="ok",
+            )
+
+    response_controller = ResponseController(
+        main_model=FakeMainModel(),
+        tool_planner=OpenAppPlanner(),
+        tool_finalizer=FakeToolFinalizer(
+            ToolFinalizerResult(model_used="fake-tool-finalizer", text="Chrome listo.")
+        ),
+        executor=OpenAppExecutor(),
+        reflection_checker=AlwaysSuccessReflectionChecker(),
+        full_workflow_selector=FakeWorkflowSelector(FullWorkflowPlan(selected=False)),
+        full_workflow_runner=FakeFullWorkflowRunner(
+            FullWorkflowResult(
+                workflow_name="design_canva_post",
+                inputs={},
+                status="simulated",
+                simulation_mode=True,
+                phases=[],
+                success=False,
+            )
+        ),
+        full_workflow_finalizer=FakeWorkflowFinalizer(),
+        action_macro_selector=ActionMacroSelector(),
+        action_macro_executor=ActionMacroExecutor(executor=OpenAppExecutor()),
+        action_macro_finalizer=ActionMacroFinalizer(),
+    )
+    gateway = make_gateway(
+        tmp_path,
+        router=OpenAppRouter(),
+        response_controller=response_controller,
+    )
+
+    response = gateway.handle_message("abre Chrome", debug=True)
+
+    assert response.route == "action_ready"
+    assert response.tool_calls[0]["tool_name"] == "open_app"
+    assert response.debug["action_run"]["tool_call"]["tool_name"] == "open_app"
+    assert response.debug["tool_result"]["success"] is True
+    assert response_controller.tool_planner.calls
+    assert len(response_controller.executor.calls) == 1
+
+
+def test_gateway_forces_pending_workflow_back_to_action_ready(tmp_path: Path):
+    response_controller = CapturingResponseController()
+    gateway = make_gateway(
+        tmp_path,
+        response_controller=response_controller,
+    )
+    session = gateway.sessions.get_or_create("session-pending")
+    session.pending_workflow = {
+        "workflow_id": "wf-123",
+        "checkpoint_id": "cp-456",
+        "current_step_id": "step-789",
+    }
+    gateway.sessions.save_session_state(session.session_id)
+
+    response = gateway.handle_message(
+        "post cuadrado elegante",
+        session_id=session.session_id,
+    )
+
+    assert response.route == "action_ready"
+    assert response_controller.calls[0]["route"] == "action_ready"
+    assert response_controller.calls[0]["pending_workflow"]["workflow_id"] == "wf-123"
+    assert response_controller.calls[0]["session_state_pending_workflow"]["checkpoint_id"] == "cp-456"
+
+
+def test_gateway_clears_pending_workflow_on_topic_change(tmp_path: Path):
+    response_controller = CapturingResponseController()
+    gateway = make_gateway(
+        tmp_path,
+        response_controller=response_controller,
+    )
+    session = gateway.sessions.get_or_create("session-cancel")
+    session.pending_workflow = {
+        "workflow_id": "wf-999",
+        "checkpoint_id": "cp-999",
+        "current_step_id": "step-999",
+    }
+    gateway.sessions.save_session_state(session.session_id)
+
+    response = gateway.handle_message(
+        "olvídalo, cuéntame un chiste",
+        session_id=session.session_id,
+    )
+
+    assert response.route == "chat"
+    assert response_controller.calls[0]["pending_workflow"] == {}
+    assert response_controller.calls[0]["session_state_pending_workflow"] is None
+
+
+def test_gateway_resolves_pending_workflow_and_continues_from_next_step(tmp_path: Path):
+    plan_manager = WorkflowPlanManager(base_dir=tmp_path / "runtime" / "plans")
+    plan = plan_manager.create_plan(
+        workflow_name="design_canva_post",
+        user_goal="Hazme un post en Canva para Bellamar",
+        session_id="session-resume",
+        steps=[
+            WorkflowPlanStep(title="Definir requisitos", kind="ask_user"),
+            WorkflowPlanStep(title="Diseñar post", kind="tool"),
+        ],
+        state={"topic": "Bellamar"},
+    )
+    checkpoint = plan_manager.create_human_checkpoint(
+        plan,
+        plan.steps[0].id,
+        kind="missing_info",
+        question="¿Lo quieres como post cuadrado, historia o flyer? ¿Y prefieres estilo elegante, playero o promocional?",
+        options=[],
+        required=True,
+    )
+    plan_manager.save_plan(plan)
+
+    response_controller = ResponseController(
+        full_workflow_runner=ResumeFullWorkflowRunner(plan_manager),
+        full_workflow_finalizer=SimpleNamespace(
+            finalize=lambda *, user_message, workflow_result: SimpleNamespace(
+                text="workflow resumido",
+                fallback=True,
+                error=None,
+                model_dump=lambda mode="json": {
+                    "text": "workflow resumido",
+                    "fallback": True,
+                    "error": None,
+                },
+            )
+        ),
+    )
+    gateway = make_gateway(
+        tmp_path,
+        response_controller=response_controller,
+    )
+    session = gateway.sessions.get_or_create("session-resume")
+    session.pending_workflow = {
+        "workflow_id": plan.workflow_id,
+        "checkpoint_id": checkpoint.checkpoint_id,
+        "current_step_id": plan.steps[0].id,
+    }
+    gateway.sessions.save_session_state(session.session_id)
+
+    response = gateway.handle_message(
+        "Post cuadrado, estilo Airbnb limpio, usa las fotos recientes",
+        session_id=session.session_id,
+        debug=True,
+    )
+
+    assert response.status == "ok"
+    assert response.route == "action_ready"
+    loaded = plan_manager.load_plan(plan.workflow_id, session_id="session-resume")
+    assert loaded.steps[0].user_answer == "Post cuadrado, estilo Airbnb limpio, usa las fotos recientes"
+    assert loaded.steps[0].status == "completed"
+    assert loaded.current_step_index == 1
+    assert session.pending_workflow is None
+    assert response.debug["full_workflow"]["status"] == "completed"
 
 
 def test_gateway_action_ready_uses_tool_finalizer_and_not_main_model_for_finalization(
@@ -371,7 +710,7 @@ def test_gateway_action_ready_uses_tool_finalizer_and_not_main_model_for_finaliz
         ),
     )
 
-    response = gateway.handle_message("busca omega en youtube")
+    response = gateway.handle_message("busca omega en youtube", debug=True)
 
     assert response.text == "Texto final desde el finalizer."
     assert len(finalizer.calls) == 1
@@ -417,7 +756,7 @@ def test_gateway_action_ready_supports_window_native_tiling(tmp_path: Path, monk
         ),
     )
 
-    response = gateway.handle_message("pon la ventana a la derecha")
+    response = gateway.handle_message("pon la ventana a la derecha", debug=True)
 
     assert response.status == "ok"
     assert response.route == "action_ready"
@@ -576,7 +915,7 @@ def test_gateway_action_ready_errors_when_tool_planner_returns_no_tool(tmp_path:
             ),
         ),
     )
-    response = gateway.handle_message("busca omega en youtube")
+    response = gateway.handle_message("busca omega en youtube", debug=True)
     assert response.status == "error"
     assert response.tool_calls == []
     assert "No ejecuté la acción" in response.text
@@ -597,7 +936,7 @@ def test_gateway_action_ready_does_not_accept_fake_action_content(tmp_path: Path
             ),
         ),
     )
-    response = gateway.handle_message("busca omega en youtube")
+    response = gateway.handle_message("busca omega en youtube", debug=True)
     assert response.status == "error"
     assert response.tool_calls == []
     assert "Cambiando" not in response.text
@@ -825,9 +1164,7 @@ def test_gateway_reflection_debug_only_when_debug_true(tmp_path: Path):
     response = gateway.handle_message("busca omega en youtube")
 
     assert response.status == "ok"
-    assert "reflection" not in response.debug
-    assert "retry_count" not in response.debug
-    assert response.debug["tool_result"]["success"] is True
+    assert response.debug == {}
 
 
 def test_gateway_observation_phrases_produce_expected_tool_calls(tmp_path: Path):

@@ -10,7 +10,13 @@ class SkillSelector:
     def select(self, names: list[str]) -> list[SkillDefinition]:
         selected: list[SkillDefinition] = []
         for name in names:
-            if name == "browser_search":
+            if name == "web_search":
+                path = self.root / "web_search" / "SKILL.md"
+                if path.exists():
+                    skill = load_skill(path)
+                    if skill.name == "web_search":
+                        selected.append(skill)
+            elif name == "browser_search":
                 path = self.root / "browser_search" / "SKILL.md"
                 if path.exists():
                     skill = load_skill(path)

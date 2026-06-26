@@ -4,9 +4,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-import ollama
-import yaml
-
 
 MODELS_CONFIG_PATH = Path("agent/config/models.yaml")
 RUNTIME_MODEL_SETTINGS_PATH = Path("agent/runtime/model_settings.json")
@@ -15,6 +12,10 @@ FALLBACK_MAIN_MODEL = "qwen3:4b"
 
 def get_default_main_model() -> str:
     if not MODELS_CONFIG_PATH.exists():
+        return FALLBACK_MAIN_MODEL
+    try:
+        import yaml
+    except ModuleNotFoundError:
         return FALLBACK_MAIN_MODEL
     raw = yaml.safe_load(MODELS_CONFIG_PATH.read_text(encoding="utf-8")) or {}
     configured = (raw.get("main_model") or {}).get("model")
@@ -54,6 +55,12 @@ def _extract_model_name(item: Any) -> str | None:
 
 
 def list_ollama_models() -> list[str]:
+    try:
+        import ollama
+    except ModuleNotFoundError as exc:  # pragma: no cover - environment dependent
+        raise ModuleNotFoundError(
+            "ollama is required to inspect installed models but is not installed in this environment"
+        ) from exc
     response = ollama.list()
     if isinstance(response, dict):
         models = response.get("models", response)

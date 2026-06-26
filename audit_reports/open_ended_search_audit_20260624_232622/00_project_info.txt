@@ -1,0 +1,3 @@
+/Users/inma/Documents/AI Agent
+Python 3.11.15
+/Users/inma/Documents/AI Agent/.venv/bin/python

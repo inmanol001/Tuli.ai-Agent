@@ -62,6 +62,16 @@ def clear_pending_for_topic_change(session: SessionState, user_text: str) -> Non
     if is_clear_topic_change(user_text):
         session.pending_clarification = None
         session.pending_confirmation = None
+        setattr(session, "pending_workflow", None)
+
+
+def clear_pending_workflow_for_topic_change(
+    session: SessionState, user_text: str
+) -> None:
+    if is_clear_topic_change(user_text):
+        setattr(session, "pending_workflow", None)
+        session.pending_confirmation = None
+        session.pending_clarification = None
 
 
 def clear_stale_pending_confirmation_for_action(

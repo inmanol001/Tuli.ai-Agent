@@ -1,0 +1,13 @@
+===== 01 skill line counts =====
+----- agent/capabilities/skills/browser_search/SKILL.md -----
+     133 agent/capabilities/skills/browser_search/SKILL.md
+----- agent/capabilities/skills/macos_observation.md -----
+      89 agent/capabilities/skills/macos_observation.md
+----- agent/capabilities/skills/macos_spaces.md -----
+     110 agent/capabilities/skills/macos_spaces.md
+----- agent/capabilities/skills/macos_windows.md -----
+     104 agent/capabilities/skills/macos_windows.md
+----- agent/capabilities/skills/open_app/SKILL.md -----
+     102 agent/capabilities/skills/open_app/SKILL.md
+----- agent/capabilities/skills/web_search/SKILL.md -----
+      72 agent/capabilities/skills/web_search/SKILL.md

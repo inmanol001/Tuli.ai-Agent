@@ -1,0 +1,80 @@
+===== 06 executor files =====
+
+================================================================================
+FILE: agent/executor/executor.py
+================================================================================
+from agent.capabilities.tools.schemas import ToolCall
+from agent.capabilities.tools.browser_tools import browser_search, open_url
+from agent.capabilities.tools.web_search_tools import web_search
+from agent.capabilities.tools.macos_tools import open_app
+from agent.capabilities.tools.macos_window_tools import window_native_tiling
+from agent.capabilities.tools.macos_observation_tools import (
+    macos_list_apps,
+    macos_observe_frontmost,
+    macos_permissions_check,
+    macos_visible_windows,
+)
+from agent.capabilities.tools.macos_space_tools import (
+    macos_space_mission_control,
+    macos_space_next,
+    macos_space_previous,
+    macos_space_status,
+    macos_space_switch_desktop_number,
+)
+from agent.executor.results import ToolResult
+from agent.executor.validator import ToolValidator
+
+
+class Executor:
+    def __init__(self, validator: ToolValidator | None = None) -> None:
+        self.validator = validator or ToolValidator()
+
+    def execute(self, call: ToolCall) -> ToolResult:
+        try:
+            self.validator.validate(call)
+            if call.tool_name == "web_search":
+                return web_search(
+                    call.arguments["query"],
+                    max_results=call.arguments.get("max_results", 5),
+                )
+            if call.tool_name == "browser_search":
+                return browser_search(
+                    call.arguments["query"],
+                    target=call.arguments.get("target", "auto"),
+                )
+            if call.tool_name == "open_url":
+                return open_url(call.arguments["url"])
+            if call.tool_name == "open_app":
+                return open_app(call.arguments["app_name"])
+            if call.tool_name == "window_native_tiling":
+                return window_native_tiling(call.arguments["action"])
+            if call.tool_name == "macos_permissions_check":
+                return macos_permissions_check()
+            if call.tool_name == "macos_observe_frontmost":
+                return macos_observe_frontmost()
+            if call.tool_name == "macos_visible_windows":
+                return macos_visible_windows()
+            if call.tool_name == "macos_list_apps":
+                return macos_list_apps()
+            if call.tool_name == "macos_space_status":
+                return macos_space_status()
+            if call.tool_name == "macos_space_next":
+                return macos_space_next()
+            if call.tool_name == "macos_space_previous":
+                return macos_space_previous()
+            if call.tool_name == "macos_space_mission_control":
+                return macos_space_mission_control()
+            if call.tool_name == "macos_space_switch_desktop_number":
+                return macos_space_switch_desktop_number(call.arguments["number"])
+            return ToolResult(
+                tool_name=call.tool_name,
+                success=False,
+                error="Tool has no handler in current phase.",
+            )
+        except Exception as exc:
+            return ToolResult(
+                tool_name=call.tool_name,
+                success=False,
+                error=str(exc),
+                metadata={"blocked": True},
+            )

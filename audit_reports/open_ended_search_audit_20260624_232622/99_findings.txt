@@ -1,0 +1,7 @@
+- FOUND: Context/memory carriers exist: session_state/recent_history/ContextPackage appear in code.
+- FOUND: Some memory/profile/preference terms exist in repo; inspect 10_memory_profile_grep.txt.
+- FOUND: selector.py already emits open_ended/topic_hint metadata.
+- BUG: __open_ended__ reaches browser_search step.
+- FOUND: current macro uses fixed fallback for empty open-ended YouTube requests.
+- MISSING: user_context is not currently passed from selector to macros.
+- MISSING: no open-ended resolver currently wired into browser_search macro builders.

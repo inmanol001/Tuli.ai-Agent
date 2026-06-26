@@ -4,6 +4,8 @@ from agent.capabilities.tools.schemas import ToolCall
 
 
 class OpenAppAndTileWindowActionMacro:
+    """Recipe macro: open a known app and then tile the resulting window."""
+
     name = "open_app_and_tile_window"
 
     def build_steps(self, inputs) -> list[ToolCall]:

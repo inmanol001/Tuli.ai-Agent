@@ -209,7 +209,6 @@ def test_main_model_respond_stream_uses_client_stream():
 
 def make_stream_gateway(tmp_path, model):
     return Gateway(
-        session_manager=SessionManager(store=SQLiteStore(tmp_path / "memory.db")),
         router=FakeChatRouter(),
         response_controller=ResponseController(main_model=model),
         logger=GatewayLogger(tmp_path / "logs"),
@@ -262,13 +261,16 @@ def test_gateway_stream_message_failure_does_not_save_partial_assistant(tmp_path
     assert "stream connection unavailable" in error_response.text
     assert [turn for turn in stored.history if turn.role == "assistant"] == []
     with gateway.sessions.store.connect() as conn:
-        row = conn.execute("SELECT * FROM error_memory").fetchone()
+        row = conn.execute(
+            "SELECT * FROM error_memory WHERE error LIKE ? ORDER BY updated_at DESC LIMIT 1",
+            ("%stream connection unavailable%",),
+        ).fetchone()
+    assert row is not None
     assert "stream connection unavailable" in row["error"]
 
 
 def test_gateway_stream_message_action_ready_delegates_without_tokens(tmp_path):
     gateway = Gateway(
-        session_manager=SessionManager(store=SQLiteStore(tmp_path / "memory.db")),
         router=FakeActionRouter(),
         response_controller=ResponseController(
             main_model=FakeActionModel(),
@@ -296,7 +298,6 @@ def test_gateway_stream_message_chat_does_not_emit_early_ack(tmp_path):
 
 def test_gateway_stream_message_clarification_does_not_emit_early_ack(tmp_path):
     gateway = Gateway(
-        session_manager=SessionManager(store=SQLiteStore(tmp_path / "memory.db")),
         router=FakeClarificationRouter(),
         response_controller=ResponseController(
             main_model=FakeActionModel(),
@@ -314,7 +315,6 @@ def test_gateway_stream_message_clarification_does_not_emit_early_ack(tmp_path):
 
 def test_gateway_stream_message_rag_lookup_delegates_without_tokens(tmp_path):
     gateway = Gateway(
-        session_manager=SessionManager(store=SQLiteStore(tmp_path / "memory.db")),
         router=FakeRagRouter(),
         pipeline=Pipeline(ContextBuilder(rag_retriever=EmptyRagRetriever())),
         response_controller=ResponseController(main_model=FakeStreamingModel()),
@@ -327,3 +327,79 @@ def test_gateway_stream_message_rag_lookup_delegates_without_tokens(tmp_path):
     assert events[0]["type"] == "final"
     assert events[0]["response"].route == "rag_lookup"
     assert events[0]["response"].tool_calls == []
+
+
+def test_gateway_stream_message_chat_route_action_guard_recovery_does_not_stream(tmp_path):
+    from agent.gateway.gateway import Gateway
+    from agent.gateway.gateway_logger import GatewayLogger
+    from agent.gateway.session_manager import SessionManager
+    from agent.models.main_model import MainModel
+    from agent.models.tool_planner import ToolPlannerResult
+    from agent.response_action.controller import ResponseController
+    from agent.executor.results import ToolResult
+
+    class ExplodingStreamingModel(MainModel):
+        def respond(self, context):
+            raise AssertionError("respond no debe ser llamado para acción recuperada")
+
+        def respond_stream(self, context):
+            raise AssertionError("respond_stream no debe ser llamado para acción recuperada")
+            yield ""
+
+    class NoToolPlanner:
+        def plan(self, context):
+            return ToolPlannerResult(
+                model_used="fake",
+                content="no tool",
+                tool_calls=[],
+                raw={"fake": True},
+                no_tool_reason="no_native_tool_call",
+            )
+
+    class CapturingExecutor:
+        def __init__(self):
+            self.calls = []
+
+        def execute(self, call):
+            self.calls.append(call)
+            return ToolResult(
+                tool_name=call.tool_name,
+                success=True,
+                data=dict(call.arguments),
+                metadata={"test": True},
+            )
+
+    executor = CapturingExecutor()
+    gateway = Gateway(
+        response_controller=ResponseController(
+            main_model=ExplodingStreamingModel(),
+            tool_planner=NoToolPlanner(),
+            executor=executor,
+        ),
+        logger=GatewayLogger(tmp_path / "logs"),
+    )
+
+    events = list(gateway.stream_message("abre Figma", debug=True))
+
+    assert [event for event in events if event["type"] == "token"] == []
+    final = [event["response"] for event in events if event["type"] == "final"][0]
+
+    assert final.route == "action_ready"
+    assert executor.calls
+    assert executor.calls[0].tool_name == "open_app"
+    assert executor.calls[0].arguments == {"app_name": "Figma"}
+    assert final.debug["action_guard_recovered"] is True
+    assert final.debug["tool_planner_fallback"] == "action_guard_open_app"
+
+
+def test_gateway_stream_message_chat_still_streams_real_chat_after_guards(tmp_path):
+    gateway = make_stream_gateway(tmp_path, FakeStreamingModel(["Ho", "la"]))
+
+    events = list(gateway.stream_message("hola", debug=True))
+    tokens = [event["text"] for event in events if event["type"] == "token"]
+    final = [event["response"] for event in events if event["type"] == "final"][0]
+
+    assert tokens == ["Ho", "la"]
+    assert final.route == "chat"
+    assert final.text == "Hola"
+    assert final.debug["action_intent_guard"]["reason"] == "no_action_pattern"

@@ -9,6 +9,8 @@ AgentStatus = Literal[
     "ok",
     "needs_clarification",
     "needs_confirmation",
+    "waiting_user_input",
+    "waiting_approval",
     "refused",
     "error",
 ]
@@ -35,6 +37,7 @@ class ContextPackage(BaseModel):
     router_decision: RouterDecision
     recent_history: list[ConversationTurn] = Field(default_factory=list)
     session_state: dict[str, Any] = Field(default_factory=dict)
+    behavior: dict[str, Any] = Field(default_factory=dict)
     selected_plugins: list[dict[str, Any]] = Field(default_factory=list)
     selected_skills: list[dict[str, Any]] = Field(default_factory=list)
     selected_tools: list[dict[str, Any]] = Field(default_factory=list)

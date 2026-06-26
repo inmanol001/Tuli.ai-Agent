@@ -1,0 +1,432 @@
+===== 05 gateway pipeline =====
+
+================================================================================
+FILE: agent/gateway/gateway.py
+================================================================================
+import json
+from collections.abc import Iterator
+from typing import Any
+
+from agent.gateway.gateway_logger import GatewayLogger
+from agent.gateway.message_types import AgentResponse, ContextPackage
+from agent.gateway.pipeline import Pipeline
+from agent.gateway.session_manager import SessionManager
+from agent.logging.dev_event_builder import build_dev_event
+from agent.memory.error_memory import record_error_memory
+from agent.memory.preferences import capture_explicit_preferences
+from agent.memory.tool_memory import record_tool_memory
+from agent.response_action.controller import ResponseController
+from agent.response_action.early_ack import build_early_ack
+from agent.response_action.state_helpers import (
+    clear_stale_pending_confirmation_for_action,
+    resolve_pending_clarification,
+    clear_pending_workflow_for_topic_change,
+)
+from agent.router.xlam_router import XlamRouter
+
+
+class Gateway:
+    def __init__(
+        self,
+        session_manager: SessionManager | None = None,
+        router: XlamRouter | None = None,
+        pipeline: Pipeline | None = None,
+        response_controller: ResponseController | None = None,
+        logger: GatewayLogger | None = None,
+    ) -> None:
+        self.sessions = session_manager or SessionManager()
+        self.router = router or XlamRouter()
+        self.pipeline = pipeline or Pipeline()
+        self.response_controller = response_controller or ResponseController()
+        self.logger = logger or GatewayLogger()
+
+    def handle_message(
+        self, user_text: str, session_id: str | None = None, debug: bool = False
+    ) -> AgentResponse:
+        session, effective_decision, context, debug_payload, dev_debug_payload = self._prepare_turn(
+            user_text, session_id, debug
+        )
+
+        try:
+            response = self.response_controller.handle(
+                context, session, debug=dev_debug_payload
+            )
+            self._record_completed_turn(user_text, session, response, dev_debug_payload)
+            return self._public_response(response, debug)
+        except Exception as exc:
+            self._record_error(session.session_id, str(exc), effective_decision.route, dev_debug_payload)
+            return AgentResponse(
+                session_id=session.session_id,
+                status="error",
+                text=f"Error en la fase actual: {exc}",
+                route=effective_decision.route,
+            )
+
+    def stream_message(
+        self, user_text: str, session_id: str | None = None, debug: bool = False
+    ) -> Iterator[dict[str, Any]]:
+        session, effective_decision, context, debug_payload, dev_debug_payload = self._prepare_turn(
+            user_text, session_id, debug
+        )
+        if effective_decision.route != "chat":
+            try:
+                if context.router_decision.route == "action_ready":
+                    ack_text = build_early_ack(
+                        context.router_decision.suggested_tools or []
+                    )
+                    self.logger.write(
+                        "dev_events",
+                        {
+                            "type": "early_ack",
+                            "session_id": session.session_id,
+                            "text": ack_text,
+                            "route": context.router_decision.route,
+                            "suggested_tools": context.router_decision.suggested_tools,
+                        },
+                    )
+                    yield {
+                        "type": "early_ack",
+                        "text": ack_text,
+                        "route": context.router_decision.route,
+                        "suggested_tools": context.router_decision.suggested_tools,
+                    }
+                response = self.response_controller.handle(
+                    context, session, debug=dev_debug_payload
+                )
+                self._record_completed_turn(user_text, session, response, dev_debug_payload)
+                response = self._public_response(response, debug)
+                yield {"type": "final", "response": response}
+                if debug:
+                    yield {"type": "debug", "debug": response.debug}
+            except Exception as exc:
+                self._record_error(session.session_id, str(exc), effective_decision.route, dev_debug_payload)
+                response = AgentResponse(
+                    session_id=session.session_id,
+                    status="error",
+                    text=f"Error en la fase actual: {exc}",
+                    route=effective_decision.route,
+                    debug=debug_payload if debug else {},
+                )
+                yield {"type": "error", "response": response}
+                if debug:
+                    yield {"type": "debug", "debug": response.debug}
+            return
+
+        full_text = ""
+        try:
+            for token in self.response_controller.main_model.respond_stream(context):
+                if not token:
+                    continue
+                full_text += token
+                yield {"type": "token", "text": token}
+            response = AgentResponse(
+                session_id=session.session_id,
+                status="ok",
+                text=full_text,
+                route="chat",
+                debug=debug_payload,
+            )
+            self._record_completed_turn(user_text, session, response, dev_debug_payload)
+            response = self._public_response(response, debug)
+            yield {"type": "final", "response": response}
+            if debug:
+                yield {"type": "debug", "debug": response.debug}
+        except Exception as exc:
+            self._record_error(session.session_id, str(exc), "chat", dev_debug_payload)
+            response = AgentResponse(
+                session_id=session.session_id,
+                status="error",
+                text=f"Error durante streaming: {exc}",
+                route="chat",
+                debug=debug_payload if debug else {},
+            )
+            yield {"type": "error", "response": response}
+            if debug:
+                yield {"type": "debug", "debug": response.debug}
+
+    def _prepare_turn(
+        self, user_text: str, session_id: str | None, debug: bool
+    ) -> tuple[Any, Any, ContextPackage, dict, dict]:
+        session = self.sessions.get_or_create(session_id)
+        session.previous_route = session.current_route
+
+        router_result = self.router.route(user_text)
+        effective_decision = resolve_pending_clarification(
+            session, user_text, router_result.decision
+        )
+        clear_stale_pending_confirmation_for_action(session, user_text, effective_decision)
+        if session.pending_workflow:
+            clear_pending_workflow_for_topic_change(session, user_text)
+            if session.pending_workflow is not None:
+                effective_decision = effective_decision.model_copy(deep=True)
+                effective_decision.intent = "action"
+                effective_decision.domain = "workflow"
+                effective_decision.action = "resume_pending_workflow"
+                effective_decision.route = "action_ready"
+                effective_decision.needs_tool = False
+                effective_decision.needs_clarification = False
+                effective_decision.missing_info = []
+            else:
+                session.pending_confirmation = None
+        session.current_route = effective_decision.route
+        self.logger.write(
+            "router",
+            {
+                "session_id": session.session_id,
+                "model_used": router_result.model_used,
+                "corrected": router_result.corrected,
+                "decision": effective_decision.model_dump(mode="json"),
+                "error": router_result.error,
+            },
+        )
+
+        context = self.pipeline.build_context(user_text, effective_decision, session)
+        self.logger.write(
+            "context_builder",
+            {"session_id": session.session_id, "context": context.model_dump(mode="json")},
+        )
+        dev_debug_payload = {
+            "router": router_result.model_dump(mode="json"),
+            "context": context.model_dump(mode="json"),
+        }
+        debug_payload = {}
+        if debug:
+            debug_payload = dev_debug_payload
+        return session, effective_decision, context, debug_payload, dev_debug_payload
+
+    def _record_completed_turn(
+        self, user_text: str, session, response: AgentResponse, dev_debug_payload: dict | None = None
+    ) -> None:
+        self.sessions.add_turn(session.session_id, "user", user_text)
+        capture_explicit_preferences(user_text, self.sessions.store)
+
+        tool_result = response.debug.get("tool_result")
+        if tool_result:
+            tool_call = response.tool_calls[0] if response.tool_calls else None
+            self.sessions.add_turn_with_metadata(
+                session.session_id,
+                "tool",
+                json.dumps(tool_result, ensure_ascii=True),
+                metadata={
+                    "tool_name": tool_result.get("tool_name"),
+                    "success": tool_result.get("success"),
+                },
+            )
+            record_tool_memory(
+                self.sessions.store,
+                tool_call=tool_call,
+                tool_result=tool_result,
+            )
+            if tool_result.get("success") is False:
+                record_error_memory(
+                    self.sessions.store,
+                    error=tool_result.get("error"),
+                    source=f"tool:{tool_result.get('tool_name', 'unknown')}",
+                )
+            self.logger.write(
+                "tool_calls",
+                {
+                    "session_id": session.session_id,
+                    "route": response.route,
+                    "tool_call": tool_call,
+                    "tool_result": tool_result,
+                    "success": tool_result.get("success"),
+                    "blocked": tool_result.get("metadata", {}).get("blocked", False),
+                },
+            )
+        self.sessions.add_turn(session.session_id, "assistant", response.text)
+        self.sessions.save_session_state(session.session_id)
+        self.logger.write(
+            "events",
+            {
+                "session_id": session.session_id,
+                "event": "user_message",
+                "text": user_text,
+                "effective_route": response.route,
+            },
+        )
+        self.logger.write(
+            "model_outputs",
+            {
+                "session_id": session.session_id,
+                "route": response.route,
+                "status": response.status,
+                "text": response.text,
+            },
+        )
+        self._write_dev_event(response, dev_debug_payload, session=session)
+
+    def _record_error(
+        self,
+        session_id: str,
+        error: str,
+        route: str = "error",
+        dev_debug_payload: dict | None = None,
+    ) -> None:
+        record_error_memory(
+            self.sessions.store,
+            error=error,
+            source="gateway",
+        )
+        self.sessions.save_session_state(session_id)
+        self.logger.write(
+            "errors",
+            {"session_id": session_id, "error": error},
+        )
+        response = AgentResponse(
+            session_id=session_id,
+            status="error",
+            text=error,
+            route=route,
+            debug=dev_debug_payload or {},
+        )
+        self._write_dev_event(response, dev_debug_payload)
+
+    def _write_dev_event(
+
+================================================================================
+FILE: agent/gateway/pipeline.py
+================================================================================
+from agent.context_builder.builder import ContextBuilder
+from agent.gateway.session_manager import SessionState
+from agent.router.router_schema import RouterDecision
+
+
+class Pipeline:
+    def __init__(self, context_builder: ContextBuilder | None = None) -> None:
+        self.context_builder = context_builder or ContextBuilder()
+
+    def build_context(
+        self, user_text: str, decision: RouterDecision, session: SessionState
+    ):
+        return self.context_builder.build(user_text, decision, session)
+
+
+================================================================================
+FILE: agent/context_builder/builder.py
+================================================================================
+from agent.context_builder.capability_context import CapabilityContextBuilder
+from agent.gateway.message_types import ContextPackage
+from agent.gateway.session_manager import SessionState
+from agent.rag.retriever import RagRetriever
+from agent.router.router_schema import RouterDecision
+
+
+class ContextBuilder:
+    def __init__(self, capability_context=None, rag_retriever=None) -> None:
+        self.capability_context = capability_context or CapabilityContextBuilder()
+        self.rag_retriever = rag_retriever or RagRetriever()
+
+    def build(
+        self,
+        user_message: str,
+        decision: RouterDecision,
+        session: SessionState,
+    ) -> ContextPackage:
+        recent_history = list(session.history)
+        if recent_history:
+            last_turn = recent_history[-1]
+            if last_turn.role == "user" and last_turn.content == user_message:
+                recent_history = recent_history[:-1]
+
+        capabilities = self.capability_context.select(decision)
+        rag_snippets = []
+        if decision.needs_rag or decision.route == "rag_lookup":
+            rag_snippets = self.rag_retriever.retrieve(user_message)[:3]
+        safety_rules = [
+            "No screenshots, vision, desktop automation, terminal commands, or file writes in current phase.",
+            "Ask for confirmation before medium or high risk actions.",
+            "Only web_search, browser_search, open_app, macOS observation tools, fixed macOS window tools, and fixed macOS Spaces tools may be executed in the current phase.",
+            "web_search may search the web and return structured results to the agent. browser_search may open absolute http or https URLs and perform browser-based navigation/search in the browser.",
+            "window_native_tiling may only act on the frontmost window using a fixed native menu allowlist and cannot verify the final position visually.",
+            "macOS observation tools may read app/window/permission state but must not click, type, move windows, change Spaces, or request permissions.",
+            "macOS Spaces tools may only use fixed System Events shortcuts for Spaces/Mission Control; never run AppleScript generated by the model.",
+            "Use RAG snippets only for knowledge-base questions.",
+        ]
+        instruction = self._task_instruction(decision)
+        return ContextPackage(
+            system_prompt=(
+                "You are a local MVP agent. Answer clearly and briefly. "
+                "Use only approved capabilities for the current phase. "
+                "Only web_search, browser_search, open_app, macOS observation tools, fixed macOS window tools, and fixed macOS Spaces tools may be executed."
+            ),
+            user_message=user_message,
+            router_decision=decision,
+            recent_history=recent_history,
+            session_state={
+                "pending_clarification": session.pending_clarification,
+                "pending_confirmation": session.pending_confirmation,
+                "pending_workflow": session.pending_workflow,
+                "previous_route": session.previous_route,
+                "current_route": session.current_route,
+            },
+            selected_plugins=capabilities["plugins"],
+            selected_skills=capabilities["skills"],
+            selected_tools=capabilities["tools"],
+            rag_snippets=rag_snippets,
+            safety_rules=safety_rules,
+            task_instruction=instruction,
+        )
+
+    def _task_instruction(self, decision: RouterDecision) -> str:
+        if decision.route == "clarification":
+            return "Ask one short clarification question."
+        if decision.route == "memory_lookup":
+            return "Use persistent session memory only; do not search the knowledge base."
+        if decision.route == "rag_lookup":
+            return (
+                "Answer using only the provided RAG snippets. "
+                "If no snippets are available, say the knowledge base has no sufficient information."
+            )
+        if decision.route == "safety_confirmation":
+            return "Ask for confirmation without executing the action."
+        if decision.route == "action_ready":
+            return (
+                "If the request is specific enough, prefer an available low-risk tool_call. "
+                "Use open_app for app names. "
+                "Use web_search when the user wants information/results to answer from the web. Use browser_search only for opening browser pages, known web destinations, YouTube/Google navigation, and direct http/https URLs. "
+                "Use window_native_tiling for moving, centering, filling, or resizing the frontmost macOS window with fixed native menu actions. "
+                "Choose a specific target only when the user clearly requested that destination or provided a direct URL. "
+                "Use macOS observation tools for app/window/permission/app-list questions. "
+                "Use macOS window tools only for the frontmost window and never claim visual verification unless it is explicitly confirmed. "
+                "Use macOS Spaces tools for Spaces, Desktop, and Mission Control questions. "
+                "Do not act as if a browser action happened unless a real tool_call succeeded. "
+                "Do not ask for permission for low-risk approved tools. "
+                "Only answer directly without a tool if the tool would not help."
+            )
+        return "Respond normally."
+
+================================================================================
+FILE: agent/context_builder/capability_context.py
+================================================================================
+from agent.capabilities.plugins.registry import PluginRegistry
+from agent.capabilities.skills.selector import SkillSelector
+from agent.capabilities.tools.registry import ToolRegistry
+from agent.router.router_schema import RouterDecision
+
+
+class CapabilityContextBuilder:
+    def __init__(
+        self,
+        plugin_registry: PluginRegistry | None = None,
+        skill_selector: SkillSelector | None = None,
+        tool_registry: ToolRegistry | None = None,
+    ) -> None:
+        self.plugin_registry = plugin_registry or PluginRegistry()
+        self.skill_selector = skill_selector or SkillSelector()
+        self.tool_registry = tool_registry or ToolRegistry()
+
+    def select(self, decision: RouterDecision) -> dict[str, list[dict]]:
+        plugins = [
+            plugin.model_dump()
+            for plugin in self.plugin_registry.find_enabled(decision.suggested_plugins)
+        ]
+        skills = [
+            skill.model_dump()
+            for skill in self.skill_selector.select(decision.suggested_skills)
+        ]
+        tools = [
+            tool.model_dump()
+            for tool in self.tool_registry.find_active(decision.suggested_tools)
+        ]
+        return {"plugins": plugins, "skills": skills, "tools": tools}

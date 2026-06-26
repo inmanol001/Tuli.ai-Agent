@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from agent.gateway.message_types import AgentResponse
@@ -20,7 +20,7 @@ def preview(value: Any, limit: int = PREVIEW_LIMIT) -> str:
 def build_dev_event(response: AgentResponse) -> dict[str, Any]:
     debug = response.debug or {}
     return {
-        "ts": datetime.now(UTC).isoformat(),
+        "ts": datetime.now(timezone.utc).isoformat(),
         "session_id": response.session_id,
         "status": response.status,
         "route": response.route,

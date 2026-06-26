@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/Users/inma/Documents/AI Agent/audit_reports/suspects_audit_20260624_224115/router_probe.py", line 2, in <module>
+    from agent.router.xlam_router import XlamRouter
+ModuleNotFoundError: No module named 'agent'

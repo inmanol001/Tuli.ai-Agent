@@ -1,0 +1,105 @@
+===== 04 SkillSelector / loader / validator =====
+
+================================================================================
+FILE: agent/capabilities/skills/selector.py
+================================================================================
+from pathlib import Path
+
+from agent.capabilities.skills.loader import SkillDefinition, load_skill
+
+
+class SkillSelector:
+    def __init__(self, root: str | Path = "agent/capabilities/skills") -> None:
+        self.root = Path(root)
+
+    def select(self, names: list[str]) -> list[SkillDefinition]:
+        selected: list[SkillDefinition] = []
+        for name in names:
+            if name == "web_search":
+                path = self.root / "web_search" / "SKILL.md"
+                if path.exists():
+                    skill = load_skill(path)
+                    if skill.name == "web_search":
+                        selected.append(skill)
+            elif name == "browser_search":
+                path = self.root / "browser_search" / "SKILL.md"
+                if path.exists():
+                    skill = load_skill(path)
+                    if skill.name == "browser_search":
+                        selected.append(skill)
+            elif name == "open_app":
+                path = self.root / name / "SKILL.md"
+                if path.exists():
+                    skill = load_skill(path)
+                    if skill.name == name:
+                        selected.append(skill)
+            elif name == "macos_windows":
+                path = self.root / "macos_windows.md"
+                if path.exists():
+                    skill = load_skill(path)
+                    if skill.name == "macos_windows":
+                        selected.append(skill)
+            elif name == "macos_observation":
+                path = self.root / "macos_observation.md"
+                if path.exists():
+                    skill = load_skill(path)
+                    if skill.name == "macos_observation":
+                        selected.append(skill)
+            elif name == "macos_spaces":
+                path = self.root / "macos_spaces.md"
+                if path.exists():
+                    skill = load_skill(path)
+                    if skill.name == "macos_spaces":
+                        selected.append(skill)
+        return selected
+
+================================================================================
+FILE: agent/capabilities/skills/loader.py
+================================================================================
+from pathlib import Path
+
+from pydantic import BaseModel
+
+
+class SkillDefinition(BaseModel):
+    name: str
+    description: str
+    tools: list[str]
+    content: str
+
+
+def load_skill(path: str | Path) -> SkillDefinition:
+    path = Path(path)
+    content = path.read_text(encoding="utf-8")
+    frontmatter = _parse_frontmatter(content)
+    return SkillDefinition(
+        name=frontmatter.get("name", path.parent.name),
+        description=frontmatter.get("description", ""),
+        tools=frontmatter.get("tools", []),
+        content=content,
+    )
+
+
+def _parse_frontmatter(content: str) -> dict:
+    if not content.startswith("---\n"):
+        return {}
+    try:
+        _start, rest = content.split("---\n", 1)
+        raw_frontmatter, _body = rest.split("\n---\n", 1)
+    except ValueError:
+        return {}
+    try:
+        import yaml
+    except ModuleNotFoundError:
+        return {}
+    return yaml.safe_load(raw_frontmatter) or {}
+
+================================================================================
+FILE: agent/capabilities/skills/validator.py
+================================================================================
+from agent.capabilities.skills.loader import SkillDefinition
+
+
+def validate_skill(skill: SkillDefinition) -> bool:
+    return bool(skill.name and skill.content.strip())
+

@@ -5,8 +5,6 @@ import json
 from pathlib import Path
 from typing import Iterable
 
-import yaml
-
 from agent.rag.schemas import IngestStats, KnowledgeChunk, RagConfig, RagSnippet
 
 
@@ -18,6 +16,18 @@ class RagDependencyError(RuntimeError):
 
 
 def load_rag_config(config_path: str | Path = "agent/config/rag.yaml") -> RagConfig:
+    try:
+        import yaml
+    except ModuleNotFoundError:
+        return RagConfig(
+            enabled=True,
+            embedding_model="qwen3-embedding:0.6b",
+            persist_path=Path("agent/rag/chroma"),
+            collection_name="local_knowledge",
+            top_k=3,
+            min_score=0.0,
+            knowledge_paths=[],
+        )
     raw = yaml.safe_load(Path(config_path).read_text(encoding="utf-8")) or {}
     rag = raw.get("rag", {})
     paths = raw.get("knowledge_paths", [])

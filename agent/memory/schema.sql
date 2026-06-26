@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS session_state (
     current_route TEXT,
     pending_clarification TEXT,
     pending_confirmation_json TEXT,
+    pending_workflow_json TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
 );
@@ -51,3 +52,40 @@ CREATE TABLE IF NOT EXISTS conversation_summaries (
     summary TEXT NOT NULL,
     created_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS learning_memory (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    user_phrase TEXT NOT NULL,
+    normalized_phrase TEXT NOT NULL,
+
+    correct_intent TEXT NOT NULL,
+    correct_tool TEXT,
+    correct_skill TEXT,
+
+    confidence REAL NOT NULL DEFAULT 0.0,
+    status TEXT NOT NULL DEFAULT 'temporary',
+
+    source TEXT NOT NULL DEFAULT 'runtime',
+    evidence_json TEXT,
+    notes TEXT,
+
+    usage_count INTEGER NOT NULL DEFAULT 0,
+    success_count INTEGER NOT NULL DEFAULT 0,
+    failure_count INTEGER NOT NULL DEFAULT 0,
+
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    verified_at TEXT,
+
+    UNIQUE(normalized_phrase, correct_intent, correct_tool, correct_skill)
+);
+
+CREATE INDEX IF NOT EXISTS idx_learning_memory_phrase
+ON learning_memory(normalized_phrase);
+
+CREATE INDEX IF NOT EXISTS idx_learning_memory_status
+ON learning_memory(status);
+
+CREATE INDEX IF NOT EXISTS idx_learning_memory_tool
+ON learning_memory(correct_tool);

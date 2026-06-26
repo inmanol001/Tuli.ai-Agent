@@ -1,6 +1,5 @@
 from pathlib import Path
 
-import yaml
 from pydantic import BaseModel
 
 
@@ -30,5 +29,9 @@ def _parse_frontmatter(content: str) -> dict:
         _start, rest = content.split("---\n", 1)
         raw_frontmatter, _body = rest.split("\n---\n", 1)
     except ValueError:
+        return {}
+    try:
+        import yaml
+    except ModuleNotFoundError:
         return {}
     return yaml.safe_load(raw_frontmatter) or {}

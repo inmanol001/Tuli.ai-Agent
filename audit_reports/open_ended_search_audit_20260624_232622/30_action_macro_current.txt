@@ -1,0 +1,503 @@
+--- selector.py 1-280 ---
+from __future__ import annotations
+
+import re
+import unicodedata
+from typing import Any
+
+from agent.capabilities.tools.macos_window_tools import NATIVE_TILING_ACTIONS
+from agent.gateway.message_types import ContextPackage
+from agent.router.router_schema import RouterDecision
+from agent.action_macros.schemas import ActionMacroPlan
+
+
+APP_ALIASES = {
+    "google chrome": "Google Chrome",
+    "chrome": "Google Chrome",
+    "safari": "Safari",
+    "terminal": "Terminal",
+    "finder": "Finder",
+    "notes": "Notes",
+    "notas": "Notes",
+    "vscode": "Visual Studio Code",
+    "vs code": "Visual Studio Code",
+    "visual studio code": "Visual Studio Code",
+    "code": "Visual Studio Code",
+}
+
+WINDOW_ACTION_PATTERNS: list[tuple[str, tuple[str, ...]]] = [
+    ("top-left", ("esquina superior izquierda", "upper left corner", "top left")),
+    ("top-right", ("esquina superior derecha", "upper right corner", "top right")),
+    ("bottom-left", ("esquina inferior izquierda", "lower left corner", "bottom left")),
+    ("bottom-right", ("esquina inferior derecha", "lower right corner", "bottom right")),
+    ("left-right", ("left & right", "left-right", "izquierda y derecha")),
+    ("quarters", ("quarters", "cuartos")),
+    ("return", (
+        "tamaño anterior",
+        "volver al tamaño anterior",
+        "previous size",
+        "return to previous size",
+        "volver a su tamaño anterior",
+    )),
+    ("fill", ("llenar", "llena", "fill", "llena la pantalla", "llenar la pantalla")),
+    ("center", ("centrar", "centra", "center", "centra la ventana", "ponla al centro")),
+    ("top", ("arriba", "top")),
+    ("bottom", ("abajo", "bottom")),
+    ("left", ("izquierda", "left")),
+    ("right", ("derecha", "right")),
+]
+
+
+class ActionMacroSelector:
+    """Select a macro by intent and known recipe shape, not by step-by-step reasoning."""
+
+    def select(self, context: ContextPackage) -> ActionMacroPlan:
+        decision = context.router_decision
+        if decision.route != "action_ready":
+            return ActionMacroPlan(selected=False)
+
+        raw_text = context.user_message.strip().lower()
+        text = self._normalize_text(raw_text)
+        if self._looks_like_work_setup(text):
+            return ActionMacroPlan(
+                selected=True,
+                workflow_name="open_work_setup",
+                inputs={"open_chatgpt": True},
+                reason="matched_open_work_setup",
+            )
+        # Open-ended/random YouTube requests are selection intents, not literal searches.
+        # They must run before generic browser search.
+        if self._looks_like_random_youtube_video(text):
+            topic_hint = self._topic_hint(text)
+            return ActionMacroPlan(
+                selected=True,
+                workflow_name="play_random_youtube_video",
+                inputs={
+                    "query": topic_hint or "__open_ended__",
+                    "target": "youtube",
+                    "open_ended": True,
+                    "topic_hint": topic_hint,
+                },
+                reason="matched_play_random_youtube_video",
+            )
+        if self._looks_like_browser_search(text):
+            open_ended = self._is_open_ended_search(text)
+            topic_hint = self._topic_hint(text) if open_ended else ""
+            return ActionMacroPlan(
+                selected=True,
+                workflow_name="open_browser_and_search",
+                inputs={
+                    "query": self._search_query(text) or "__open_ended__",
+                    "target": self._search_target(text),
+                    "open_ended": open_ended,
+                    "topic_hint": topic_hint,
+                },
+                reason="matched_open_browser_and_search",
+            )
+        window_action = self._detect_window_action(text)
+        if not window_action:
+            return ActionMacroPlan(selected=False)
+
+        open_app_intent = self._has_open_app_intent(text)
+        app_name = self._extract_app_name(text) if open_app_intent else None
+
+        if open_app_intent:
+            if not app_name:
+                return ActionMacroPlan(selected=False)
+            return ActionMacroPlan(
+                selected=True,
+                workflow_name="open_app_and_tile_window",
+                inputs={"app_name": app_name, "window_action": window_action},
+                reason="matched_open_app_and_tile_window",
+            )
+
+        if self._mentions_window(text):
+            return ActionMacroPlan(
+                selected=True,
+                workflow_name="tile_active_window",
+                inputs={"window_action": window_action},
+                reason="matched_tile_active_window",
+            )
+
+        return ActionMacroPlan(selected=False)
+
+    def _is_open_ended_search(self, text: str) -> bool:
+        """Detect when the user wants the agent to choose/recommend instead of searching exact words."""
+        text = self._normalize_text(text.strip().lower())
+        markers = (
+            "random",
+            "aleatorio",
+            "aleatoria",
+            "al azar",
+            "cualquiera",
+            "cualquier cosa",
+            "lo que sea",
+            "algo interesante",
+            "sorprendeme",
+            "sorpréndeme",
+            "recomiendame",
+            "recomiéndame",
+        )
+        return any(marker in text for marker in markers)
+
+    def _topic_hint(self, text: str) -> str:
+        """Extract a soft topic hint without hardcoding user preferences."""
+        cleaned = self._normalize_text(text.strip().lower())
+
+        cleaned = re.sub(r"\b(en|de)\s+(youtube|you\s*tube|internet|la\s+web|google)\b", " ", cleaned, flags=re.I)
+        cleaned = re.sub(r"\b(youtube|you\s*tube|internet|web|google)\b", " ", cleaned, flags=re.I)
+
+        match = re.search(r"\b(?:de|sobre|acerca de)\s+(.+)$", cleaned, flags=re.I)
+        topic = match.group(1).strip() if match else cleaned
+
+        topic = re.sub(
+            r"\b(ponme|pon|busca|buscar|buscame|búscame|abre|abrir|reproduce|reproducir|quiero|dame|un|una|el|la|video|videos|vídeo|vídeos|random|aleatorio|aleatoria|azar|cualquiera|cualquier|cosa|lo|que|sea|algo|interesante|sorprendeme|sorpréndeme|recomiendame|recomiéndame)\b",
+            " ",
+            topic,
+            flags=re.I,
+        )
+        return " ".join(topic.split())
+
+
+    def _looks_like_random_youtube_video(self, text: str) -> bool:
+        """Detect open-ended/random YouTube requests only."""
+        if "youtube" not in text and "you tube" not in text:
+            return False
+
+        play_markers = (
+            "ponme",
+            "pon ",
+            "reproduce",
+            "play ",
+            "dame",
+            "quiero ver",
+        )
+        open_markers = (
+            "random",
+            "aleatorio",
+            "aleatoria",
+            "al azar",
+            "cualquiera",
+            "cualquier",
+            "cualquier video",
+            "lo que sea",
+            "sorprendeme",
+            "sorpréndeme",
+        )
+
+        has_play_intent = any(marker in text for marker in play_markers)
+        has_open_marker = any(marker in text for marker in open_markers)
+        mentions_video = "video" in text or "vídeo" in text
+
+        return has_play_intent and has_open_marker and mentions_video
+
+    def _youtube_query(self, text: str) -> str:
+        """Random is a selection instruction; return only the soft topic hint."""
+        return self._topic_hint(text)
+
+    def _looks_like_work_setup(self, text: str) -> bool:
+        return any(
+            phrase in text
+            for phrase in (
+                "setup de trabajo",
+                "mi setup",
+                "work setup",
+                "abre mi setup",
+                "abre setup",
+                "abrir mi setup",
+            )
+        )
+
+    def _looks_like_browser_search(self, text: str) -> bool:
+        return any(
+            phrase in text
+            for phrase in (
+                "busca ",
+                "buscar ",
+                "search ",
+                "abre google y busca",
+                "open google and search",
+                "abre el navegador y busca",
+            )
+        )
+
+    def _search_query(self, text: str) -> str:
+        """Extract search query while preserving specificity."""
+        cleaned = text.strip()
+
+        if cleaned.startswith("http://") or cleaned.startswith("https://"):
+            return cleaned
+
+        if self._is_open_ended_search(cleaned):
+            return self._topic_hint(cleaned)
+
+        patterns = (
+            r"(?:abre google y busca|open google and search|abre el navegador y busca)\s+(?P<query>.+)$",
+            r"(?:busca|buscar|search)\s+(?:en\s+youtube|en\s+you\s*tube)\s+(?P<query>.+)$",
+            r"(?:busca|buscar|search)\s+(?:en\s+internet|en\s+la\s+web|en\s+google)?\s*(?P<query>.+)$",
+            r"(?:abre|abrir|open)\s+(?P<query>.+)$",
+        )
+
+        for pattern in patterns:
+            match = re.search(pattern, cleaned, flags=re.I)
+            if match:
+                query = match.group("query").strip()
+                query = re.sub(r"^(un|una|el|la)\s+", "", query, flags=re.I).strip()
+                return query
+
+        return cleaned
+
+    def _search_target(self, text: str) -> str:
+        cleaned = text.strip().lower()
+
+        if cleaned.startswith("http://") or cleaned.startswith("https://"):
+            return "url"
+
+        if "youtube" in cleaned or "you tube" in cleaned:
+            if cleaned in ("abre youtube", "abrir youtube", "open youtube", "youtube"):
+                return "youtube_home"
+            return "youtube"
+
+        if "google" in cleaned:
+            if cleaned in ("abre google", "abrir google", "open google", "google"):
+                return "google_home"
+            return "google"
+
+        return "auto"
+
+    def _mentions_window(self, text: str) -> bool:
+        return any(token in text for token in ("ventana", "window", "esta ventana", "ventana activa"))
+
+    def _has_open_app_intent(self, text: str) -> bool:
+        return any(
+            phrase in text
+            for phrase in ("abre", "abrir", "open", "lanza", "inicia")
+        )
+
+    def _extract_app_name(self, text: str) -> str | None:
+        for alias in sorted(APP_ALIASES, key=len, reverse=True):
+            pattern = rf"\b{re.escape(alias)}\b"
+            if re.search(pattern, text):
+                return APP_ALIASES[alias]
+
+--- open_browser_and_search.py ---
+from __future__ import annotations
+
+from agent.capabilities.tools.schemas import ToolCall
+
+
+class OpenBrowserAndSearchActionMacro:
+    """Recipe macro: open a browser and perform a fixed web search."""
+
+    name = "open_browser_and_search"
+
+    def build_steps(self, inputs) -> list[ToolCall]:
+        query = (inputs.get("query") or "").strip()
+        target = (inputs.get("target") or "web").strip()
+        return [
+            ToolCall(
+                tool_name="browser_search",
+                arguments={"query": query, "target": target},
+            ),
+        ]
+
+--- play_random_youtube_video.py ---
+from __future__ import annotations
+
+from typing import Any
+
+from agent.capabilities.tools.schemas import ToolCall
+
+
+class PlayRandomYoutubeVideoActionMacro:
+    """Recipe macro: search YouTube for a random/open-ended video request."""
+
+    name = "play_random_youtube_video"
+
+    def build_steps(self, inputs: dict[str, Any]) -> list[ToolCall]:
+        open_ended = bool(inputs.get("open_ended"))
+        topic_hint = (inputs.get("topic_hint") or "").strip()
+        raw_query = (inputs.get("query") or "").strip()
+
+        query = self._resolve_query(
+            raw_query=raw_query,
+            open_ended=open_ended,
+            topic_hint=topic_hint,
+        )
+
+        return [
+            ToolCall(
+                tool_name="browser_search",
+                arguments={"query": query, "target": "youtube"},
+            ),
+        ]
+
+    def _resolve_query(self, raw_query: str, open_ended: bool, topic_hint: str) -> str:
+        """Resolve open-ended YouTube requests into safe search queries.
+
+        Never send internal sentinels, empty strings, or literal random placeholders
+        to browser_search.
+        """
+        sentinel_values = {
+            "",
+            "__open_ended__",
+            "random video",
+            "video random",
+            "video random entretenido",
+        }
+
+        if not open_ended and raw_query and raw_query not in sentinel_values:
+            return raw_query
+
+        if topic_hint:
+            return f"{topic_hint} interesante"
+
+        if raw_query and raw_query not in sentinel_values:
+            return f"{raw_query} interesante"
+
+        return "documental corto interesante"
+
+--- action macro registry ---
+from __future__ import annotations
+
+from agent.action_macros.definitions import (
+    OpenAppAndTileWindowActionMacro,
+    OpenBrowserAndSearchActionMacro,
+    OpenWorkSetupActionMacro,
+    PlayRandomYoutubeVideoActionMacro,
+    TileActiveWindowActionMacro,
+)
+
+
+class ActionMacroRegistry:
+    """Registry of recipe-style macros keyed by stable workflow name."""
+
+    def __init__(self) -> None:
+        self._macros = {
+            "open_app_and_tile_window": OpenAppAndTileWindowActionMacro(),
+            "open_browser_and_search": OpenBrowserAndSearchActionMacro(),
+            "open_work_setup": OpenWorkSetupActionMacro(),
+            "play_random_youtube_video": PlayRandomYoutubeVideoActionMacro(),
+            "tile_active_window": TileActiveWindowActionMacro(),
+        }
+
+    def get(self, name: str):
+        return self._macros.get(name)
+
+    def names(self) -> list[str]:
+        return sorted(self._macros)
+
+
+WorkflowRegistry = ActionMacroRegistry
+
+--- action macro executor ---
+from __future__ import annotations
+
+from agent.action_macros.schemas import (
+    ActionMacroPlan,
+    ActionMacroResult,
+    ActionMacroStepResult,
+)
+from agent.execution.action_runner import ActionRunner
+from agent.executor.executor import Executor
+from agent.executor.results import ToolResult
+from agent.reflection.checker import ReflectionChecker
+from agent.action_macros.registry import ActionMacroRegistry
+
+
+class ActionMacroExecutor:
+    """Execute a fixed macro recipe step by step through ActionRunner."""
+
+    def __init__(
+        self,
+        executor: Executor,
+        reflection_checker: ReflectionChecker | None = None,
+        action_runner: ActionRunner | None = None,
+        max_retries: int = 2,
+        registry: ActionMacroRegistry | None = None,
+    ) -> None:
+        self.executor = executor
+        self.reflection_checker = reflection_checker
+        self.max_retries = max_retries
+        self.action_runner = action_runner or ActionRunner(
+            executor=self.executor,
+            reflection_checker=self.reflection_checker or ReflectionChecker(),
+            max_retries=max_retries,
+        )
+        self.registry = registry or ActionMacroRegistry()
+
+    def run(self, macro_plan: ActionMacroPlan) -> ActionMacroResult:
+        """Build the macro's fixed ToolCalls and execute each one with retry/reflection."""
+        macro_name = macro_plan.workflow_name or ""
+        macro = self.registry.get(macro_name)
+        if macro is None:
+            return ActionMacroResult(
+                workflow_name=macro_name or "unknown",
+                inputs=dict(macro_plan.inputs),
+                success=False,
+                error=f"action_macro_not_found:{macro_name}",
+            )
+
+        try:
+            steps = macro.build_steps(macro_plan.inputs)
+        except Exception as exc:
+            return ActionMacroResult(
+                workflow_name=macro_name,
+                inputs=dict(macro_plan.inputs),
+                success=False,
+                error=str(exc),
+            )
+
+        results: list[ActionMacroStepResult] = []
+        for step_index, tool_call in enumerate(steps):
+            action_run = self.action_runner.run_tool_call(tool_call)
+            tool_result = action_run.final_tool_result
+            stopped, stop_reason = self._step_stop_reason(
+                macro_name, step_index, tool_result
+            )
+            step_result = ActionMacroStepResult(
+                step_index=step_index,
+                tool_call=tool_call,
+                tool_result=tool_result,
+                success=action_run.success and not stopped,
+                stopped=stopped,
+                stop_reason=stop_reason,
+                action_run=action_run.model_dump(mode="json"),
+                reflection_trace=action_run.reflection_trace,
+                retry_count=action_run.retry_count,
+            )
+            results.append(step_result)
+            if stopped or not action_run.success:
+                return ActionMacroResult(
+                    workflow_name=macro_name,
+                    inputs=dict(macro_plan.inputs),
+                    steps=results,
+                    success=False,
+                    stopped_reason=stop_reason
+                    or action_run.stop_reason
+                    or f"step_failed:{tool_call.tool_name}",
+                )
+
+        return ActionMacroResult(
+            workflow_name=macro_name,
+            inputs=dict(macro_plan.inputs),
+            steps=results,
+            success=True,
+        )
+
+    def _step_stop_reason(
+        self, workflow_name: str, step_index: int, tool_result: ToolResult
+    ) -> tuple[bool, str | None]:
+        if workflow_name == "tile_active_window" and step_index == 0:
+            data = tool_result.data or {}
+            has_frontmost = bool(data.get("app_name") or data.get("window_title"))
+            if not tool_result.success:
+                return True, "step_failed:macos_observe_frontmost"
+            if not has_frontmost:
+                return True, "no_frontmost_window"
+        if not tool_result.success:
+            return True, f"step_failed:{tool_result.tool_name}"
+        return False, None
+
+
+WorkflowExecutor = ActionMacroExecutor

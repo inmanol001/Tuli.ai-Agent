@@ -5,6 +5,7 @@ from types import SimpleNamespace
 from agent.capabilities.tools.schemas import ToolCall
 from agent.executor.results import ToolResult
 from agent.gateway.message_types import ContextPackage
+from agent.execution.schemas import ActionAttemptResult, ActionRunResult
 from agent.models.tool_finalizer import ToolFinalizerResult
 from agent.models.tool_planner import ToolPlannerResult
 from agent.response_action.controller import ResponseController
@@ -17,6 +18,7 @@ from agent.action_macros.schemas import (
     ActionMacroStepResult as WorkflowStepResult,
 )
 from agent.action_macros.selector import ActionMacroSelector as WorkflowSelector
+from agent.reflection.schemas import ReflectionDecision
 
 
 def make_context(message: str) -> ContextPackage:
@@ -40,6 +42,45 @@ def step(tool_name: str, arguments: dict | None = None, *, success: bool = True,
         success=success,
         stopped=not success,
         stop_reason=None if success else f"step_failed:{tool_name}",
+    )
+
+
+def action_run(
+    tool_call: ToolCall,
+    *,
+    success: bool = True,
+    data=None,
+    error=None,
+    stopped: bool = False,
+    stop_reason: str | None = None,
+    retry_count: int = 0,
+) -> ActionRunResult:
+    tool_result = ToolResult(
+        tool_name=tool_call.tool_name,
+        success=success,
+        data=data or {},
+        error=error,
+    )
+    attempt = ActionAttemptResult(
+        attempt_number=0,
+        execution_number=1,
+        tool_call=tool_call.model_dump(mode="json"),
+        tool_result=tool_result.model_dump(mode="json"),
+        reflection_decision=ReflectionDecision(
+            should_stop=stopped and not success,
+            reason=stop_reason or ("tool_success" if success else "deterministic_error"),
+            user_message="",
+        ).model_dump(mode="json"),
+    )
+    return ActionRunResult(
+        tool_call=tool_call,
+        final_tool_result=tool_result,
+        attempts=[attempt],
+        success=success,
+        stopped=stopped,
+        stop_reason=stop_reason,
+        retry_count=retry_count,
+        reflection_trace=[attempt.model_dump(mode="json")],
     )
 
 
@@ -83,9 +124,32 @@ def test_selector_does_not_select_for_open_app_only():
     assert plan.selected is False
 
 
-def test_selector_does_not_select_for_search():
+def test_selector_picks_open_browser_and_search_for_search_intent():
     plan = WorkflowSelector().select(make_context("busca gatos"))
-    assert plan.selected is False
+    assert plan.selected is True
+    assert plan.workflow_name == "open_browser_and_search"
+    assert plan.inputs == {"query": "gatos", "target": "web"}
+
+
+def test_selector_picks_play_random_youtube_video():
+    plan = WorkflowSelector().select(make_context("Ponme un video random en YouTube"))
+    assert plan.selected is True
+    assert plan.workflow_name == "play_random_youtube_video"
+    assert plan.inputs == {"query": "random video"}
+
+
+def test_selector_picks_open_work_setup():
+    plan = WorkflowSelector().select(make_context("Abre mi setup de trabajo"))
+    assert plan.selected is True
+    assert plan.workflow_name == "open_work_setup"
+    assert plan.inputs == {"open_chatgpt": True}
+
+
+def test_selector_picks_open_browser_and_search_for_explicit_browser_query():
+    plan = WorkflowSelector().select(make_context("abre el navegador y busca pandas"))
+    assert plan.selected is True
+    assert plan.workflow_name == "open_browser_and_search"
+    assert plan.inputs == {"query": "pandas", "target": "web"}
 
 
 class FakeExecutor:
@@ -98,6 +162,24 @@ class FakeExecutor:
         if self.results:
             return self.results.pop(0)
         return ToolResult(tool_name=tool_call.tool_name, success=False, error="missing result")
+
+
+class FakeActionRunner:
+    def __init__(self, results):
+        self.results = list(results)
+        self.calls = []
+
+    def run_tool_call(self, tool_call):
+        self.calls.append(tool_call)
+        if self.results:
+            return self.results.pop(0)
+        return action_run(
+            tool_call,
+            success=False,
+            stopped=True,
+            stop_reason="missing_result",
+            error="missing result",
+        )
 
 
 def test_workflow_executor_runs_open_app_then_observe_then_tile():
@@ -224,6 +306,118 @@ def test_workflow_executor_stops_when_tile_active_window_has_no_frontmost_window
     assert result.success is False
     assert result.stopped_reason == "no_frontmost_window"
     assert [call.tool_name for call in executor.calls] == ["macos_observe_frontmost"]
+
+
+def test_workflow_executor_runs_play_random_youtube_video_through_action_runner():
+    open_call = ToolCall(tool_name="open_app", arguments={"app_name": "Google Chrome"})
+    search_call = ToolCall(
+        tool_name="browser_search",
+        arguments={"query": "random video", "target": "youtube"},
+    )
+    runner = FakeActionRunner(
+        [
+            action_run(open_call, success=True, data={"app_name": "Google Chrome"}),
+            action_run(
+                search_call,
+                success=True,
+                data={"query": "random video", "target": "youtube", "url": "https://www.youtube.com/results?search_query=random+video"},
+            ),
+        ]
+    )
+    result = WorkflowExecutor(executor=FakeExecutor([]), action_runner=runner).run(
+        WorkflowPlan(
+            selected=True,
+            workflow_name="play_random_youtube_video",
+            inputs={"query": "random video"},
+        )
+    )
+
+    assert [call.tool_name for call in runner.calls] == ["open_app", "browser_search"]
+    assert len(result.steps) == 2
+    assert result.success is True
+    assert result.steps[0].action_run is not None
+    assert result.steps[1].action_run is not None
+
+
+def test_workflow_executor_runs_open_work_setup_through_action_runner():
+    chrome_call = ToolCall(tool_name="open_app", arguments={"app_name": "Google Chrome"})
+    vscode_call = ToolCall(tool_name="open_app", arguments={"app_name": "Visual Studio Code"})
+    terminal_call = ToolCall(tool_name="open_app", arguments={"app_name": "Terminal"})
+    chatgpt_call = ToolCall(
+        tool_name="open_url",
+        arguments={"url": "https://chatgpt.com"},
+    )
+    runner = FakeActionRunner(
+        [
+            action_run(chrome_call, success=True, data={"app_name": "Google Chrome"}),
+            action_run(vscode_call, success=True, data={"app_name": "Visual Studio Code"}),
+            action_run(terminal_call, success=True, data={"app_name": "Terminal"}),
+            action_run(chatgpt_call, success=True, data={"url": "https://chatgpt.com"}),
+        ]
+    )
+    result = WorkflowExecutor(executor=FakeExecutor([]), action_runner=runner).run(
+        WorkflowPlan(
+            selected=True,
+            workflow_name="open_work_setup",
+            inputs={"open_chatgpt": True},
+        )
+    )
+
+    assert [call.tool_name for call in runner.calls] == [
+        "open_app",
+        "open_app",
+        "open_app",
+        "open_url",
+    ]
+    assert len(result.steps) == 4
+    assert result.success is True
+
+
+def test_workflow_executor_stops_when_action_runner_stops():
+    open_call = ToolCall(tool_name="open_app", arguments={"app_name": "Google Chrome"})
+    runner = FakeActionRunner(
+        [
+            action_run(
+                open_call,
+                success=False,
+                stopped=True,
+                stop_reason="deterministic_error",
+                error="could not open",
+            )
+        ]
+    )
+    result = WorkflowExecutor(executor=FakeExecutor([]), action_runner=runner).run(
+        WorkflowPlan(
+            selected=True,
+            workflow_name="play_random_youtube_video",
+            inputs={"query": "random video"},
+        )
+    )
+
+    assert result.success is False
+    assert result.stopped_reason == "step_failed:open_app"
+    assert len(result.steps) == 1
+    assert result.steps[0].action_run is not None
+
+
+def test_workflow_executor_runs_open_browser_and_search_through_action_runner():
+    search_call = ToolCall(
+        tool_name="browser_search",
+        arguments={"query": "pandas", "target": "web"},
+    )
+    runner = FakeActionRunner([action_run(search_call, success=True, data={"url": "https://google.test"})])
+    result = WorkflowExecutor(executor=FakeExecutor([]), action_runner=runner).run(
+        WorkflowPlan(
+            selected=True,
+            workflow_name="open_browser_and_search",
+            inputs={"query": "pandas", "target": "web"},
+        )
+    )
+
+    assert [call.tool_name for call in runner.calls] == ["browser_search"]
+    assert len(result.steps) == 1
+    assert result.success is True
+    assert result.steps[0].action_run is not None
 
 
 def test_workflow_finalizer_success_messages_are_honest():
@@ -464,3 +658,119 @@ def test_response_controller_debug_includes_workflow_details():
     assert "action_macro" in response.debug
     assert "action_macro_finalizer" in response.debug
     assert len(response.tool_calls) == 2
+
+
+def test_response_controller_runs_play_random_youtube_video_macro_through_action_runner():
+    open_call = ToolCall(tool_name="open_app", arguments={"app_name": "Google Chrome"})
+    search_call = ToolCall(
+        tool_name="browser_search",
+        arguments={"query": "random video", "target": "youtube"},
+    )
+    runner = FakeActionRunner(
+        [
+            action_run(open_call, success=True, data={"app_name": "Google Chrome"}),
+            action_run(
+                search_call,
+                success=True,
+                data={
+                    "query": "random video",
+                    "target": "youtube",
+                    "url": "https://www.youtube.com/results?search_query=random+video",
+                },
+            ),
+        ]
+    )
+    controller = ResponseController(
+        full_workflow_selector=FakeWorkflowSelector(FullWorkflowPlan(selected=False)),
+        full_workflow_runner=FakeWorkflowExecutor(
+            FullWorkflowResult(
+                workflow_name="design_canva_post",
+                inputs={},
+                status="simulated",
+                simulation_mode=True,
+                phases=[],
+                success=False,
+            )
+        ),
+        full_workflow_finalizer=FakeWorkflowFinalizer(),
+        action_macro_selector=WorkflowSelector(),
+        action_macro_executor=WorkflowExecutor(
+            executor=FakeExecutor([]),
+            action_runner=runner,
+        ),
+        action_macro_finalizer=WorkflowFinalizer(),
+        tool_planner=FakeToolPlanner(),
+    )
+
+    response = controller.handle_action_ready(
+        make_context("Ponme un video random en YouTube"),
+        SimpleNamespace(session_id="s1", pending_clarification=None),
+        debug={},
+    )
+
+    assert response.text == "Abrí YouTube en Chrome y dejé un video aleatorio listo."
+    assert [call.tool_name for call in runner.calls] == ["open_app", "browser_search"]
+    assert controller.tool_planner.calls == []
+
+
+def test_response_controller_runs_open_work_setup_macro_through_action_runner():
+    runner = FakeActionRunner(
+        [
+            action_run(
+                ToolCall(tool_name="open_app", arguments={"app_name": "Google Chrome"}),
+                success=True,
+                data={"app_name": "Google Chrome"},
+            ),
+            action_run(
+                ToolCall(tool_name="open_app", arguments={"app_name": "Visual Studio Code"}),
+                success=True,
+                data={"app_name": "Visual Studio Code"},
+            ),
+            action_run(
+                ToolCall(tool_name="open_app", arguments={"app_name": "Terminal"}),
+                success=True,
+                data={"app_name": "Terminal"},
+            ),
+            action_run(
+                ToolCall(tool_name="open_url", arguments={"url": "https://chatgpt.com"}),
+                success=True,
+                data={"url": "https://chatgpt.com"},
+            ),
+        ]
+    )
+    controller = ResponseController(
+        full_workflow_selector=FakeWorkflowSelector(FullWorkflowPlan(selected=False)),
+        full_workflow_runner=FakeWorkflowExecutor(
+            FullWorkflowResult(
+                workflow_name="design_canva_post",
+                inputs={},
+                status="simulated",
+                simulation_mode=True,
+                phases=[],
+                success=False,
+            )
+        ),
+        full_workflow_finalizer=FakeWorkflowFinalizer(),
+        action_macro_selector=WorkflowSelector(),
+        action_macro_executor=WorkflowExecutor(
+            executor=FakeExecutor([]),
+            action_runner=runner,
+        ),
+        action_macro_finalizer=WorkflowFinalizer(),
+        tool_planner=FakeToolPlanner(),
+    )
+
+    response = controller.handle_action_ready(
+        make_context("Abre mi setup de trabajo"),
+        SimpleNamespace(session_id="s1", pending_clarification=None),
+        debug={},
+    )
+
+    assert response.text == "Abrí tu setup de trabajo: Chrome, Visual Studio Code y Terminal."
+    assert [call.tool_name for call in runner.calls] == [
+        "open_app",
+        "open_app",
+        "open_app",
+        "open_url",
+    ]
+    assert controller.tool_planner.calls == []

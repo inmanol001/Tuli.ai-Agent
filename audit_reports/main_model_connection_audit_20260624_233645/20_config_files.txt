@@ -1,0 +1,164 @@
+--- agent/config ---
+agent/config/capabilities.yaml
+agent/config/memory.yaml
+agent/config/models.yaml
+agent/config/rag.yaml
+agent/config/safety.yaml
+agent/config/tools.yaml
+
+
+===== agent/config/capabilities.yaml =====
+capabilities:
+  plugins_enabled: true
+  skills_enabled: true
+  tools_enabled: true
+
+plugins:
+  paths:
+    - agent/capabilities/plugins/installed
+  load_all: false
+
+skills:
+  paths:
+    - agent/capabilities/skills
+  load_all: false
+  selection: router_and_context_based
+
+tools:
+  registry_path: agent/capabilities/tools
+  expose_all_to_model: false
+  selection: router_and_context_based
+
+
+===== agent/config/memory.yaml =====
+memory:
+  sqlite_path: agent/memory/memory.db
+  session_memory_enabled: true
+  long_term_memory_enabled: false
+  summaries_enabled: false
+
+
+===== agent/config/models.yaml =====
+router_model:
+  provider: ollama
+  model: allenporter/xlam:1b
+  temperature: 0
+  stream: false
+  think: false
+  output: json_schema
+  retry_on_invalid_json: 1
+  fallback_model: qwen3:4b
+
+chat_model: qwen3:4b
+tool_planner_model: llama3-groq-tool-use:8b
+embedding_model: qwen3-embedding:0.6b
+
+main_model:
+  provider: ollama
+  model: qwen3:4b
+  temperature: 0.3
+  top_p: 0.9
+  num_ctx: 8192
+  stream: false
+  stream_tool_calls: false
+
+embedding:
+  provider: ollama
+  model: qwen3-embedding:0.6b
+  active: false
+
+===== agent/config/rag.yaml =====
+rag:
+  enabled: true
+  framework: llamaindex
+  vector_db: chroma
+  embedding_model: qwen3-embedding:0.6b
+  persist_path: agent/rag/chroma
+  collection_name: local_knowledge
+  top_k: 3
+  min_score: 0.0
+
+knowledge_paths:
+  - agent/knowledge/docs
+  - agent/knowledge/notes
+  - agent/knowledge/logs
+  - agent/knowledge/procedures
+  - agent/knowledge/errors
+  - agent/knowledge/skill_notes
+  - agent/knowledge/summaries
+
+===== agent/config/safety.yaml =====
+risk_levels:
+  low:
+    require_confirmation: false
+  medium:
+    require_confirmation: true
+  high:
+    require_confirmation: true
+    block_by_default: true
+
+blocked_until_tools_phase:
+  - take_screenshot
+  - screenshot
+  - screen_analysis
+  - open_app
+  - click
+  - type_text
+  - paste_text
+  - terminal_run_command
+  - write_file
+
+===== agent/config/tools.yaml =====
+active_mvp:
+  - browser_search
+  - open_app
+  - macos_permissions_check
+  - macos_observe_frontmost
+  - macos_visible_windows
+  - macos_list_apps
+  - macos_space_status
+  - macos_space_next
+  - macos_space_previous
+  - macos_space_mission_control
+  - macos_space_switch_desktop_number
+
+inactive_until_later:
+  - take_screenshot
+  - screenshot
+  - screen_analysis
+  - click
+  - type_text
+  - paste_text
+  - terminal_run_command
+  - write_file
+
+--- root config files ---
+
+===== pyproject.toml =====
+[project]
+name = "local-agent-mvp"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+  "ollama",
+  "pydantic",
+  "pyyaml",
+  "python-dotenv",
+  "rich",
+  "typer",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["agent/tests"]
+
+
+===== requirements.txt =====
+ollama
+pydantic
+pyyaml
+python-dotenv
+rich
+typer
+pytest
+

@@ -1,0 +1,15 @@
+
+MODULE agent.models.ollama_client: /Users/inma/Documents/AI Agent/agent/models/ollama_client.py
+FOUND OllamaClient: <class 'agent.models.ollama_client.OllamaClient'>
+  signature: ()
+  instantiate: OK <agent.models.ollama_client.OllamaClient object at 0x1080b1410>
+   method: chat (model: str, messages: collections.abc.Iterable[dict[str, str]], *, format_schema: dict[str, typing.Any] | None = None, stream: bool = False, think: bool | str | None = None, options: dict[str, typing.Any] | None = None) -> str
+   method: chat_stream (model: str, messages: collections.abc.Iterable[dict[str, str]], *, format_schema: dict[str, typing.Any] | None = None, think: bool | str | None = None, options: dict[str, typing.Any] | None = None) -> collections.abc.Iterator[str]
+   method: chat_with_tools (model: str, messages: collections.abc.Iterable[dict[str, str]], tools: list[dict[str, typing.Any]], *, options: dict[str, typing.Any] | None = None) -> Any
+IMPORT_FAIL agent.model.ollama_client: ModuleNotFoundError: No module named 'agent.model'
+IMPORT_FAIL agent.llm.ollama_client: ModuleNotFoundError: No module named 'agent.llm'
+IMPORT_FAIL agent.main_model: ModuleNotFoundError: No module named 'agent.main_model'
+IMPORT_FAIL agent.planner.tool_planner: ModuleNotFoundError: No module named 'agent.planner'
+IMPORT_FAIL agent.tool_planner: ModuleNotFoundError: No module named 'agent.tool_planner'
+
+MODULE agent.response_action.controller: /Users/inma/Documents/AI Agent/agent/response_action/controller.py

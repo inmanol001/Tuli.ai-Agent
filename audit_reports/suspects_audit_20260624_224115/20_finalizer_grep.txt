@@ -1,0 +1,218 @@
+--- finalizer/response files ---
+agent/action_macros/__pycache__/finalizer.cpython-311.pyc
+agent/action_macros/__pycache__/finalizer.cpython-312.pyc
+agent/action_macros/finalizer.py
+agent/models/__pycache__/tool_finalizer.cpython-311.pyc
+agent/models/__pycache__/tool_finalizer.cpython-312.pyc
+agent/models/tool_finalizer.py
+agent/response_action/.DS_Store
+agent/response_action/__pycache__/controller.cpython-311.pyc
+agent/response_action/__pycache__/controller.cpython-312.pyc
+agent/response_action/__pycache__/early_ack.cpython-311.pyc
+agent/response_action/__pycache__/early_ack.cpython-312.pyc
+agent/response_action/__pycache__/final_response.cpython-311.pyc
+agent/response_action/__pycache__/final_response.cpython-312.pyc
+agent/response_action/__pycache__/parser.cpython-311.pyc
+agent/response_action/__pycache__/parser.cpython-312.pyc
+agent/response_action/__pycache__/state_helpers.cpython-311.pyc
+agent/response_action/__pycache__/state_helpers.cpython-312.pyc
+agent/response_action/controller.py
+agent/response_action/early_ack.py
+agent/response_action/final_response.py
+agent/response_action/parser.py
+agent/response_action/state_helpers.py
+agent/tests/__pycache__/test_tool_finalizer.cpython-311-pytest-9.1.1.pyc
+agent/tests/__pycache__/test_tool_finalizer.cpython-311.pyc
+agent/tests/__pycache__/test_tool_finalizer.cpython-312.pyc
+agent/tests/__pycache__/test_workflow_loop_controller.cpython-311.pyc
+agent/tests/__pycache__/test_workflow_loop_controller.cpython-312.pyc
+agent/tests/test_tool_finalizer.py
+agent/tests/test_workflow_loop_controller.py
+agent/workflows/__pycache__/finalizer.cpython-311.pyc
+agent/workflows/__pycache__/finalizer.cpython-312.pyc
+agent/workflows/__pycache__/loop_controller.cpython-311.pyc
+agent/workflows/__pycache__/loop_controller.cpython-312.pyc
+agent/workflows/finalizer.py
+agent/workflows/loop_controller.py
+
+--- grep execution claims ---
+agent/response_action/controller.py:228:                f"No ejecuté la acción porque el modelo de herramientas falló: {planner_result.error}",
+agent/response_action/controller.py:233:        if not planner_result.tool_calls:
+agent/response_action/controller.py:237:                "No ejecuté la acción porque el modelo de herramientas no generó una llamada válida.",
+agent/response_action/controller.py:242:        action = ModelAction(kind="tool_call", tool_call=planner_result.tool_calls[0])
+agent/response_action/controller.py:479:                f"No ejecuté el full workflow porque falló el runner: {exc}",
+agent/response_action/controller.py:510:                f"No ejecuté la action macro porque falló el ejecutor: {exc}",
+agent/response_action/controller.py:525:        tool_calls = [
+agent/response_action/controller.py:526:            step.tool_call.model_dump(mode="json")
+agent/response_action/controller.py:534:            tool_calls=tool_calls,
+agent/response_action/controller.py:547:        tool_call = action.tool_call
+agent/response_action/controller.py:548:        if tool_call is None:
+agent/response_action/controller.py:552:                "El modelo no devolvio un tool_call valido para action_ready.",
+agent/response_action/controller.py:557:        action_run = self.action_runner.run_tool_call(tool_call)
+agent/response_action/controller.py:558:        tool_result = action_run.final_tool_result
+agent/response_action/controller.py:569:        action_debug["tool_result"] = tool_result.model_dump(mode="json")
+agent/response_action/controller.py:581:                tool_calls=[tool_call.model_dump(mode="json")],
+agent/response_action/controller.py:587:            tool_call=tool_call,
+agent/response_action/controller.py:588:            tool_result=tool_result,
+agent/response_action/controller.py:594:            "ok" if tool_result.success else "error",
+agent/response_action/controller.py:597:            tool_calls=[tool_call.model_dump(mode="json")],
+agent/response_action/final_response.py:11:    tool_calls: list[dict] | None = None,
+agent/response_action/final_response.py:20:        tool_calls=tool_calls or [],
+agent/gateway/gateway.py:198:        tool_result = response.debug.get("tool_result")
+agent/gateway/gateway.py:199:        if tool_result:
+agent/gateway/gateway.py:200:            tool_call = response.tool_calls[0] if response.tool_calls else None
+agent/gateway/gateway.py:204:                json.dumps(tool_result, ensure_ascii=True),
+agent/gateway/gateway.py:206:                    "tool_name": tool_result.get("tool_name"),
+agent/gateway/gateway.py:207:                    "success": tool_result.get("success"),
+agent/gateway/gateway.py:212:                tool_call=tool_call,
+agent/gateway/gateway.py:213:                tool_result=tool_result,
+agent/gateway/gateway.py:215:            if tool_result.get("success") is False:
+agent/gateway/gateway.py:218:                    error=tool_result.get("error"),
+agent/gateway/gateway.py:219:                    source=f"tool:{tool_result.get('tool_name', 'unknown')}",
+agent/gateway/gateway.py:222:                "tool_calls",
+agent/gateway/gateway.py:226:                    "tool_call": tool_call,
+agent/gateway/gateway.py:227:                    "tool_result": tool_result,
+agent/gateway/gateway.py:228:                    "success": tool_result.get("success"),
+agent/gateway/gateway.py:229:                    "blocked": tool_result.get("metadata", {}).get("blocked", False),
+agent/gateway/message_types.py:25:    tool_calls: list[dict[str, Any]] = Field(default_factory=list)
+agent/models/action_models.py:11:    "tool_call",
+agent/models/action_models.py:21:    tool_call: ToolCall | None = None
+agent/models/main_model.py:61:    def finalize_from_tool_result(
+agent/models/main_model.py:62:        self, context: ContextPackage, tool_call: ToolCall, tool_result: ToolResult
+agent/models/main_model.py:66:            assemble_final_messages(context, tool_call, tool_result),
+agent/models/tool_finalizer.py:62:        tool_call: ToolCall,
+agent/models/tool_finalizer.py:63:        tool_result: ToolResult,
+agent/models/tool_finalizer.py:67:            "tool_call": tool_call.model_dump(mode="json"),
+agent/models/tool_finalizer.py:68:            "tool_result": tool_result.model_dump(mode="json"),
+agent/models/tool_finalizer.py:89:                text=self._fallback_finalize(tool_call, tool_result),
+agent/models/tool_finalizer.py:94:    def _fallback_finalize(self, tool_call: ToolCall, tool_result: ToolResult) -> str:
+agent/models/tool_finalizer.py:95:        if tool_result.tool_name == "browser_search":
+agent/models/tool_finalizer.py:96:            if not tool_result.success:
+agent/models/tool_finalizer.py:97:                return f"No pude abrir el contenido web: {tool_result.error}".strip()
+agent/models/tool_finalizer.py:98:            target = tool_result.data.get("target", "auto")
+agent/models/tool_finalizer.py:99:            url = tool_result.data.get("url", "")
+agent/models/tool_finalizer.py:104:        if tool_result.tool_name == "open_app":
+agent/models/tool_finalizer.py:105:            app_name = tool_result.data.get("app_name", "la aplicación")
+agent/models/tool_finalizer.py:106:            if not tool_result.success:
+agent/models/tool_finalizer.py:107:                return f"No pude abrir la aplicación: {tool_result.error}".strip()
+agent/models/tool_finalizer.py:108:            if tool_result.metadata.get("verified") is False:
+agent/models/tool_finalizer.py:115:        if tool_result.tool_name == "macos_permissions_check":
+agent/models/tool_finalizer.py:116:            if tool_result.success:
+agent/models/tool_finalizer.py:117:                data = tool_result.data
+agent/models/tool_finalizer.py:124:            return f"No pude revisar permisos de macOS: {tool_result.error}"
+agent/models/tool_finalizer.py:126:        if tool_result.tool_name == "macos_observe_frontmost":
+agent/models/tool_finalizer.py:127:            if tool_result.success:
+agent/models/tool_finalizer.py:128:                app = tool_result.data.get("app_name") or "desconocida"
+agent/models/tool_finalizer.py:129:                title = tool_result.data.get("window_title")
+agent/models/tool_finalizer.py:132:            return f"No pude observar la app activa: {tool_result.error}"
+agent/models/tool_finalizer.py:134:        if tool_result.tool_name == "macos_visible_windows":
+agent/models/tool_finalizer.py:135:            count = tool_result.data.get("count", 0)
+agent/models/tool_finalizer.py:136:            if tool_result.success:
+agent/models/tool_finalizer.py:138:            return f"No pude listar ventanas visibles: {tool_result.error}"
+agent/models/tool_finalizer.py:140:        if tool_result.tool_name == "macos_list_apps":
+agent/models/tool_finalizer.py:141:            if tool_result.success:
+agent/models/tool_finalizer.py:142:                installed_count = len(tool_result.data.get("installed_apps") or [])
+agent/models/tool_finalizer.py:143:                known_count = len(tool_result.data.get("known_apps") or [])
+agent/models/tool_finalizer.py:148:            return f"No pude listar aplicaciones: {tool_result.error}"
+agent/models/tool_finalizer.py:150:        if tool_result.tool_name == "macos_space_status":
+agent/models/tool_finalizer.py:151:            if tool_result.success:
+agent/models/tool_finalizer.py:152:                current = tool_result.data.get("current_space", "unknown")
+agent/models/tool_finalizer.py:153:                app = tool_result.data.get("frontmost_app", "unknown")
+agent/models/tool_finalizer.py:155:            return f"No pude revisar el estado de Spaces: {tool_result.error}"
+agent/models/tool_finalizer.py:157:        if tool_result.tool_name == "macos_space_next":
+agent/models/tool_finalizer.py:158:            if tool_result.success:
+agent/models/tool_finalizer.py:160:            return f"No pude cambiar al siguiente escritorio: {tool_result.error}"
+agent/models/tool_finalizer.py:162:        if tool_result.tool_name == "macos_space_previous":
+agent/models/tool_finalizer.py:163:            if tool_result.success:
+agent/models/tool_finalizer.py:165:            return f"No pude volver al escritorio anterior: {tool_result.error}"
+agent/models/tool_finalizer.py:167:        if tool_result.tool_name == "macos_space_mission_control":
+agent/models/tool_finalizer.py:168:            if tool_result.success:
+agent/models/tool_finalizer.py:170:            return f"No pude abrir Mission Control: {tool_result.error}"
+agent/models/tool_finalizer.py:172:        if tool_result.tool_name == "macos_space_switch_desktop_number":
+agent/models/tool_finalizer.py:173:            number = tool_result.data.get("number") or tool_call.arguments.get("number")
+agent/models/tool_finalizer.py:174:            if tool_result.success:
+agent/models/tool_finalizer.py:176:            return f"No pude cambiar al escritorio {number}: {tool_result.error}".strip()
+agent/models/tool_finalizer.py:178:        if tool_result.tool_name == "window_native_tiling":
+agent/models/tool_finalizer.py:180:                tool_result.data.get("action")
+agent/models/tool_finalizer.py:181:                or tool_call.arguments.get("action")
+agent/models/tool_finalizer.py:185:            if not tool_result.success:
+agent/models/tool_finalizer.py:186:                return f"No pude mover la ventana activa: {tool_result.error}".strip()
+agent/models/tool_finalizer.py:187:            if tool_result.data.get("verified") is False:
+agent/models/tool_finalizer.py:191:        if not tool_result.success:
+agent/models/tool_finalizer.py:192:            return f"No pude completar la acción: {tool_result.error}".strip()
+agent/models/tool_planner.py:26:    tool_calls: list[ToolCall] = Field(default_factory=list)
+agent/models/tool_planner.py:29:    no_tool_reason: str | None = None
+agent/models/tool_planner.py:52:            tool_calls = self._tool_calls(response, context.selected_tools)
+agent/models/tool_planner.py:56:                tool_calls=tool_calls,
+agent/models/tool_planner.py:58:                no_tool_reason=None if tool_calls else "no_native_tool_call",
+agent/models/tool_planner.py:64:                no_tool_reason="tool_planner_error",
+agent/models/tool_planner.py:115:    def _tool_calls(
+agent/models/tool_planner.py:120:        raw_calls = self._get(message, "tool_calls", []) or []
+agent/action_macros/finalizer.py:82:            return f"Abrí {app_name} y envié la acción para {human_action}."
+agent/action_macros/finalizer.py:124:                app_name = failed_step.tool_call.arguments.get("app_name", "la aplicación")
+agent/action_macros/finalizer.py:125:                error = failed_step.tool_result.error or "error desconocido"
+agent/action_macros/finalizer.py:139:            if step.tool_call.tool_name == tool_name:
+agent/action_macros/finalizer.py:140:                return step.tool_result.error or "error desconocido"
+agent/action_macros/schemas.py:34:    tool_call: ToolCall
+agent/action_macros/schemas.py:35:    tool_result: ToolResult
+agent/action_macros/executor.py:59:        for step_index, tool_call in enumerate(steps):
+agent/action_macros/executor.py:60:            action_run = self.action_runner.run_tool_call(tool_call)
+agent/action_macros/executor.py:61:            tool_result = action_run.final_tool_result
+agent/action_macros/executor.py:63:                macro_name, step_index, tool_result
+agent/action_macros/executor.py:67:                tool_call=tool_call,
+agent/action_macros/executor.py:68:                tool_result=tool_result,
+agent/action_macros/executor.py:85:                    or f"step_failed:{tool_call.tool_name}",
+agent/action_macros/executor.py:96:        self, workflow_name: str, step_index: int, tool_result: ToolResult
+agent/action_macros/executor.py:99:            data = tool_result.data or {}
+agent/action_macros/executor.py:101:            if not tool_result.success:
+agent/action_macros/executor.py:105:        if not tool_result.success:
+agent/action_macros/executor.py:106:            return True, f"step_failed:{tool_result.tool_name}"
+agent/workflows/runner.py:483:        if not planner_result.tool_calls:
+agent/workflows/runner.py:489:                error="tool_planner_returned_no_tool_calls",
+agent/workflows/runner.py:491:                stop_reason="tool_planner_returned_no_tool_calls",
+agent/workflows/runner.py:495:        tool_results = []
+agent/workflows/runner.py:499:        for call in planner_result.tool_calls:
+agent/workflows/runner.py:500:            action_run = self.action_runner.run_tool_call(call)
+agent/workflows/runner.py:504:                    "tool_call": call.model_dump(mode="json"),
+agent/workflows/runner.py:511:            tool_results.append(action_run.final_tool_result)
+agent/workflows/runner.py:519:                tool_calls=[
+agent/workflows/runner.py:520:                    call.model_dump(mode="json") for call in planner_result.tool_calls
+agent/workflows/runner.py:522:                tool_results=[
+agent/workflows/runner.py:523:                    result.model_dump(mode="json") for result in tool_results
+agent/workflows/runner.py:529:                    (result.error for result in tool_results if not result.success),
+agent/workflows/runner.py:545:            tool_calls=[
+agent/workflows/runner.py:546:                call.model_dump(mode="json") for call in planner_result.tool_calls
+agent/workflows/runner.py:548:            tool_results=[result.model_dump(mode="json") for result in tool_results],
+agent/workflows/loop_controller.py:41:        max_tool_calls: int = 15,
+agent/workflows/loop_controller.py:63:        self.max_tool_calls = max_tool_calls
+agent/workflows/loop_controller.py:111:        tool_call_count = 0
+agent/workflows/loop_controller.py:122:                    tool_call_count=tool_call_count,
+agent/workflows/loop_controller.py:163:                tool_call_count=tool_call_count,
+agent/workflows/loop_controller.py:168:            tool_call_count += tool_delta
+agent/workflows/loop_controller.py:347:        tool_call_count: int,
+agent/workflows/loop_controller.py:364:                tool_call_count=tool_call_count,
+agent/workflows/loop_controller.py:371:                tool_call_count=tool_call_count,
+agent/workflows/loop_controller.py:519:        tool_call_count: int,
+agent/workflows/loop_controller.py:624:        if not planner_result.tool_calls:
+agent/workflows/loop_controller.py:631:                    error="tool_planner_returned_no_tool_calls",
+agent/workflows/loop_controller.py:633:                    stop_reason="tool_planner_returned_no_tool_calls",
+agent/workflows/loop_controller.py:640:        tool_results = []
+agent/workflows/loop_controller.py:645:        for call in planner_result.tool_calls:
+agent/workflows/loop_controller.py:646:            if tool_call_count + executed_calls + 1 > self.max_tool_calls:
+agent/workflows/loop_controller.py:653:                        tool_calls=[tool.model_dump(mode="json") for tool in planner_result.tool_calls],
+agent/workflows/loop_controller.py:654:                        tool_results=[result.model_dump(mode="json") for result in tool_results],
+agent/workflows/loop_controller.py:666:            action_run = self.action_runner.run_tool_call(call)
+agent/workflows/loop_controller.py:671:                    "tool_call": call.model_dump(mode="json"),
+agent/workflows/loop_controller.py:678:            tool_results.append(action_run.final_tool_result)
+agent/workflows/loop_controller.py:687:                        tool_calls=[tool.model_dump(mode="json") for tool in planner_result.tool_calls],
+agent/workflows/loop_controller.py:688:                        tool_results=[result.model_dump(mode="json") for result in tool_results],
+agent/workflows/loop_controller.py:692:                        error=action_run.final_tool_result.error,
+agent/workflows/loop_controller.py:707:                tool_calls=[tool.model_dump(mode="json") for tool in planner_result.tool_calls],
+agent/workflows/loop_controller.py:708:                tool_results=[result.model_dump(mode="json") for result in tool_results],
+agent/workflows/loop_controller.py:725:        tool_call_count: int,
+agent/workflows/loop_controller.py:761:        if tool_call_count + len(macro_steps) > self.max_tool_calls:
+agent/workflows/loop_controller.py:798:                tool_calls=[step.tool_call.model_dump(mode="json") for step in macro_result.steps],
+agent/workflows/loop_controller.py:799:                tool_results=[step.tool_result.model_dump(mode="json") for step in macro_result.steps],
+agent/workflows/loop_controller.py:1088:        tool_call_count: int,
+agent/workflows/schemas.py:105:    tool_calls: list[dict[str, Any]] = Field(default_factory=list)
+agent/workflows/schemas.py:106:    tool_results: list[dict[str, Any]] = Field(default_factory=list)

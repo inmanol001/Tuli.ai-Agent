@@ -1,0 +1,30 @@
+
+== yt_open_no_context ==
+prompt: ponme un video random en YouTube
+state: {}
+plan: {'selected': True, 'workflow_name': 'play_random_youtube_video', 'inputs': {'query': '__open_ended__', 'target': 'youtube', 'open_ended': True, 'topic_hint': ''}, 'reason': 'matched_play_random_youtube_video', 'error': None}
+step: browser_search {'query': 'documental corto interesante', 'target': 'youtube'}
+
+== yt_open_with_interests ==
+prompt: ponme un video random en YouTube
+state: {'interests': 'Me gustan los agentes de IA locales, Ollama, tool calling, tecnología, diseño y misterio.'}
+plan: {'selected': True, 'workflow_name': 'play_random_youtube_video', 'inputs': {'query': '__open_ended__', 'target': 'youtube', 'open_ended': True, 'topic_hint': ''}, 'reason': 'matched_play_random_youtube_video', 'error': None}
+step: browser_search {'query': 'documental corto interesante', 'target': 'youtube'}
+
+== yt_open_topic ==
+prompt: ponme un video random de misterio en YouTube
+state: {'interests': 'Me gustan los agentes de IA locales y tecnología.'}
+plan: {'selected': True, 'workflow_name': 'play_random_youtube_video', 'inputs': {'query': 'misterio', 'target': 'youtube', 'open_ended': True, 'topic_hint': 'misterio'}, 'reason': 'matched_play_random_youtube_video', 'error': None}
+step: browser_search {'query': 'misterio interesante', 'target': 'youtube'}
+
+== web_open_with_interests ==
+prompt: busca algo interesante
+state: {'interests': 'Me gustan Python, programación, diseño y agentes de IA locales.'}
+plan: {'selected': True, 'workflow_name': 'open_browser_and_search', 'inputs': {'query': '__open_ended__', 'target': 'auto', 'open_ended': True, 'topic_hint': ''}, 'reason': 'matched_open_browser_and_search', 'error': None}
+step: browser_search {'query': '__open_ended__', 'target': 'auto'}
+
+== yt_specific ==
+prompt: busca en YouTube tutorial de Python para principiantes
+state: {'interests': 'Me gustan los agentes de IA locales.'}
+plan: {'selected': True, 'workflow_name': 'open_browser_and_search', 'inputs': {'query': 'tutorial de python para principiantes', 'target': 'youtube', 'open_ended': False, 'topic_hint': ''}, 'reason': 'matched_open_browser_and_search', 'error': None}
+step: browser_search {'query': 'tutorial de python para principiantes', 'target': 'youtube'}

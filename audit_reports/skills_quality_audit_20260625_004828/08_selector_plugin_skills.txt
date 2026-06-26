@@ -1,0 +1,12 @@
+
+================================================================================
+PLUGIN: agent/capabilities/plugins/installed/browser/plugin.yaml
+DECLARED_SKILLS: ['web_search', 'browser_search']
+LOADED_SKILLS: ['web_search', 'browser_search']
+MISSING_FROM_SELECTOR: []
+
+================================================================================
+PLUGIN: agent/capabilities/plugins/installed/macos/plugin.yaml
+DECLARED_SKILLS: ['open_app', 'macos_windows', 'macos_observation', 'macos_spaces']
+LOADED_SKILLS: ['open_app', 'macos_windows', 'macos_observation', 'macos_spaces']
+MISSING_FROM_SELECTOR: []

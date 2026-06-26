@@ -29,6 +29,8 @@ class ActionMacroFinalizerResult(BaseModel):
 
 
 class ActionMacroFinalizer:
+    """Turn a completed macro recipe into a concise user-facing summary."""
+
     def finalize(
         self, *, user_message: str, workflow_result: ActionMacroResult
     ) -> ActionMacroFinalizerResult:
@@ -49,6 +51,12 @@ class ActionMacroFinalizer:
             return self._finalize_tile_active_window(workflow_result)
         if workflow_result.workflow_name == "open_app_and_tile_window":
             return self._finalize_open_app_and_tile_window(workflow_result)
+        if workflow_result.workflow_name == "open_browser_and_search":
+            return self._finalize_open_browser_and_search(workflow_result)
+        if workflow_result.workflow_name == "play_random_youtube_video":
+            return self._finalize_play_random_youtube_video(workflow_result)
+        if workflow_result.workflow_name == "open_work_setup":
+            return self._finalize_open_work_setup(workflow_result)
         return "La action macro se ejecutó, pero no tengo un resumen específico."
 
     def _finalize_tile_active_window(self, workflow_result: ActionMacroResult) -> str:
@@ -85,11 +93,58 @@ class ActionMacroFinalizer:
         error = workflow_result.error or "error desconocido"
         return f"No pude completar la action macro: {error}"
 
+    def _finalize_open_browser_and_search(self, workflow_result: ActionMacroResult) -> str:
+        if workflow_result.success:
+            query = workflow_result.inputs.get("query", "la búsqueda")
+            target = workflow_result.inputs.get("target", "web")
+            if target == "youtube":
+                return f"Busqué {query} en YouTube."
+            return f"Busqué {query} en el navegador."
+        error = workflow_result.error or "error desconocido"
+        return f"No pude completar la action macro: {error}"
+
+    def _finalize_play_random_youtube_video(self, workflow_result: ActionMacroResult) -> str:
+        if workflow_result.success:
+            return "Abrí YouTube en Chrome y dejé un video aleatorio listo."
+        if workflow_result.stopped_reason == "step_failed:open_app":
+            error = self._step_error(workflow_result, "open_app")
+            return f"No pude abrir Chrome para YouTube: {error}"
+        if workflow_result.stopped_reason == "step_failed:browser_search":
+            error = self._step_error(workflow_result, "browser_search")
+            return f"Abrí Chrome, pero no pude cargar YouTube: {error}"
+        error = workflow_result.error or "error desconocido"
+        return f"No pude completar la action macro: {error}"
+
+    def _finalize_open_work_setup(self, workflow_result: ActionMacroResult) -> str:
+        if workflow_result.success:
+            return "Abrí tu setup de trabajo: Chrome, Visual Studio Code y Terminal."
+        if workflow_result.stopped_reason == "step_failed:open_app":
+            failed_step = self._failed_step(workflow_result)
+            if failed_step is not None:
+                app_name = failed_step.tool_call.arguments.get("app_name", "la aplicación")
+                error = failed_step.tool_result.error or "error desconocido"
+                return f"No pude completar el setup de trabajo: no se pudo abrir {app_name}: {error}"
+            return f"No pude completar el setup de trabajo: {workflow_result.error or 'error desconocido'}"
+        if workflow_result.stopped_reason == "step_failed:browser_search":
+            error = self._step_error(workflow_result, "browser_search")
+            return f"Abrí las aplicaciones, pero no pude abrir ChatGPT: {error}"
+        if workflow_result.stopped_reason == "step_failed:open_url":
+            error = self._step_error(workflow_result, "open_url")
+            return f"Abrí las aplicaciones, pero no pude abrir ChatGPT: {error}"
+        error = workflow_result.error or "error desconocido"
+        return f"No pude completar la action macro: {error}"
+
     def _step_error(self, workflow_result: ActionMacroResult, tool_name: str) -> str:
         for step in workflow_result.steps:
             if step.tool_call.tool_name == tool_name:
                 return step.tool_result.error or "error desconocido"
         return workflow_result.error or "error desconocido"
+
+    def _failed_step(self, workflow_result: ActionMacroResult):
+        for step in workflow_result.steps:
+            if step.stopped or not step.success:
+                return step
+        return None
 
 
 WorkflowFinalizer = ActionMacroFinalizer

@@ -1,0 +1,55 @@
+{
+  "workflow_id": "61915192056546539d7f10bb8b4e14de",
+  "workflow_name": "tool_phase_workflow",
+  "session_id": null,
+  "user_goal": "haz un post en Canva del Día del Padre",
+  "status": "blocked",
+  "steps": [
+    {
+      "id": "f16ae829def04a92adba6d7e0503a59e",
+      "title": "Abrir Canva para preparar el workspace.",
+      "kind": "tool",
+      "status": "completed",
+      "description": "Abrir Canva para preparar el workspace.",
+      "expected_result": "Canva abierto.",
+      "selected_tool": "browser_search",
+      "selected_macro": null,
+      "requires_user_input": false,
+      "requires_approval": false,
+      "question": null,
+      "approval_request": null,
+      "user_answer": null,
+      "approved": null,
+      "result_summary": "Abrir Canva para preparar el workspace.",
+      "error": null
+    },
+    {
+      "id": "c2ffc5e810484e1e851a7bd274e4c714",
+      "title": "Fase futura bloqueada.",
+      "kind": "blocked_missing_tools",
+      "status": "blocked",
+      "description": "Fase futura bloqueada.",
+      "expected_result": null,
+      "selected_tool": null,
+      "selected_macro": null,
+      "requires_user_input": false,
+      "requires_approval": false,
+      "question": null,
+      "approval_request": null,
+      "user_answer": null,
+      "approved": null,
+      "result_summary": null,
+      "error": "blocked_missing_tools"
+    }
+  ],
+  "current_step_index": 1,
+  "state": {
+    "topic": "Día del Padre",
+    "original_user_message": "haz un post en Canva del Día del Padre"
+  },
+  "notes": [],
+  "checkpoints": [],
+  "active_checkpoint_id": null,
+  "created_at": "2026-06-25T15:27:00.565905+00:00",
+  "updated_at": "2026-06-25T15:27:00.566883+00:00"
+}

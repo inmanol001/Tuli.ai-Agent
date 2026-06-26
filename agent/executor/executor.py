@@ -1,5 +1,6 @@
 from agent.capabilities.tools.schemas import ToolCall
 from agent.capabilities.tools.browser_tools import browser_search, open_url
+from agent.capabilities.tools.web_search_tools import web_search
 from agent.capabilities.tools.macos_tools import open_app
 from agent.capabilities.tools.macos_window_tools import window_native_tiling
 from agent.capabilities.tools.macos_observation_tools import (
@@ -26,11 +27,18 @@ class Executor:
     def execute(self, call: ToolCall) -> ToolResult:
         try:
             self.validator.validate(call)
+            if call.tool_name == "web_search":
+                return web_search(
+                    call.arguments["query"],
+                    max_results=call.arguments.get("max_results", 5),
+                )
             if call.tool_name == "browser_search":
                 return browser_search(
                     call.arguments["query"],
                     target=call.arguments.get("target", "auto"),
                 )
+            if call.tool_name == "open_url":
+                return open_url(call.arguments["url"])
             if call.tool_name == "open_app":
                 return open_app(call.arguments["app_name"])
             if call.tool_name == "window_native_tiling":

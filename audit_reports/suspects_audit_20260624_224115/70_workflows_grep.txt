@@ -1,0 +1,428 @@
+agent/workflows/__init__.py
+agent/workflows/__pycache__/__init__.cpython-311.pyc
+agent/workflows/__pycache__/__init__.cpython-312.pyc
+agent/workflows/__pycache__/executor.cpython-311.pyc
+agent/workflows/__pycache__/finalizer.cpython-311.pyc
+agent/workflows/__pycache__/finalizer.cpython-312.pyc
+agent/workflows/__pycache__/human_checkpoint.cpython-311.pyc
+agent/workflows/__pycache__/human_checkpoint.cpython-312.pyc
+agent/workflows/__pycache__/loop_controller.cpython-311.pyc
+agent/workflows/__pycache__/loop_controller.cpython-312.pyc
+agent/workflows/__pycache__/plan_manager.cpython-311.pyc
+agent/workflows/__pycache__/plan_manager.cpython-312.pyc
+agent/workflows/__pycache__/plan_schemas.cpython-311.pyc
+agent/workflows/__pycache__/plan_schemas.cpython-312.pyc
+agent/workflows/__pycache__/reasoner.cpython-311.pyc
+agent/workflows/__pycache__/reasoner.cpython-312.pyc
+agent/workflows/__pycache__/registry.cpython-311.pyc
+agent/workflows/__pycache__/registry.cpython-312.pyc
+agent/workflows/__pycache__/requirement_checker.cpython-311.pyc
+agent/workflows/__pycache__/requirement_checker.cpython-312.pyc
+agent/workflows/__pycache__/runner.cpython-311.pyc
+agent/workflows/__pycache__/runner.cpython-312.pyc
+agent/workflows/__pycache__/schemas.cpython-311.pyc
+agent/workflows/__pycache__/schemas.cpython-312.pyc
+agent/workflows/__pycache__/selector.cpython-311.pyc
+agent/workflows/__pycache__/selector.cpython-312.pyc
+agent/workflows/definitions/__init__.py
+agent/workflows/definitions/__pycache__/__init__.cpython-311.pyc
+agent/workflows/definitions/__pycache__/__init__.cpython-312.pyc
+agent/workflows/definitions/__pycache__/design_canva_post.cpython-311.pyc
+agent/workflows/definitions/__pycache__/design_canva_post.cpython-312.pyc
+agent/workflows/definitions/design_canva_post.py
+agent/workflows/finalizer.py
+agent/workflows/human_checkpoint.py
+agent/workflows/loop_controller.py
+agent/workflows/plan_manager.py
+agent/workflows/plan_schemas.py
+agent/workflows/reasoner.py
+agent/workflows/registry.py
+agent/workflows/requirement_checker.py
+agent/workflows/runner.py
+agent/workflows/schemas.py
+agent/workflows/selector.py
+
+agent/workflows/plan_schemas.py:11:    "waiting_user_input",
+agent/workflows/plan_schemas.py:12:    "waiting_approval",
+agent/workflows/plan_schemas.py:26:    "waiting_user_input",
+agent/workflows/plan_schemas.py:27:    "waiting_approval",
+agent/workflows/plan_schemas.py:64:    checkpoints: list[dict[str, Any]] = Field(default_factory=list)
+agent/workflows/plan_schemas.py:65:    active_checkpoint_id: str | None = None
+agent/workflows/runner.py:11:from agent.reflection.checker import ReflectionChecker
+agent/workflows/runner.py:13:from agent.workflows.loop_controller import WorkflowLoopController
+agent/workflows/runner.py:18:from agent.workflows.requirement_checker import RequirementChecker, RequirementContext
+agent/workflows/runner.py:29:class FullWorkflowRunner:
+agent/workflows/runner.py:41:        self.reflection_checker = ReflectionChecker()
+agent/workflows/runner.py:42:        self.requirement_checker = RequirementChecker()
+agent/workflows/runner.py:45:            reflection_checker=self.reflection_checker,
+agent/workflows/runner.py:53:        self.loop_controller = WorkflowLoopController(
+agent/workflows/runner.py:61:            reflection_checker=self.reflection_checker,
+agent/workflows/runner.py:83:            step_defs = list(workflow.build_phases(dict(workflow_plan.inputs)))
+agent/workflows/runner.py:97:            requirement_result = self.requirement_checker.check(
+agent/workflows/runner.py:108:            self.plan_manager.apply_requirement_check(
+agent/workflows/runner.py:115:                status = "waiting_approval" if requirement_result.needs_approval else "waiting_user_input"
+agent/workflows/runner.py:127:                    phases=[],
+agent/workflows/runner.py:130:                    needs_user_input=requirement_result.needs_user_input,
+agent/workflows/runner.py:138:                    checkpoint_id=live_plan.active_checkpoint_id,
+agent/workflows/runner.py:160:                "topic": workflow_plan.inputs.get("topic"),
+agent/workflows/runner.py:161:                "content_type": workflow_plan.inputs.get("format", "post"),
+agent/workflows/runner.py:162:                "platform": workflow_plan.inputs.get("target_app", "canva"),
+agent/workflows/runner.py:217:            phases=results,
+agent/workflows/runner.py:230:        runtime_plan = self.plan_manager.create_plan(
+agent/workflows/runner.py:233:            or workflow_plan.inputs.get("topic")
+agent/workflows/runner.py:275:        elif phase_result.status == "waiting_user_input":
+agent/workflows/runner.py:276:            step.status = "waiting_user_input"
+agent/workflows/runner.py:279:        elif phase_result.status == "waiting_approval":
+agent/workflows/runner.py:280:            step.status = "waiting_approval"
+agent/workflows/loop_controller.py:13:from agent.reflection.checker import ReflectionChecker
+agent/workflows/loop_controller.py:27:class WorkflowLoopController:
+agent/workflows/loop_controller.py:39:        reflection_checker: ReflectionChecker | None = None,
+agent/workflows/loop_controller.py:46:        self.reflection_checker = reflection_checker or ReflectionChecker()
+agent/workflows/loop_controller.py:49:            reflection_checker=self.reflection_checker,
+agent/workflows/loop_controller.py:54:            reflection_checker=self.reflection_checker,
+agent/workflows/loop_controller.py:78:            step_defs = list(workflow.build_phases(dict(plan.inputs)))
+agent/workflows/loop_controller.py:91:                phases=[],
+agent/workflows/loop_controller.py:109:        phases: list[FullWorkflowPhaseResult] = []
+agent/workflows/loop_controller.py:115:            if len(phases) >= self.max_steps:
+agent/workflows/loop_controller.py:120:                    phases=phases,
+agent/workflows/loop_controller.py:131:            requirement_result = self.plan_manager.check_requirements(
+agent/workflows/loop_controller.py:144:                phases.append(paused_phase)
+agent/workflows/loop_controller.py:150:                    phases=phases,
+agent/workflows/loop_controller.py:166:            phases.append(phase_result)
+agent/workflows/loop_controller.py:176:            if phase_result.status in {"waiting_user_input", "waiting_approval"}:
+agent/workflows/loop_controller.py:181:                    phases=phases,
+agent/workflows/loop_controller.py:192:                    phases=phases,
+agent/workflows/loop_controller.py:204:                    phases=phases,
+agent/workflows/loop_controller.py:216:                    phases=phases,
+agent/workflows/loop_controller.py:227:            phases=phases,
+agent/workflows/loop_controller.py:253:        live_plan = self.plan_manager.create_plan(
+agent/workflows/loop_controller.py:284:        elif phase_result.status == "waiting_user_input":
+agent/workflows/loop_controller.py:285:            plan = self.plan_manager.mark_step_waiting_user_input(
+agent/workflows/loop_controller.py:290:        elif phase_result.status == "waiting_approval":
+agent/workflows/loop_controller.py:291:            plan = self.plan_manager.mark_step_waiting_approval(
+agent/workflows/loop_controller.py:907:        kind = "preference" if "prefer" in question.lower() else "missing_info"
+agent/workflows/loop_controller.py:908:        checkpoint = self.plan_manager.create_human_checkpoint(
+agent/workflows/loop_controller.py:920:                status="waiting_user_input",
+agent/workflows/loop_controller.py:924:                stop_reason=checkpoint.kind,
+agent/workflows/loop_controller.py:939:        checkpoint = self.plan_manager.create_human_checkpoint(
+agent/workflows/loop_controller.py:951:                status="waiting_approval",
+agent/workflows/loop_controller.py:955:                stop_reason=checkpoint.kind,
+agent/workflows/loop_controller.py:969:        checkpoint = live_plan.state.get("active_checkpoint") or {}
+agent/workflows/loop_controller.py:970:        kind = checkpoint.get("kind")
+agent/workflows/loop_controller.py:972:            "waiting_approval"
+agent/workflows/loop_controller.py:974:            or live_plan.status == "waiting_approval"
+agent/workflows/loop_controller.py:975:            else "waiting_user_input"
+agent/workflows/loop_controller.py:977:        question = checkpoint.get("question")
+agent/workflows/loop_controller.py:978:        approval_request = checkpoint.get("approval_request")
+agent/workflows/loop_controller.py:984:            question=question if status == "waiting_user_input" else None,
+agent/workflows/loop_controller.py:985:            approval_request=approval_request if status == "waiting_approval" else None,
+agent/workflows/loop_controller.py:986:            checkpoint_id=checkpoint.get("checkpoint_id") or live_plan.active_checkpoint_id,
+agent/workflows/loop_controller.py:987:            requires_user_input=status == "waiting_user_input",
+agent/workflows/loop_controller.py:988:            requires_approval=status == "waiting_approval",
+agent/workflows/loop_controller.py:1001:        phases: list[FullWorkflowPhaseResult],
+agent/workflows/loop_controller.py:1006:        checkpoint = live_plan.state.get("active_checkpoint") or {}
+agent/workflows/loop_controller.py:1007:        checkpoint_id = phase_result.checkpoint_id or checkpoint.get("checkpoint_id") or live_plan.active_checkpoint_id
+agent/workflows/loop_controller.py:1008:        current_step_id = checkpoint.get("step_id")
+agent/workflows/loop_controller.py:1011:        status = phase_result.status if phase_result.status in {"waiting_user_input", "waiting_approval"} else "blocked"
+agent/workflows/loop_controller.py:1023:            phases=phases,
+agent/workflows/loop_controller.py:1026:            needs_user_input=phase_result.requires_user_input or phase_result.status == "waiting_user_input",
+agent/workflows/loop_controller.py:1027:            needs_approval=phase_result.requires_approval or phase_result.status == "waiting_approval",
+agent/workflows/loop_controller.py:1028:            question=phase_result.question or checkpoint.get("question"),
+agent/workflows/loop_controller.py:1029:            approval_request=phase_result.approval_request or checkpoint.get("approval_request"),
+agent/workflows/loop_controller.py:1030:            checkpoint_id=checkpoint_id,
+agent/workflows/loop_controller.py:1043:        phases: list[FullWorkflowPhaseResult],
+agent/workflows/loop_controller.py:1062:            phases=phases,
+agent/workflows/loop_controller.py:1065:            needs_user_input=False,
+agent/workflows/loop_controller.py:1069:            checkpoint_id=None,
+agent/workflows/loop_controller.py:1086:        phases: list[FullWorkflowPhaseResult],
+agent/workflows/loop_controller.py:1091:        phases.append(
+agent/workflows/loop_controller.py:1105:            phases=phases,
+agent/workflows/finalizer.py:31:        if workflow_result.workflow_name != "design_canva_post":
+agent/workflows/finalizer.py:34:        topic = workflow_result.inputs.get("topic", "el tema solicitado")
+agent/workflows/finalizer.py:35:        phase_counter = Counter(phase.status for phase in workflow_result.phases)
+agent/workflows/finalizer.py:36:        kind_counter = Counter(phase.kind for phase in workflow_result.phases)
+agent/workflows/finalizer.py:53:                f"Preparé el workflow de Canva para {topic} y quedó completado. "
+agent/workflows/finalizer.py:59:            return "Me falta un detalle para arrancar el workflow de Canva: el tema del post."
+agent/workflows/finalizer.py:62:            f"Preparé y simulé el workflow de Canva para {topic}. "
+agent/workflows/reasoner.py:80:        topic = inputs.get("topic") or state.get_value("topic") or "el tema solicitado"
+agent/workflows/reasoner.py:82:            return f"Prompt creativo base para {topic}."
+agent/workflows/reasoner.py:84:            return f"Texto breve y claro para {topic}."
+agent/workflows/reasoner.py:85:        return f"Análisis para {topic}."
+agent/workflows/requirement_checker.py:11:    needs_user_input: bool
+agent/workflows/requirement_checker.py:13:    missing_info: list[str] = Field(default_factory=list)
+agent/workflows/requirement_checker.py:31:class RequirementChecker:
+agent/workflows/requirement_checker.py:34:    def check(self, context: RequirementContext) -> RequirementCheckResult:
+agent/workflows/requirement_checker.py:41:        missing_info: list[str] = []
+agent/workflows/requirement_checker.py:44:        needs_user_input = False
+agent/workflows/requirement_checker.py:49:            needs_user_input = True
+agent/workflows/requirement_checker.py:54:                needs_user_input=needs_user_input,
+agent/workflows/requirement_checker.py:56:                missing_info=missing_info,
+agent/workflows/requirement_checker.py:68:                needs_user_input=False,
+agent/workflows/requirement_checker.py:70:                missing_info=missing_info,
+agent/workflows/requirement_checker.py:82:                needs_user_input=False,
+agent/workflows/requirement_checker.py:84:                missing_info=missing_info,
+agent/workflows/requirement_checker.py:90:        if workflow_name == "design_canva_post" or "canva" in goal_text:
+agent/workflows/requirement_checker.py:91:            format_value = self._get_state_value(state, "format")
+agent/workflows/requirement_checker.py:92:            style_value = self._get_state_value(state, "style")
+agent/workflows/requirement_checker.py:94:            if not format_value:
+agent/workflows/requirement_checker.py:95:                missing_info.append("format")
+agent/workflows/requirement_checker.py:96:            if not style_value:
+agent/workflows/requirement_checker.py:97:                missing_info.append("style")
+agent/workflows/requirement_checker.py:99:            if missing_info:
+agent/workflows/requirement_checker.py:100:                needs_user_input = True
+agent/workflows/requirement_checker.py:101:                reason = "missing_info"
+agent/workflows/requirement_checker.py:104:                        missing_info=missing_info,
+agent/workflows/requirement_checker.py:105:                        topic=self._get_state_value(state, "topic") or self._extract_topic(goal_text),
+agent/workflows/requirement_checker.py:110:            needs_user_input = True
+agent/workflows/requirement_checker.py:115:        if needs_user_input:
+agent/workflows/requirement_checker.py:118:                needs_user_input=True,
+agent/workflows/requirement_checker.py:120:                missing_info=missing_info,
+agent/workflows/requirement_checker.py:128:            needs_user_input=False,
+agent/workflows/requirement_checker.py:130:            missing_info=[],
+agent/workflows/requirement_checker.py:154:    def _creative_question(self, *, missing_info: list[str], topic: str | None) -> str:
+agent/workflows/requirement_checker.py:156:        if "format" in missing_info:
+agent/workflows/requirement_checker.py:158:        if "style" in missing_info:
+agent/workflows/requirement_checker.py:160:        if "platform" in missing_info:
+agent/workflows/requirement_checker.py:162:        if topic:
+agent/workflows/requirement_checker.py:163:            prefix = f"Perfecto. Para hacerlo bien sobre {topic}: "
+agent/workflows/requirement_checker.py:169:        if "estilo" in goal_text or "style" in goal_text:
+agent/workflows/requirement_checker.py:174:        if workflow_name == "design_canva_post":
+agent/workflows/requirement_checker.py:203:    def _extract_topic(self, goal_text: str) -> str | None:
+agent/workflows/requirement_checker.py:210:RequirementCheckerResult = RequirementCheckResult
+agent/workflows/registry.py:3:from agent.workflows.definitions import DesignCanvaPostWorkflow
+agent/workflows/registry.py:9:            "design_canva_post": DesignCanvaPostWorkflow(),
+agent/workflows/selector.py:7:from agent.workflows.definitions import DesignCanvaPostWorkflow
+agent/workflows/selector.py:18:        topic = self._extract_topic(context.user_message)
+agent/workflows/selector.py:21:        if self._looks_like_canva_post(text):
+agent/workflows/selector.py:22:            if not topic:
+agent/workflows/selector.py:25:                    workflow_name="design_canva_post",
+agent/workflows/selector.py:27:                    reason="missing_topic",
+agent/workflows/selector.py:28:                    missing_info=["topic"],
+agent/workflows/selector.py:30:                    missing_tools=list(DesignCanvaPostWorkflow.missing_tools),
+agent/workflows/selector.py:35:                workflow_name="design_canva_post",
+agent/workflows/selector.py:37:                    "topic": topic,
+agent/workflows/selector.py:38:                    "format": content_type,
+agent/workflows/selector.py:39:                    "target_app": "Canva",
+agent/workflows/selector.py:42:                reason="matched_design_canva_post",
+agent/workflows/selector.py:44:                missing_tools=list(DesignCanvaPostWorkflow.missing_tools),
+agent/workflows/selector.py:53:                missing_info=["target_workflow_or_platform"],
+agent/workflows/selector.py:55:                    "topic": topic,
+agent/workflows/selector.py:56:                    "format": content_type,
+agent/workflows/selector.py:63:    def _looks_like_canva_post(self, text: str) -> bool:
+agent/workflows/selector.py:64:        canva = "canva" in text
+agent/workflows/selector.py:78:        return canva and post_like
+agent/workflows/selector.py:154:    def _extract_topic(self, raw_text: str) -> str | None:
+agent/workflows/selector.py:156:            r"\b(?:del|de la|de los|de las|para|sobre|acerca de)\s+(?P<topic>.+)$",
+agent/workflows/selector.py:162:        topic = match.group("topic").strip(" .,!?:;\"'")
+agent/workflows/selector.py:163:        return topic or None
+agent/workflows/__init__.py:1:from agent.workflows.definitions import DesignCanvaPostWorkflow
+agent/workflows/__init__.py:10:from agent.workflows.human_checkpoint import (
+agent/workflows/__init__.py:16:from agent.workflows.requirement_checker import (
+agent/workflows/__init__.py:18:    RequirementChecker,
+agent/workflows/__init__.py:22:from agent.workflows.runner import FullWorkflowRunner
+agent/workflows/__init__.py:34:from agent.workflows.loop_controller import WorkflowLoopController
+agent/workflows/plan_manager.py:8:from agent.workflows.requirement_checker import (
+agent/workflows/plan_manager.py:10:    RequirementChecker,
+agent/workflows/plan_manager.py:13:from agent.workflows.human_checkpoint import (
+agent/workflows/plan_manager.py:30:        self.requirement_checker = RequirementChecker()
+agent/workflows/plan_manager.py:31:        self.human_checkpoint_manager = HumanCheckpointManager()
+agent/workflows/plan_manager.py:33:    def create_plan(
+agent/workflows/plan_manager.py:111:                lines.append(f"{self._pretty_key(key)}: {self._format_value(value)}")
+agent/workflows/plan_manager.py:167:    def mark_step_waiting_user_input(
+agent/workflows/plan_manager.py:175:        step.status = "waiting_user_input"
+agent/workflows/plan_manager.py:178:        plan.status = "waiting_user_input"
+agent/workflows/plan_manager.py:182:    def mark_step_waiting_approval(
+agent/workflows/plan_manager.py:190:        step.status = "waiting_approval"
+agent/workflows/plan_manager.py:193:        plan.status = "waiting_approval"
+agent/workflows/plan_manager.py:236:    def check_requirements(
+agent/workflows/plan_manager.py:246:        result = self.requirement_checker.check(
+agent/workflows/plan_manager.py:258:        self.apply_requirement_check(plan, step_id, result)
+agent/workflows/plan_manager.py:261:    def apply_requirement_check(
+agent/workflows/plan_manager.py:269:            checkpoint_kind: HumanCheckpointKind = (
+agent/workflows/plan_manager.py:276:            checkpoint = self.human_checkpoint_manager.create_checkpoint(
+agent/workflows/plan_manager.py:279:                kind=checkpoint_kind,
+agent/workflows/plan_manager.py:284:            self.human_checkpoint_manager.pause_plan(plan, checkpoint)
+agent/workflows/plan_manager.py:285:        elif result.needs_user_input:
+agent/workflows/plan_manager.py:286:            checkpoint_kind: HumanCheckpointKind = (
+agent/workflows/plan_manager.py:291:                else "missing_info"
+agent/workflows/plan_manager.py:293:            checkpoint = self.human_checkpoint_manager.create_checkpoint(
+agent/workflows/plan_manager.py:296:                kind=checkpoint_kind,
+agent/workflows/plan_manager.py:301:            self.human_checkpoint_manager.pause_plan(plan, checkpoint)
+agent/workflows/plan_manager.py:302:        elif result.can_continue and plan.status in {"planning", "waiting_user_input", "waiting_approval"}:
+agent/workflows/plan_manager.py:306:    def create_human_checkpoint(
+agent/workflows/plan_manager.py:316:        checkpoint = self.human_checkpoint_manager.create_checkpoint(
+agent/workflows/plan_manager.py:324:        self.human_checkpoint_manager.pause_plan(plan, checkpoint)
+agent/workflows/plan_manager.py:326:        return checkpoint
+agent/workflows/plan_manager.py:328:    def resolve_human_checkpoint(
+agent/workflows/plan_manager.py:331:        checkpoint_id: str,
+agent/workflows/plan_manager.py:337:        self.human_checkpoint_manager.resolve_checkpoint(
+agent/workflows/plan_manager.py:339:            checkpoint_id,
+agent/workflows/plan_manager.py:344:        step = self._get_step_for_checkpoint(plan, checkpoint_id)
+agent/workflows/plan_manager.py:354:    def build_human_checkpoint_payload(
+agent/workflows/plan_manager.py:364:        checkpoint = self.create_human_checkpoint(
+agent/workflows/plan_manager.py:372:        return self.human_checkpoint_manager.to_agent_response_payload(checkpoint)
+agent/workflows/plan_manager.py:388:        return datetime.now(timezone.utc).isoformat()
+agent/workflows/plan_manager.py:406:    def _get_step_for_checkpoint(
+agent/workflows/plan_manager.py:407:        self, plan: WorkflowExecutionPlan, checkpoint_id: str
+agent/workflows/plan_manager.py:409:        for checkpoint in plan.checkpoints:
+agent/workflows/plan_manager.py:410:            if checkpoint.get("checkpoint_id") == checkpoint_id:
+agent/workflows/plan_manager.py:411:                step_id = checkpoint.get("step_id")
+agent/workflows/plan_manager.py:442:    def _format_value(self, value: Any) -> str:
+agent/workflows/plan_manager.py:459:            "waiting_user_input",
+agent/workflows/plan_manager.py:460:            "waiting_approval",
+agent/workflows/plan_manager.py:512:                checked = line.startswith("- [x]")
+agent/workflows/plan_manager.py:518:                        status="completed" if checked else "pending",
+agent/workflows/schemas.py:14:    "waiting_user_input",
+agent/workflows/schemas.py:15:    "waiting_approval",
+agent/workflows/schemas.py:30:    "waiting_user_input",
+agent/workflows/schemas.py:31:    "waiting_approval",
+agent/workflows/schemas.py:72:    missing_info: list[str] = Field(default_factory=list)
+agent/workflows/schemas.py:114:    checkpoint_id: str | None = None
+agent/workflows/schemas.py:131:    phases: list[FullWorkflowPhaseResult] = Field(default_factory=list)
+agent/workflows/schemas.py:134:    needs_user_input: bool = False
+agent/workflows/schemas.py:138:    checkpoint_id: str | None = None
+agent/workflows/human_checkpoint.py:10:    "missing_info",
+agent/workflows/human_checkpoint.py:20:    checkpoint_id: str = Field(default_factory=lambda: uuid4().hex)
+agent/workflows/human_checkpoint.py:33:    status: str = "waiting_user_input"
+agent/workflows/human_checkpoint.py:34:    needs_user_input: bool = True
+agent/workflows/human_checkpoint.py:38:    checkpoint_id: str
+agent/workflows/human_checkpoint.py:42:    """Create, persist, and resolve user-facing checkpoints for workflow pauses."""
+agent/workflows/human_checkpoint.py:44:    def create_checkpoint(
+agent/workflows/human_checkpoint.py:66:        checkpoint: HumanCheckpoint,
+agent/workflows/human_checkpoint.py:68:        plan.active_checkpoint_id = checkpoint.checkpoint_id
+agent/workflows/human_checkpoint.py:69:        plan.checkpoints.append(checkpoint.model_dump(mode="json"))
+agent/workflows/human_checkpoint.py:70:        self._mark_step_for_checkpoint(plan, checkpoint)
+agent/workflows/human_checkpoint.py:71:        self._set_plan_status_for_checkpoint(plan, checkpoint.kind)
+agent/workflows/human_checkpoint.py:72:        self._stash_checkpoint_state(plan, checkpoint)
+agent/workflows/human_checkpoint.py:75:    def resolve_checkpoint(
+agent/workflows/human_checkpoint.py:78:        checkpoint_id: str,
+agent/workflows/human_checkpoint.py:84:        checkpoint = self._get_checkpoint(plan, checkpoint_id)
+agent/workflows/human_checkpoint.py:85:        checkpoint["resolved"] = True
+agent/workflows/human_checkpoint.py:86:        checkpoint["user_response"] = user_response
+agent/workflows/human_checkpoint.py:88:            checkpoint["approved"] = approved
+agent/workflows/human_checkpoint.py:89:        plan.active_checkpoint_id = None
+agent/workflows/human_checkpoint.py:92:        plan.state["active_checkpoint"] = None
+agent/workflows/human_checkpoint.py:93:        plan.state["last_checkpoint_response"] = user_response
+agent/workflows/human_checkpoint.py:96:            checkpoint,
+agent/workflows/human_checkpoint.py:105:        checkpoint: HumanCheckpoint,
+agent/workflows/human_checkpoint.py:110:            text=checkpoint.question,
+agent/workflows/human_checkpoint.py:111:            workflow_id=checkpoint.workflow_id,
+agent/workflows/human_checkpoint.py:112:            current_step_id=checkpoint.step_id,
+agent/workflows/human_checkpoint.py:113:            checkpoint_id=checkpoint.checkpoint_id,
+agent/workflows/human_checkpoint.py:118:        checkpoint: HumanCheckpoint,
+agent/workflows/human_checkpoint.py:121:            text=checkpoint.question,
+agent/workflows/human_checkpoint.py:122:            workflow_id=checkpoint.workflow_id,
+agent/workflows/human_checkpoint.py:123:            current_step_id=checkpoint.step_id,
+agent/workflows/human_checkpoint.py:124:            checkpoint_id=checkpoint.checkpoint_id,
+agent/workflows/human_checkpoint.py:127:    def _mark_step_for_checkpoint(self, plan, checkpoint: HumanCheckpoint) -> None:
+agent/workflows/human_checkpoint.py:128:        if checkpoint.step_id is None:
+agent/workflows/human_checkpoint.py:130:        step = self._get_step(plan, checkpoint.step_id)
+agent/workflows/human_checkpoint.py:131:        if checkpoint.kind in {"approval", "safety_confirmation", "visual_validation"}:
+agent/workflows/human_checkpoint.py:132:            step.status = "waiting_approval"
+agent/workflows/human_checkpoint.py:134:            step.approval_request = checkpoint.question
+agent/workflows/human_checkpoint.py:136:            step.status = "waiting_user_input"
+agent/workflows/human_checkpoint.py:138:            step.question = checkpoint.question
+agent/workflows/human_checkpoint.py:140:    def _set_plan_status_for_checkpoint(self, plan, kind: HumanCheckpointKind) -> None:
+agent/workflows/human_checkpoint.py:142:            plan.status = "waiting_approval"
+agent/workflows/human_checkpoint.py:144:            plan.status = "waiting_user_input"
+agent/workflows/human_checkpoint.py:146:    def _stash_checkpoint_state(self, plan, checkpoint: HumanCheckpoint) -> None:
+agent/workflows/human_checkpoint.py:147:        plan.state["active_checkpoint"] = checkpoint.model_dump(mode="json")
+agent/workflows/human_checkpoint.py:149:    def _get_checkpoint(self, plan, checkpoint_id: str) -> dict[str, Any]:
+agent/workflows/human_checkpoint.py:150:        for checkpoint in plan.checkpoints:
+agent/workflows/human_checkpoint.py:151:            if checkpoint.get("checkpoint_id") == checkpoint_id:
+agent/workflows/human_checkpoint.py:152:                return checkpoint
+agent/workflows/human_checkpoint.py:153:        raise KeyError(f"checkpoint not found: {checkpoint_id}")
+agent/workflows/human_checkpoint.py:158:        checkpoint: dict[str, Any],
+agent/workflows/human_checkpoint.py:163:        step_id = checkpoint.get("step_id")
+agent/workflows/human_checkpoint.py:173:                step.result_summary = user_response or checkpoint.get("question")
+agent/workflows/human_checkpoint.py:176:        elif checkpoint.get("kind") in {"missing_info", "preference", "correction_request"}:
+agent/workflows/human_checkpoint.py:178:            step.result_summary = user_response or checkpoint.get("question")
+agent/workflows/human_checkpoint.py:179:        plan.state["last_checkpoint_response"] = user_response
+agent/workflows/human_checkpoint.py:186:            step.status in {"waiting_user_input", "waiting_approval"}
+agent/workflows/definitions/__init__.py:1:from agent.workflows.definitions.design_canva_post import DesignCanvaPostWorkflow
+agent/workflows/definitions/design_canva_post.py:6:class DesignCanvaPostWorkflow:
+agent/workflows/definitions/design_canva_post.py:7:    name = "design_canva_post"
+agent/workflows/definitions/design_canva_post.py:16:        "canva_automation",
+agent/workflows/definitions/design_canva_post.py:19:    def build_phases(self, inputs) -> list[FullWorkflowStepDefinition]:
+agent/workflows/definitions/design_canva_post.py:20:        topic = inputs.get("topic") or "el tema solicitado"
+agent/workflows/definitions/design_canva_post.py:29:                simulated_actions=[f"Brief principal: {topic}"],
+agent/workflows/definitions/design_canva_post.py:35:                reason_task="genera un prompt creativo para una imagen de post en Canva.",
+agent/workflows/definitions/design_canva_post.py:42:                description="Abrir Canva en el navegador para preparar el workspace.",
+agent/workflows/definitions/design_canva_post.py:43:                tool_goal="Abrir https://www.canva.com en el navegador usando la herramienta disponible mas segura.",
+agent/workflows/definitions/design_canva_post.py:46:                    "query": "https://www.canva.com",
+agent/workflows/definitions/design_canva_post.py:49:                expected_result="Canva abierto o navegacion iniciada.",
+agent/workflows/definitions/design_canva_post.py:96:                description="Transferir el recurso hacia Canva con herramientas futuras.",
+agent/workflows/definitions/design_canva_post.py:98:                tool_arguments={"destination": "canva"},
+agent/workflows/definitions/design_canva_post.py:101:                    "Subirlo a Canva.",
+agent/workflows/definitions/design_canva_post.py:113:                missing_tools=["click", "type_text", "canva_automation"],
+agent/response_action/state_helpers.py:28:def is_clear_topic_change(text: str) -> bool:
+agent/response_action/state_helpers.py:52:        promoted.missing_info = []
+agent/response_action/state_helpers.py:61:def clear_pending_for_topic_change(session: SessionState, user_text: str) -> None:
+agent/response_action/state_helpers.py:62:    if is_clear_topic_change(user_text):
+agent/response_action/state_helpers.py:68:def clear_pending_workflow_for_topic_change(
+agent/response_action/state_helpers.py:71:    if is_clear_topic_change(user_text):
+agent/response_action/controller.py:9:from agent.reflection.checker import ReflectionChecker
+agent/response_action/controller.py:13:from agent.response_action.state_helpers import clear_pending_for_topic_change
+agent/response_action/controller.py:15:from agent.workflows.runner import FullWorkflowRunner
+agent/response_action/controller.py:21:from agent.response_action.state_helpers import is_clear_topic_change
+agent/response_action/controller.py:31:        reflection_checker: ReflectionChecker | None = None,
+agent/response_action/controller.py:34:        full_workflow_runner: FullWorkflowRunner | None = None,
+agent/response_action/controller.py:48:        self.reflection_checker = reflection_checker or ReflectionChecker()
+agent/response_action/controller.py:51:            reflection_checker=self.reflection_checker,
+agent/response_action/controller.py:55:        self.full_workflow_runner = full_workflow_runner or FullWorkflowRunner(
+agent/response_action/controller.py:74:                reflection_checker=self.reflection_checker,
+agent/response_action/controller.py:121:        clear_pending_for_topic_change(session, context.user_message)
+agent/response_action/controller.py:133:            context.router_decision.missing_info or ["missing_details"]
+agent/response_action/controller.py:149:            needs_user_input=True,
+agent/response_action/controller.py:165:            if is_clear_topic_change(context.user_message):
+agent/response_action/controller.py:187:                        "o quieres crearlo como diseño en Canva?"
+agent/response_action/controller.py:189:                elif full_workflow_plan.reason == "missing_topic":
+agent/response_action/controller.py:198:                    needs_user_input=True,
+agent/response_action/controller.py:256:        checkpoint_id = pending_workflow.get("checkpoint_id")
+agent/response_action/controller.py:297:        if checkpoint_id:
+agent/response_action/controller.py:298:            checkpoint = next(
+agent/response_action/controller.py:301:                    for item in workflow_plan.checkpoints
+agent/response_action/controller.py:302:                    if item.get("checkpoint_id") == checkpoint_id
+agent/response_action/controller.py:306:            if checkpoint is not None:
+agent/response_action/controller.py:308:                active_checkpoint = checkpoint.get("kind")
+agent/response_action/controller.py:309:                if active_checkpoint in {"approval", "safety_confirmation", "visual_validation"}:
+agent/response_action/controller.py:311:                plan_manager.resolve_human_checkpoint(
+agent/response_action/controller.py:313:                    checkpoint_id,
+agent/response_action/controller.py:366:        checkpoint = full_workflow_result.state.get_value("active_checkpoint") or {}
+agent/response_action/controller.py:367:        if full_workflow_result.status in {"waiting_user_input", "waiting_approval"}:
+agent/response_action/controller.py:369:                full_workflow_result.phases[-1] if full_workflow_result.phases else None
+agent/response_action/controller.py:371:            checkpoint_kind = checkpoint.get("kind")
+agent/response_action/controller.py:374:                or full_workflow_result.status == "waiting_approval"
+agent/response_action/controller.py:375:                or checkpoint_kind in {"approval", "safety_confirmation", "visual_validation"}
+agent/response_action/controller.py:378:                full_workflow_result.needs_user_input
+agent/response_action/controller.py:379:                or full_workflow_result.status == "waiting_user_input"
+agent/response_action/controller.py:380:                or checkpoint_kind in {"missing_info", "preference", "correction_request"}
+agent/response_action/controller.py:384:                or checkpoint.get("question")
+agent/response_action/controller.py:389:                or checkpoint.get("approval_request")
+agent/response_action/controller.py:400:                or checkpoint.get("workflow_id")
+agent/response_action/controller.py:402:                "checkpoint_id": full_workflow_result.checkpoint_id
+agent/response_action/controller.py:403:                or checkpoint.get("checkpoint_id"),
+agent/response_action/controller.py:405:                or checkpoint.get("step_id")
+agent/response_action/controller.py:416:                    "checkpoint_id": pending_workflow_state.get("checkpoint_id"),
+agent/response_action/controller.py:428:                else "waiting_user_input"
+agent/response_action/controller.py:435:                needs_user_input=True,
+agent/response_action/controller.py:666:            needs_user_input=True,
+agent/response_action/early_ack.py:17:    "macos_permissions_check": [
+agent/response_action/final_response.py:10:    needs_user_input: bool = False,
+agent/response_action/final_response.py:19:        needs_user_input=needs_user_input,
+agent/router/router_prompt.py:4:Do not execute actions. Prefer clarification when important information is missing.
+agent/router/router_prompt.py:16:- Ambiguous browser search intent with a missing topic or destination: route clarification, needs_tool true.
+agent/router/router_prompt.py:21:- Requests to create, design, prepare, produce, or generate a creative asset such as a post, flyer, card, banner, ad, story, publication, caption, copy, or image should route action_ready, domain workflow, action full_workflow_candidate, suggested_skills full_workflows. This applies even if the user does not mention Canva. If the platform or destination is missing, still route action_ready so FullWorkflowSelector can ask a workflow-specific clarification. Do not route these as normal chat.
+agent/router/router_prompt.py:25:- Asking to check Mac permissions: route action_ready, suggested_tools macos_permissions_check.
+agent/router/router_prompt.py:34:- Browser_search is for browser navigation, web information search, known web destinations, and absolute http/https URLs.
+agent/router/router_schema.py:29:    missing_info: list[str] = Field(default_factory=list)
+agent/router/router_validator.py:92:    r")\b.*\bcanva\b|"
+agent/router/router_validator.py:93:    r"\bcanva\b.*\b("
+agent/router/router_validator.py:183:        decision.action = "permissions_check"
+agent/router/router_validator.py:190:        decision.suggested_tools = ["macos_permissions_check"]
+agent/router/router_validator.py:318:        decision.missing_info = ["window_action"]
+agent/router/router_validator.py:337:        decision.missing_info = []
+agent/router/router_validator.py:431:            decision.missing_info = []
+agent/router/router_validator.py:435:            decision.missing_info = ["artist_or_genre"]
+agent/router/router_validator.py:460:            "macos_permissions_check",
+agent/router/xlam_router.py:32:                    format_schema=RouterDecision.json_schema_for_ollama(),

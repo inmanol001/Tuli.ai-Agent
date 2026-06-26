@@ -1,0 +1,10 @@
+===== 00 skills files =====
+agent/capabilities/skills/browser_search/SKILL.md
+agent/capabilities/skills/loader.py
+agent/capabilities/skills/macos_observation.md
+agent/capabilities/skills/macos_spaces.md
+agent/capabilities/skills/macos_windows.md
+agent/capabilities/skills/open_app/SKILL.md
+agent/capabilities/skills/selector.py
+agent/capabilities/skills/validator.py
+agent/capabilities/skills/web_search/SKILL.md

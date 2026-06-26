@@ -128,6 +128,65 @@ def test_browser_search_auto_resolves_general_web_search(monkeypatch):
     assert "google.com/search" in result.data["url"]
 
 
+def test_browser_search_auto_opens_known_site_directly(monkeypatch):
+    recorder = RunRecorder()
+    monkeypatch.setattr(subprocess, "run", recorder)
+
+    result = browser_search("github", target="auto")
+
+    assert result.success is True
+    assert result.data["target"] == "url"
+    assert result.data["url"] == "https://github.com"
+    assert recorder.calls[0][0] == ["/usr/bin/open", "https://github.com"]
+
+
+def test_browser_search_auto_opens_ollama_directly(monkeypatch):
+    recorder = RunRecorder()
+    monkeypatch.setattr(subprocess, "run", recorder)
+
+    result = browser_search("ollama", target="auto")
+
+    assert result.success is True
+    assert result.data["target"] == "url"
+    assert result.data["url"] == "https://ollama.com"
+    assert recorder.calls[0][0] == ["/usr/bin/open", "https://ollama.com"]
+
+
+def test_browser_search_auto_opens_known_site_domain_directly(monkeypatch):
+    recorder = RunRecorder()
+    monkeypatch.setattr(subprocess, "run", recorder)
+
+    result = browser_search("github.com", target="auto")
+
+    assert result.success is True
+    assert result.data["target"] == "url"
+    assert result.data["url"] == "https://github.com"
+    assert recorder.calls[0][0] == ["/usr/bin/open", "https://github.com"]
+
+
+def test_browser_search_auto_opens_docs_domain_directly(monkeypatch):
+    recorder = RunRecorder()
+    monkeypatch.setattr(subprocess, "run", recorder)
+
+    result = browser_search("docs.ollama.com", target="auto")
+
+    assert result.success is True
+    assert result.data["target"] == "url"
+    assert result.data["url"] == "https://docs.ollama.com"
+    assert recorder.calls[0][0] == ["/usr/bin/open", "https://docs.ollama.com"]
+
+
+def test_browser_search_auto_preserves_general_search_for_multiword_query(monkeypatch):
+    recorder = RunRecorder()
+    monkeypatch.setattr(subprocess, "run", recorder)
+
+    result = browser_search("ollama tool calling", target="auto")
+
+    assert result.success is True
+    assert result.data["target"] == "web"
+    assert "google.com/search" in result.data["url"]
+
+
 def test_browser_search_opens_direct_url(monkeypatch):
     recorder = RunRecorder()
     monkeypatch.setattr(subprocess, "run", recorder)
@@ -147,6 +206,16 @@ def test_browser_search_opens_google_home(monkeypatch):
 
     assert result.success is True
     assert result.data["url"] == "https://www.google.com"
+
+
+def test_browser_search_opens_youtube_home(monkeypatch):
+    recorder = RunRecorder()
+    monkeypatch.setattr(subprocess, "run", recorder)
+
+    result = browser_search("YouTube", target="youtube_home")
+
+    assert result.success is True
+    assert result.data["url"] == "https://www.youtube.com"
 
 
 def test_browser_search_empty_query_returns_error():

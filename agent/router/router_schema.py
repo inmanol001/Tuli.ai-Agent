@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
@@ -45,4 +47,3 @@ class RouterResult(BaseModel):
     raw: str
     corrected: bool = False
     error: str | None = None
-

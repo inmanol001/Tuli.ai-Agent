@@ -1,0 +1,1061 @@
+===== agent/models/tool_planner.py =====
+from __future__ import annotations
+
+import json
+from typing import Any
+
+from pydantic import BaseModel, Field
+
+from agent.capabilities.tools.schemas import ToolCall
+from agent.gateway.message_types import ContextPackage
+from agent.models.ollama_client import OllamaClient
+
+
+TOOL_PLANNER_SYSTEM_PROMPT = """You are a macOS tool-calling agent.
+You have tools for web search results, browser navigation/search, macOS apps, macOS observation, fixed macOS window actions, and fixed macOS Spaces actions.
+When the user asks for an action or asks to observe current app/window state, call the matching tool.
+Never say you cannot do something when a matching tool is available.
+Do not pretend you executed an action.
+Do not write JSON manually in content.
+For normal conversation only, answer normally without tools.
+"""
+
+
+class ToolPlannerResult(BaseModel):
+    model_used: str
+    content: str = ""
+    tool_calls: list[ToolCall] = Field(default_factory=list)
+    raw: dict[str, Any] = Field(default_factory=dict)
+    error: str | None = None
+    no_tool_reason: str | None = None
+
+
+class ToolPlanner:
+    def __init__(
+        self,
+        client: OllamaClient | None = None,
+        model: str = "llama3-groq-tool-use:8b",
+    ) -> None:
+        self.client = client or OllamaClient()
+        self.model = model
+
+    def plan(self, context: ContextPackage) -> ToolPlannerResult:
+        tools = self._ollama_tools(context.selected_tools)
+        messages = self._messages(context)
+        try:
+            response = self.client.chat_with_tools(
+                self.model,
+                messages,
+                tools,
+                options={"temperature": 0},
+            )
+            content = self._content(response)
+            tool_calls = self._tool_calls(response, context.selected_tools)
+            return ToolPlannerResult(
+                model_used=self.model,
+                content=content,
+                tool_calls=tool_calls,
+                raw=self._raw_response(response),
+                no_tool_reason=None if tool_calls else "no_native_tool_call",
+            )
+        except Exception as exc:
+            return ToolPlannerResult(
+                model_used=self.model,
+                error=str(exc),
+                no_tool_reason="tool_planner_error",
+            )
+
+    def _messages(self, context: ContextPackage) -> list[dict[str, str]]:
+        session_lines = [
+            f"pending_clarification={context.session_state.get('pending_clarification')}",
+            f"pending_confirmation={context.session_state.get('pending_confirmation')}",
+            f"previous_route={context.session_state.get('previous_route')}",
+            f"current_route={context.session_state.get('current_route')}",
+        ]
+        tool_names = ", ".join(tool.get("name", "") for tool in context.selected_tools)
+        return [
+            {"role": "system", "content": TOOL_PLANNER_SYSTEM_PROMPT},
+            {
+                "role": "system",
+                "content": (
+                    "Available tools: "
+                    f"{tool_names or '(none)'}\n"
+                    "Selected plugins: "
+                    f"{[plugin.get('name') for plugin in context.selected_plugins]}\n"
+                    "Selected skills: "
+                    f"{[skill.get('name') for skill in context.selected_skills]}\n"
+                    "Safety rules:\n- "
+                    + "\n- ".join(context.safety_rules)
+                    + "\nSession state:\n- "
+                    + "\n- ".join(session_lines)
+                ),
+            },
+            {"role": "user", "content": context.user_message},
+        ]
+
+    def _ollama_tools(self, selected_tools: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        tools = []
+        for tool in selected_tools:
+            if not tool.get("active") or not tool.get("declared"):
+                continue
+            tools.append(
+                {
+                    "type": "function",
+                    "function": {
+                        "name": tool["name"],
+                        "description": tool.get("description", ""),
+                        "parameters": tool.get("parameters") or {
+                            "type": "object",
+                            "properties": {},
+                        },
+                    },
+                }
+            )
+        return tools
+
+    def _tool_calls(
+        self, response: Any, selected_tools: list[dict[str, Any]]
+    ) -> list[ToolCall]:
+        selected_by_name = {tool.get("name"): tool for tool in selected_tools}
+        message = self._get(response, "message", {})
+        raw_calls = self._get(message, "tool_calls", []) or []
+        normalized = []
+        for raw_call in raw_calls:
+            function = self._get(raw_call, "function", {})
+            name = self._get(function, "name", None)
+            if not name or name not in selected_by_name:
+                continue
+            arguments = self._get(function, "arguments", {}) or {}
+            if isinstance(arguments, str):
+                try:
+                    arguments = json.loads(arguments)
+                except json.JSONDecodeError:
+                    arguments = {}
+            tool = selected_by_name[name]
+            normalized.append(
+                ToolCall(
+                    tool_name=name,
+                    arguments=arguments,
+                    risk_level=tool.get("risk_level", "low"),
+                    requires_confirmation=False,
+                )
+            )
+        return normalized
+
+    def _content(self, response: Any) -> str:
+        message = self._get(response, "message", {})
+        return self._get(message, "content", "") or ""
+
+    def _raw_response(self, response: Any) -> dict[str, Any]:
+        if hasattr(response, "model_dump"):
+            return response.model_dump(mode="json")
+        if isinstance(response, dict):
+            return response
+        return {"repr": repr(response)}
+
+    def _get(self, value: Any, key: str, default: Any = None) -> Any:
+        if isinstance(value, dict):
+            return value.get(key, default)
+        return getattr(value, key, default)
+===== agent/models/ollama_client.py =====
+from collections.abc import Iterable
+from collections.abc import Iterator
+from typing import Any
+
+
+def _ollama_module():
+    try:
+        import ollama
+    except ModuleNotFoundError as exc:  # pragma: no cover - environment dependent
+        raise ModuleNotFoundError(
+            "ollama is required for live model calls but is not installed in this environment"
+        ) from exc
+    return ollama
+
+
+class OllamaClient:
+    def chat(
+        self,
+        model: str,
+        messages: Iterable[dict[str, str]],
+        *,
+        format_schema: dict[str, Any] | None = None,
+        stream: bool = False,
+        think: bool | str | None = None,
+        options: dict[str, Any] | None = None,
+    ) -> str:
+        ollama = _ollama_module()
+        response = ollama.chat(
+            model=model,
+            messages=list(messages),
+            format=format_schema,
+            stream=stream,
+            think=think,
+            options=options or {},
+        )
+        if stream:
+            return "".join(chunk["message"]["content"] for chunk in response)
+        return response.message.content
+
+    def chat_with_tools(
+        self,
+        model: str,
+        messages: Iterable[dict[str, str]],
+        tools: list[dict[str, Any]],
+        *,
+        options: dict[str, Any] | None = None,
+    ) -> Any:
+        ollama = _ollama_module()
+        return ollama.chat(
+            model=model,
+            messages=list(messages),
+            tools=tools,
+            stream=False,
+            options=options or {},
+        )
+
+    def chat_stream(
+        self,
+        model: str,
+        messages: Iterable[dict[str, str]],
+        *,
+        format_schema: dict[str, Any] | None = None,
+        think: bool | str | None = None,
+        options: dict[str, Any] | None = None,
+    ) -> Iterator[str]:
+        if format_schema is not None:
+            raise ValueError("Streaming with format_schema is not supported.")
+        ollama = _ollama_module()
+        response = ollama.chat(
+            model=model,
+            messages=list(messages),
+            stream=True,
+            think=think,
+            options=options or {},
+        )
+        prefix_buffer = ""
+        filtering_think = True
+        passthrough = False
+        for chunk in response:
+            token = chunk["message"]["content"]
+            if not token:
+                continue
+
+            if passthrough:
+                yield token
+                continue
+
+            prefix_buffer += token
+            lowered = prefix_buffer.lstrip().lower()
+            looks_like_thinking = lowered.startswith("<think") or lowered.startswith(
+                "thinking"
+            )
+
+            if filtering_think and looks_like_thinking:
+                if "</think>" not in prefix_buffer:
+                    continue
+                _, visible = prefix_buffer.split("</think>", 1)
+                prefix_buffer = ""
+                filtering_think = False
+                passthrough = True
+                if visible:
+                    yield visible
+                continue
+
+            if filtering_think and "</think>" in prefix_buffer:
+                _, visible = prefix_buffer.split("</think>", 1)
+                prefix_buffer = ""
+                filtering_think = False
+                passthrough = True
+                if visible:
+                    yield visible
+                continue
+
+            if filtering_think:
+                filtering_think = False
+                passthrough = True
+                yield token
+===== agent/context_builder/assembler.py =====
+from agent.gateway.message_types import ContextPackage
+from agent.capabilities.tools.schemas import ToolCall
+from agent.executor.results import ToolResult
+from agent.rag.formatter import snippets_to_prompt_lines
+
+
+def assemble_messages(context: ContextPackage) -> list[dict[str, str]]:
+    history_lines = [
+        f"{turn.role}: {turn.content}" for turn in context.recent_history[-4:]
+    ] or ["(no recent history)"]
+    state_lines = [
+        f"Previous route: {context.session_state.get('previous_route')}",
+        f"Current route: {context.session_state.get('current_route')}",
+        f"Pending clarification: {context.session_state.get('pending_clarification')}",
+        f"Pending confirmation: {context.session_state.get('pending_confirmation')}",
+    ]
+    capability_lines = [
+        f"Safety rules: {context.safety_rules}",
+        f"Task instruction: {context.task_instruction}",
+        "Session state:",
+        *state_lines,
+        "Recent history:",
+        *history_lines,
+        *snippets_to_prompt_lines(context.rag_snippets),
+    ]
+    return [
+        {"role": "system", "content": context.system_prompt},
+        {"role": "system", "content": "\n".join(capability_lines)},
+        {"role": "user", "content": context.user_message},
+    ]
+
+
+def assemble_action_messages(context: ContextPackage) -> list[dict[str, str]]:
+    messages = assemble_messages(context)
+    messages.insert(
+        1,
+        {
+            "role": "system",
+            "content": (
+                "Return only valid JSON matching the provided schema. "
+                "Choose one of: chat_response, clarification_question, tool_call, "
+                "safety_confirmation, final_answer, error. "
+                "If route is action_ready, use an available tool when helpful: "
+                "open_app with {'app_name': ...}, web_search with {'query': ..., 'max_results': 5}, browser_search with {'query': ..., 'target': ...}, "
+                "macOS observation tools with {}, "
+                "or macOS Spaces tools with {} except macos_space_switch_desktop_number "
+                "which requires {'number': 1-9}. "
+                "Use web_search when the user asks to investigate, look up, search the internet, find news, find documentation, or answer using web results. Use browser_search only when opening/navigating the browser will actually help. "
+                "Never invent tool results."
+            ),
+        },
+    )
+    return messages
+
+
+def assemble_final_messages(
+    context: ContextPackage, tool_call: ToolCall, tool_result: ToolResult
+) -> list[dict[str, str]]:
+    return [
+        {"role": "system", "content": context.system_prompt},
+        {
+            "role": "system",
+            "content": (
+                "Use the provided tool result to answer the user. "
+                "Do not invent facts beyond the tool result."
+            ),
+        },
+        {"role": "user", "content": context.user_message},
+        {
+            "role": "tool",
+            "content": (
+                f"tool_call={tool_call.model_dump(mode='json')} "
+                f"tool_result={tool_result.model_dump(mode='json')}"
+            ),
+        },
+    ]
+===== agent/context_builder/builder.py =====
+from agent.context_builder.capability_context import CapabilityContextBuilder
+from agent.gateway.message_types import ContextPackage
+from agent.gateway.session_manager import SessionState
+from agent.rag.retriever import RagRetriever
+from agent.router.router_schema import RouterDecision
+
+
+class ContextBuilder:
+    def __init__(self, capability_context=None, rag_retriever=None) -> None:
+        self.capability_context = capability_context or CapabilityContextBuilder()
+        self.rag_retriever = rag_retriever or RagRetriever()
+
+    def build(
+        self,
+        user_message: str,
+        decision: RouterDecision,
+        session: SessionState,
+    ) -> ContextPackage:
+        recent_history = list(session.history)
+        if recent_history:
+            last_turn = recent_history[-1]
+            if last_turn.role == "user" and last_turn.content == user_message:
+                recent_history = recent_history[:-1]
+
+        capabilities = self.capability_context.select(decision)
+        rag_snippets = []
+        if decision.needs_rag or decision.route == "rag_lookup":
+            rag_snippets = self.rag_retriever.retrieve(user_message)[:3]
+        safety_rules = [
+            "No screenshots, vision, desktop automation, terminal commands, or file writes in current phase.",
+            "Ask for confirmation before medium or high risk actions.",
+            "Only web_search, browser_search, open_app, macOS observation tools, fixed macOS window tools, and fixed macOS Spaces tools may be executed in the current phase.",
+            "web_search may search the web and return structured results to the agent. browser_search may open absolute http or https URLs and perform browser-based navigation/search in the browser.",
+            "window_native_tiling may only act on the frontmost window using a fixed native menu allowlist and cannot verify the final position visually.",
+            "macOS observation tools may read app/window/permission state but must not click, type, move windows, change Spaces, or request permissions.",
+            "macOS Spaces tools may only use fixed System Events shortcuts for Spaces/Mission Control; never run AppleScript generated by the model.",
+            "Use RAG snippets only for knowledge-base questions.",
+        ]
+        instruction = self._task_instruction(decision)
+        return ContextPackage(
+            system_prompt=(
+                "You are a local MVP agent. Answer clearly and briefly. "
+                "Use only approved capabilities for the current phase. "
+                "Only web_search, browser_search, open_app, macOS observation tools, fixed macOS window tools, and fixed macOS Spaces tools may be executed."
+            ),
+            user_message=user_message,
+            router_decision=decision,
+            recent_history=recent_history,
+            session_state={
+                "pending_clarification": session.pending_clarification,
+                "pending_confirmation": session.pending_confirmation,
+                "pending_workflow": session.pending_workflow,
+                "previous_route": session.previous_route,
+                "current_route": session.current_route,
+            },
+            selected_plugins=capabilities["plugins"],
+            selected_skills=capabilities["skills"],
+            selected_tools=capabilities["tools"],
+            rag_snippets=rag_snippets,
+            safety_rules=safety_rules,
+            task_instruction=instruction,
+        )
+
+    def _task_instruction(self, decision: RouterDecision) -> str:
+        if decision.route == "clarification":
+            return "Ask one short clarification question."
+        if decision.route == "memory_lookup":
+            return "Use persistent session memory only; do not search the knowledge base."
+        if decision.route == "rag_lookup":
+            return (
+                "Answer using only the provided RAG snippets. "
+                "If no snippets are available, say the knowledge base has no sufficient information."
+            )
+        if decision.route == "safety_confirmation":
+            return "Ask for confirmation without executing the action."
+        if decision.route == "action_ready":
+            return (
+                "If the request is specific enough, prefer an available low-risk tool_call. "
+                "Use open_app for app names. "
+                "Use web_search when the user wants information/results to answer from the web. Use browser_search only for opening browser pages, known web destinations, YouTube/Google navigation, and direct http/https URLs. "
+                "Use window_native_tiling for moving, centering, filling, or resizing the frontmost macOS window with fixed native menu actions. "
+                "Choose a specific target only when the user clearly requested that destination or provided a direct URL. "
+                "Use macOS observation tools for app/window/permission/app-list questions. "
+                "Use macOS window tools only for the frontmost window and never claim visual verification unless it is explicitly confirmed. "
+                "Use macOS Spaces tools for Spaces, Desktop, and Mission Control questions. "
+                "Do not act as if a browser action happened unless a real tool_call succeeded. "
+                "Do not ask for permission for low-risk approved tools. "
+                "Only answer directly without a tool if the tool would not help."
+            )
+        return "Respond normally."
+===== agent/capabilities/tools/registry.py =====
+from agent.capabilities.tools.macos_window_tools import NATIVE_TILING_ACTIONS
+from agent.capabilities.tools.schemas import ToolDefinition
+
+
+class ToolRegistry:
+    def __init__(self) -> None:
+        self._tools = {
+            "web_search": ToolDefinition(
+                name="web_search",
+                description="Search the web and return structured search results to the agent without opening the browser. Use this when the user asks to investigate, look up current information, search the internet, find documentation, compare sources, or answer using web results.",
+                parameters={
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "string",
+                            "description": "The web search query.",
+                        },
+                        "max_results": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 10,
+                            "description": "Maximum number of search results to return.",
+                        },
+                    },
+                    "required": ["query"],
+                },
+                risk_level="low",
+                declared=True,
+                active=True,
+            ),
+            "browser_search": ToolDefinition(
+                name="browser_search",
+                description="Open the default browser for web navigation or search. Use this when the user wants to search for information, open a website, open an absolute http/https URL, or navigate to a known web destination. Do not use this for macOS apps, files, terminal commands, screenshots, clicks, typing, or window control.",
+                parameters={
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "string",
+                            "description": "The search topic, website name, or absolute http/https URL requested by the user.",
+                        },
+                        "target": {
+                            "type": "string",
+                            "enum": [
+                                "auto",
+                                "web",
+                                "google",
+                                "youtube",
+                                "url",
+                                "google_home",
+                                "youtube_home",
+                            ],
+                            "description": "Browser destination mode. Use auto unless the user clearly requested a specific destination or provided a URL.",
+                        },
+                    },
+                    "required": ["query"],
+                },
+                risk_level="low",
+                declared=True,
+                active=True,
+            ),
+            "take_screenshot": ToolDefinition(
+                name="take_screenshot",
+                description="Future screenshot tool. Not available in this phase.",
+                declared=True,
+                active=False,
+            ),
+            "screenshot": ToolDefinition(
+                name="screenshot",
+                description="Future vision screenshot tool. Not available in this phase.",
+                declared=True,
+                active=False,
+            ),
+            "screen_analysis": ToolDefinition(
+                name="screen_analysis",
+                description="Future screen analysis tool. Not available in this phase.",
+                declared=True,
+                active=False,
+            ),
+            "open_app": ToolDefinition(
+                name="open_app",
+                description="Open a macOS application by name. Use this for: abre Chrome, abre Finder, abre Notes.",
+                parameters={
+                    "type": "object",
+                    "properties": {"app_name": {"type": "string"}},
+                    "required": ["app_name"],
+                },
+                risk_level="low",
+                declared=True,
+                active=True,
+            ),
+            "window_native_tiling": ToolDefinition(
+                name="window_native_tiling",
+                description="Move or resize the frontmost macOS window using safe native Window menu actions from a fixed allowlist.",
+                parameters={
+                    "type": "object",
+                    "properties": {
+                        "action": {
+                            "type": "string",
+                            "enum": list(NATIVE_TILING_ACTIONS),
+                            "description": "Allowed native macOS window tiling action for the frontmost window.",
+                        }
+                    },
+                    "required": ["action"],
+                },
+                risk_level="low",
+                declared=True,
+                active=True,
+            ),
+            "open_url": ToolDefinition(
+                name="open_url",
+                description="Open an http or https URL in the default browser. Use this when the user gives a direct URL.",
+                parameters={
+                    "type": "object",
+                    "properties": {"url": {"type": "string"}},
+                    "required": ["url"],
+                },
+                risk_level="low",
+                declared=False,
+                active=False,
+            ),
+            "macos_permissions_check": ToolDefinition(
+                name="macos_permissions_check",
+                description="Check relevant macOS observation permissions.",
+                parameters={"type": "object", "properties": {}, "required": []},
+                risk_level="low",
+                declared=True,
+                active=True,
+            ),
+            "macos_observe_frontmost": ToolDefinition(
+                name="macos_observe_frontmost",
+                description="Observe/check the current frontmost macOS app and active window. Use this for: que app esta abierta, cual app esta activa, que ventana esta activa, what app is open, current app.",
+                parameters={"type": "object", "properties": {}, "required": []},
+                risk_level="low",
+                declared=True,
+                active=True,
+            ),
+            "macos_visible_windows": ToolDefinition(
+                name="macos_visible_windows",
+                description="List visible macOS windows without controlling them.",
+                parameters={"type": "object", "properties": {}, "required": []},
+                risk_level="low",
+                declared=True,
+                active=True,
+            ),
+            "macos_list_apps": ToolDefinition(
+                name="macos_list_apps",
+                description="List known and installed macOS applications.",
+                parameters={"type": "object", "properties": {}, "required": []},
+                risk_level="low",
+                declared=True,
+                active=True,
+            ),
+            "macos_space_status": ToolDefinition(
+                name="macos_space_status",
+                description="Report basic macOS Spaces status without changing Spaces.",
+                parameters={"type": "object", "properties": {}, "required": []},
+                risk_level="low",
+                declared=True,
+                active=True,
+            ),
+            "macos_space_next": ToolDefinition(
+                name="macos_space_next",
+                description="Switch to the next macOS desktop/space. Use this for: siguiente escritorio, proximo escritorio, next desktop, next space.",
+                parameters={"type": "object", "properties": {}, "required": []},
+                risk_level="low",
+                declared=True,
+                active=True,
+            ),
+            "macos_space_previous": ToolDefinition(
+                name="macos_space_previous",
+                description="Switch to the previous macOS desktop/space. Use this for: escritorio anterior, space anterior, desktop anterior, previous desktop, previous space.",
+                parameters={"type": "object", "properties": {}, "required": []},
+                risk_level="low",
+                declared=True,
+                active=True,
+            ),
+            "macos_space_mission_control": ToolDefinition(
+                name="macos_space_mission_control",
+                description="Open macOS Mission Control. Use this for: abre mission control, muestra control de mision.",
+                parameters={"type": "object", "properties": {}, "required": []},
+                risk_level="low",
+                declared=True,
+                active=True,
+            ),
+            "macos_space_switch_desktop_number": ToolDefinition(
+                name="macos_space_switch_desktop_number",
+                description="Switch to a numbered macOS desktop/space. Use this when the user says: cambia al escritorio 1, desktop 2, space 3, me refiero al escritorio 4, ve al escritorio 2.",
+                parameters={
+                    "type": "object",
+                    "properties": {"number": {"type": "integer", "minimum": 1, "maximum": 9}},
+                    "required": ["number"],
+                },
+                risk_level="low",
+                declared=True,
+                active=True,
+            ),
+            "click": ToolDefinition(
+                name="click",
+                description="Future desktop click tool. Not available in this phase.",
+                risk_level="medium",
+                declared=True,
+                active=False,
+            ),
+            "type_text": ToolDefinition(
+                name="type_text",
+                description="Future desktop typing tool. Not available in this phase.",
+                risk_level="medium",
+                declared=True,
+                active=False,
+            ),
+            "paste_text": ToolDefinition(
+                name="paste_text",
+                description="Future desktop paste tool. Not available in this phase.",
+                risk_level="medium",
+                declared=True,
+                active=False,
+            ),
+            "terminal_run_command": ToolDefinition(
+                name="terminal_run_command",
+                description="Future terminal tool. Not available in this phase.",
+                risk_level="high",
+                declared=True,
+                active=False,
+            ),
+            "write_file": ToolDefinition(
+                name="write_file",
+                description="Future file writing tool. Not available in this phase.",
+                risk_level="medium",
+                declared=True,
+                active=False,
+            ),
+        }
+
+    def all(self) -> list[ToolDefinition]:
+        return list(self._tools.values())
+
+    def get(self, name: str) -> ToolDefinition | None:
+        return self._tools.get(name)
+
+    def find_declared(self, names: list[str]) -> list[ToolDefinition]:
+        return [
+            tool
+            for name in names
+            if (tool := self.get(name)) is not None and tool.declared
+        ]
+
+    def find_active(self, names: list[str]) -> list[ToolDefinition]:
+        return [
+            tool
+            for name in names
+            if (tool := self.get(name)) is not None and tool.active
+        ]
+===== agent/capabilities/tools/web_search_tools.py =====
+from __future__ import annotations
+
+from typing import Any
+
+from agent.executor.results import ToolResult
+
+
+def web_search(
+    query: str,
+    max_results: int = 5,
+    *,
+    region: str = "us-en",
+    safesearch: str = "moderate",
+    timelimit: str | None = None,
+) -> ToolResult:
+    """Search the web and return structured results to the agent.
+
+    This does NOT open the browser. It returns title/url/snippet results.
+    """
+
+    clean_query = (query or "").strip()
+    if not clean_query:
+        return ToolResult(
+            tool_name="web_search",
+            success=False,
+            error="web_search requires a non-empty query",
+            metadata={"phase": "real_tool", "provider": "ddgs"},
+        )
+
+    try:
+        max_results_int = int(max_results)
+    except Exception:
+        max_results_int = 5
+
+    max_results_int = max(1, min(max_results_int, 10))
+
+    try:
+        from ddgs import DDGS
+    except Exception as exc:
+        return ToolResult(
+            tool_name="web_search",
+            success=False,
+            error=f"ddgs is not installed or could not be imported: {exc}",
+            metadata={"phase": "real_tool", "provider": "ddgs"},
+        )
+
+    try:
+        with DDGS() as ddgs:
+            raw_results = list(
+                ddgs.text(
+                    clean_query,
+                    region=region,
+                    safesearch=safesearch,
+                    timelimit=timelimit,
+                    max_results=max_results_int,
+                )
+            )
+    except Exception as exc:
+        return ToolResult(
+            tool_name="web_search",
+            success=False,
+            error=f"web_search failed: {exc}",
+            data={"query": clean_query},
+            metadata={"phase": "real_tool", "provider": "ddgs"},
+        )
+
+    results: list[dict[str, Any]] = []
+    for item in raw_results:
+        title = (item.get("title") or "").strip()
+        url = (item.get("href") or item.get("url") or "").strip()
+        snippet = (item.get("body") or item.get("snippet") or "").strip()
+
+        if not title and not url and not snippet:
+            continue
+
+        results.append(
+            {
+                "title": title,
+                "url": url,
+                "snippet": snippet,
+            }
+        )
+
+    return ToolResult(
+        tool_name="web_search",
+        success=True,
+        data={
+            "query": clean_query,
+            "results": results,
+            "count": len(results),
+            "provider": "ddgs",
+        },
+        metadata={
+            "phase": "real_tool",
+            "provider": "ddgs",
+            "max_results": max_results_int,
+            "region": region,
+            "safesearch": safesearch,
+            "timelimit": timelimit,
+        },
+    )
+===== agent/response_action/controller.py =====
+from agent.gateway.message_types import AgentResponse, ContextPackage
+from agent.gateway.session_manager import SessionState
+from agent.executor.executor import Executor
+from agent.execution.action_runner import ActionRunner
+from agent.models.main_model import MainModel
+from agent.models.action_models import ModelAction
+from agent.models.tool_finalizer import ToolFinalizerModel
+from agent.models.tool_planner import ToolPlanner
+from agent.reflection.checker import ReflectionChecker
+from agent.reflection.messages import final_stop_message
+from agent.reflection.schemas import ReflectionDecision
+from agent.response_action.final_response import build_response
+from agent.response_action.state_helpers import clear_pending_for_topic_change
+from agent.workflows.finalizer import FullWorkflowFinalizer
+from agent.workflows.runner import FullWorkflowRunner
+from agent.workflows.selector import FullWorkflowSelector
+from agent.workflows.schemas import FullWorkflowPlan
+from agent.action_macros.executor import ActionMacroExecutor
+from agent.action_macros.finalizer import ActionMacroFinalizer
+from agent.action_macros.selector import ActionMacroSelector
+from agent.response_action.state_helpers import is_clear_topic_change
+
+
+class ResponseController:
+    def __init__(
+        self,
+        main_model: MainModel | None = None,
+        tool_planner: ToolPlanner | None = None,
+        tool_finalizer: ToolFinalizerModel | None = None,
+        executor: Executor | None = None,
+        reflection_checker: ReflectionChecker | None = None,
+        action_runner: ActionRunner | None = None,
+        full_workflow_selector: FullWorkflowSelector | None = None,
+        full_workflow_runner: FullWorkflowRunner | None = None,
+        full_workflow_finalizer: FullWorkflowFinalizer | None = None,
+        action_macro_selector: ActionMacroSelector | None = None,
+        action_macro_executor: ActionMacroExecutor | None = None,
+        action_macro_finalizer: ActionMacroFinalizer | None = None,
+        workflow_selector=None,
+        workflow_executor=None,
+        workflow_finalizer=None,
+        max_retries: int = 2,
+    ) -> None:
+        self.main_model = main_model or MainModel()
+        self.tool_planner = tool_planner or ToolPlanner()
+        self.tool_finalizer = tool_finalizer or ToolFinalizerModel()
+        self.executor = executor or Executor()
+        self.reflection_checker = reflection_checker or ReflectionChecker()
+        self.action_runner = action_runner or ActionRunner(
+            executor=self.executor,
+            reflection_checker=self.reflection_checker,
+            max_retries=max_retries,
+        )
+        self.full_workflow_selector = full_workflow_selector or FullWorkflowSelector()
+        self.full_workflow_runner = full_workflow_runner or FullWorkflowRunner(
+            executor=self.executor,
+            action_runner=self.action_runner,
+        )
+        if hasattr(self.full_workflow_runner, "action_runner"):
+            self.full_workflow_runner.action_runner = self.action_runner
+        self.full_workflow_finalizer = (
+            full_workflow_finalizer or FullWorkflowFinalizer()
+        )
+        self.action_macro_selector = (
+            action_macro_selector
+            or workflow_selector
+            or ActionMacroSelector()
+        )
+        self.action_macro_executor = (
+            action_macro_executor
+            or workflow_executor
+            or ActionMacroExecutor(
+                executor=self.executor,
+                reflection_checker=self.reflection_checker,
+                action_runner=self.action_runner,
+                max_retries=max_retries,
+            )
+        )
+        if hasattr(self.action_macro_executor, "action_runner"):
+            self.action_macro_executor.action_runner = self.action_runner
+        self.action_macro_finalizer = (
+            action_macro_finalizer
+            or workflow_finalizer
+            or ActionMacroFinalizer()
+        )
+        self.workflow_selector = self.action_macro_selector
+        self.workflow_executor = self.action_macro_executor
+        self.workflow_finalizer = self.action_macro_finalizer
+        self.max_retries = max_retries
+
+    def handle(
+        self,
+        context: ContextPackage,
+        session: SessionState,
+        *,
+        debug: dict | None = None,
+    ) -> AgentResponse:
+        route = context.router_decision.route
+        if route == "clarification":
+            return self.handle_clarification(context, session, debug=debug)
+        if route == "memory_lookup":
+            return self.handle_memory_lookup(context, session, debug=debug)
+        if route == "rag_lookup":
+            return self.handle_rag_lookup(context, session, debug=debug)
+        if route == "safety_confirmation":
+            return self.handle_safety_confirmation(context, session, debug=debug)
+        if route == "action_ready":
+            return self.handle_action_ready(context, session, debug=debug)
+        if route == "refuse":
+            return self.handle_refuse(context, session, debug=debug)
+
+        return self.handle_chat(context, session, debug=debug)
+
+    def handle_chat(
+        self,
+        context: ContextPackage,
+        session: SessionState,
+        *,
+        debug: dict | None = None,
+    ) -> AgentResponse:
+        clear_pending_for_topic_change(session, context.user_message)
+        text = self.main_model.respond(context)
+        return build_response(session.session_id, "ok", text, "chat", debug=debug)
+
+    def handle_clarification(
+        self,
+        context: ContextPackage,
+        session: SessionState,
+        *,
+        debug: dict | None = None,
+    ) -> AgentResponse:
+        session.pending_clarification = ",".join(
+            context.router_decision.missing_info or ["missing_details"]
+        )
+        if context.router_decision.action == "window_native_tiling":
+            text = (
+                "Claro. ¿Qué acción quieres hacer con la ventana activa: izquierda, derecha, "
+                "centrar, llenar, esquina o volver al tamaño anterior?"
+            )
+        elif context.router_decision.domain == "browser":
+            text = "Claro. ¿Qué tema o destino web quieres que abra o busque?"
+        else:
+            text = "Claro. ¿Qué detalle te falta para continuar?"
+        return build_response(
+            session.session_id,
+            "needs_clarification",
+            text,
+            context.router_decision.route,
+            needs_user_input=True,
+            debug=debug,
+        )
+
+    def handle_action_ready(
+        self,
+        context: ContextPackage,
+        session: SessionState,
+        *,
+        debug: dict | None = None,
+    ) -> AgentResponse:
+        session.pending_clarification = None
+        action_debug = dict(debug or {})
+
+        pending_workflow = self._get_pending_workflow(session)
+        if pending_workflow:
+            if is_clear_topic_change(context.user_message):
+                action_debug["pending_workflow_cancelled"] = dict(pending_workflow)
+                self._set_pending_workflow(session, None)
+                session.pending_confirmation = None
+                session.pending_clarification = None
+            else:
+                return self._resume_pending_workflow(
+                    context,
+                    session,
+                    action_debug,
+                    debug=debug,
+                )
+
+        full_workflow_plan = self.full_workflow_selector.select(context)
+        full_workflow_debug = full_workflow_plan.model_dump(mode="json")
+        action_debug["full_workflow_selector"] = full_workflow_debug
+        if full_workflow_plan.selected:
+            if full_workflow_plan.status == "needs_clarification":
+                clarification_text = "Claro. ¿Sobre qué tema quieres que prepare el post?"
+                if full_workflow_plan.reason == "missing_workflow_target":
+                    clarification_text = (
+                        "Claro. ¿Quieres que prepare el post como texto solamente "
+                        "o quieres crearlo como diseño en Canva?"
+                    )
+                elif full_workflow_plan.reason == "missing_topic":
+                    clarification_text = (
+                        "Claro. ¿Sobre qué tema quieres que prepare el post?"
+                    )
+                return build_response(
+                    session.session_id,
+                    "needs_clarification",
+                    clarification_text,
+                    context.router_decision.route,
+                    needs_user_input=True,
+                    debug=action_debug,
+                )
+            return self._run_full_workflow(
+                context,
+                session,
+                full_workflow_plan,
+                action_debug,
+                debug=debug,
+            )
+
+        macro_plan = self.action_macro_selector.select(context)
+        macro_debug = macro_plan.model_dump(mode="json")
+        action_debug["action_macro_selector"] = macro_debug
+        action_debug["workflow_selector"] = macro_debug
+        if macro_plan.selected:
+            return self._run_action_macro(
+                context,
+                session,
+                macro_plan,
+                action_debug,
+                debug=debug,
+            )
+        planner_result = self.tool_planner.plan(context)
+        action_debug["tool_planner"] = planner_result.model_dump(mode="json")
+
+        if planner_result.error:
+            return build_response(
+                session.session_id,
+                "error",
+                f"No ejecuté la acción porque el modelo de herramientas falló: {planner_result.error}",
+                context.router_decision.route,
+                debug=action_debug,
+            )
+
+        if not planner_result.tool_calls:
+            return build_response(
+                session.session_id,
+                "error",
+                "No ejecuté la acción porque el modelo de herramientas no generó una llamada válida.",
+                context.router_decision.route,
+                debug=action_debug,
+            )
+
+        action = ModelAction(kind="tool_call", tool_call=planner_result.tool_calls[0])
+        action_debug["model_action"] = action.model_dump(mode="json")
+        return self._run_tool_action(context, session, action, action_debug, debug=debug)
+
+    def _resume_pending_workflow(
+        self,
+        context: ContextPackage,
+        session: SessionState,
+        action_debug: dict,
+        *,
+        debug: dict | None = None,
+    ) -> AgentResponse:
+        pending_workflow = dict(self._get_pending_workflow(session) or {})
+        workflow_id = pending_workflow.get("workflow_id")
+        checkpoint_id = pending_workflow.get("checkpoint_id")
+        if not workflow_id:
+            self._set_pending_workflow(session, None)
+            return build_response(
+                session.session_id,

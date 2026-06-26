@@ -31,6 +31,7 @@ def test_sqlite_store_round_trips_session_and_turns(tmp_path):
         current_route="clarification",
         pending_clarification="artist_or_genre",
         pending_confirmation={"message": "borra"},
+        pending_workflow={"workflow_id": "wf-1", "checkpoint_id": "cp-1"},
     )
     store.append_turn("abc", "user", "hola")
     store.append_turn("abc", "assistant", "hola")
@@ -40,6 +41,7 @@ def test_sqlite_store_round_trips_session_and_turns(tmp_path):
 
     assert state["pending_confirmation"] == {"message": "borra"}
     assert state["pending_clarification"] == "artist_or_genre"
+    assert state["pending_workflow"] == {"workflow_id": "wf-1", "checkpoint_id": "cp-1"}
     assert [turn["content"] for turn in turns] == ["hola", "hola"]
 
 

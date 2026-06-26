@@ -200,6 +200,13 @@ def test_visible_windows_question_routes_to_visible_windows():
     assert decision.suggested_tools == ["macos_visible_windows"]
 
 
+def test_visible_windows_available_routes_to_visible_windows():
+    decision = route_for("muéstrame las ventanas disponibles")
+    assert decision.route == "action_ready"
+    assert decision.needs_tool is True
+    assert decision.suggested_tools == ["macos_visible_windows"]
+
+
 def test_permissions_question_routes_to_permissions_check():
     decision = route_for("revisa permisos de mac")
     assert decision.route == "action_ready"
